@@ -7,7 +7,11 @@
    Quando publicares, troca apenas a linha BASE em baixo.
    ========================================================= */
 const API = (function () {
-  const BASE = "http://localhost:3000";
+  // Em casa (localhost) usa o backend local; publicado, usa o do Render.
+  const LOCAL = "http://localhost:3000";
+  const PRODUCAO = "https://rende-backend-33m7.onrender.com";
+  const emCasa = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  const BASE = emCasa ? LOCAL : PRODUCAO;
 
   const TOKEN_KEY = "rende_token";
   const getToken = () => { try { return localStorage.getItem(TOKEN_KEY) || null; } catch { return null; } };
