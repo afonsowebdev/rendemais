@@ -1,4 +1,4 @@
-/* ===== Rende+ — design tokens ===== */
+/* ===== Rende+ â€” design tokens ===== */
 :root {
   --radius: 16px;
   --radius-sm: 10px;
@@ -7,7 +7,7 @@
   --space: 1;
   --font-ui: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* accent (financial green) — overridable via tweak */
+  /* accent (financial green) â€” overridable via tweak */
   --accent: #14a06b;
   --accent-ink: #0a5a3c;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -384,36 +384,36 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 [data-density="comfy"] .grid { gap: 22px; }
 
 /* ============================================================
-   Animações de entrada — APENAS na página inicial (.lp)
-   Sequência em cascata ao carregar a página.
+   AnimaÃ§Ãµes de entrada â€” APENAS na pÃ¡gina inicial (.lp)
+   SequÃªncia em cascata ao carregar a pÃ¡gina.
    ============================================================ */
 @keyframes lpFadeUp    { from { opacity: 0; transform: translateY(18px); }            to { opacity: 1; transform: translateY(0); } }
 @keyframes lpFadeIn    { from { opacity: 0; }                                          to { opacity: 1; } }
 @keyframes lpFadeRight { from { opacity: 0; transform: translateX(26px); }            to { opacity: 1; transform: translateX(0); } }
 @keyframes lpPop       { from { opacity: 0; transform: scale(.96) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-/* cabeçalho */
+/* cabeÃ§alho */
 .lp .lp-header { animation: lpFadeIn .5s ease both; }
 
-/* hero — coluna de texto, em cascata */
+/* hero â€” coluna de texto, em cascata */
 .lp .lp-eyebrow { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .06s; }
 .lp .lp-h1      { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .14s; }
 .lp .lp-sub     { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .22s; }
 .lp .lp-cta     { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .30s; }
 .lp .lp-trust   { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .38s; }
 
-/* hero — cartão de pré-visualização entra pela direita */
+/* hero â€” cartÃ£o de prÃ©-visualizaÃ§Ã£o entra pela direita */
 .lp .lp-preview { animation: lpFadeRight .7s cubic-bezier(.22,.61,.36,1) both; animation-delay: .28s; }
 .lp .lp-float   { animation: lpFadeIn .6s ease both; animation-delay: .72s; }
 
-/* secção de funcionalidades */
+/* secÃ§Ã£o de funcionalidades */
 .lp .lp-feats-head        { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .10s; }
 .lp .lp-feat              { animation: lpPop .55s cubic-bezier(.22,.61,.36,1) both; }
 .lp .lp-feat:nth-child(1) { animation-delay: .14s; }
 .lp .lp-feat:nth-child(2) { animation-delay: .22s; }
 .lp .lp-feat:nth-child(3) { animation-delay: .30s; }
 
-/* secção de moedas */
+/* secÃ§Ã£o de moedas */
 .lp .lp-curr > div:first-child { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .08s; }
 .lp .lp-curr-chip              { animation: lpPop .5s cubic-bezier(.22,.61,.36,1) both; }
 .lp .lp-curr-chip:nth-child(1) { animation-delay: .10s; }
@@ -426,4 +426,18 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 /* acessibilidade: respeitar quem prefere menos movimento */
 @media (prefers-reduced-motion: reduce) {
   .lp, .lp * { animation: none !important; }
+}
+
+/* ============================================================
+   CorreÃ§Ãµes responsivas (telemÃ³vel) â€” grelhas do painel que
+   nÃ£o estavam a colapsar e ficavam espremidas/distorcidas.
+   ============================================================ */
+@media (max-width: 860px) {
+  .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; } /* 4 mÃ©tricas â†’ 2x2 */
+  .grid[style*="repeat(3"] { grid-template-columns: repeat(2, 1fr) !important; } /* alertas 3 â†’ 2 */
+  .grid[style*="1.5fr"]    { grid-template-columns: 1fr !important; }            /* grÃ¡fico + lista â†’ empilhado */
+}
+@media (max-width: 480px) {
+  .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; } /* mantÃ©m 2x2 no telemÃ³vel */
+  .grid[style*="repeat(3"] { grid-template-columns: 1fr !important; }
 }
