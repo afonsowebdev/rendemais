@@ -382,3 +382,48 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 [data-density="comfy"] .content { gap: 28px; padding: 34px 40px 60px; }
 [data-density="comfy"] .card-pad { padding: 26px; }
 [data-density="comfy"] .grid { gap: 22px; }
+
+/* ============================================================
+   Animações de entrada — APENAS na página inicial (.lp)
+   Sequência em cascata ao carregar a página.
+   ============================================================ */
+@keyframes lpFadeUp    { from { opacity: 0; transform: translateY(18px); }            to { opacity: 1; transform: translateY(0); } }
+@keyframes lpFadeIn    { from { opacity: 0; }                                          to { opacity: 1; } }
+@keyframes lpFadeRight { from { opacity: 0; transform: translateX(26px); }            to { opacity: 1; transform: translateX(0); } }
+@keyframes lpPop       { from { opacity: 0; transform: scale(.96) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* cabeçalho */
+.lp .lp-header { animation: lpFadeIn .5s ease both; }
+
+/* hero — coluna de texto, em cascata */
+.lp .lp-eyebrow { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .06s; }
+.lp .lp-h1      { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .14s; }
+.lp .lp-sub     { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .22s; }
+.lp .lp-cta     { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .30s; }
+.lp .lp-trust   { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .38s; }
+
+/* hero — cartão de pré-visualização entra pela direita */
+.lp .lp-preview { animation: lpFadeRight .7s cubic-bezier(.22,.61,.36,1) both; animation-delay: .28s; }
+.lp .lp-float   { animation: lpFadeIn .6s ease both; animation-delay: .72s; }
+
+/* secção de funcionalidades */
+.lp .lp-feats-head        { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .10s; }
+.lp .lp-feat              { animation: lpPop .55s cubic-bezier(.22,.61,.36,1) both; }
+.lp .lp-feat:nth-child(1) { animation-delay: .14s; }
+.lp .lp-feat:nth-child(2) { animation-delay: .22s; }
+.lp .lp-feat:nth-child(3) { animation-delay: .30s; }
+
+/* secção de moedas */
+.lp .lp-curr > div:first-child { animation: lpFadeUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .08s; }
+.lp .lp-curr-chip              { animation: lpPop .5s cubic-bezier(.22,.61,.36,1) both; }
+.lp .lp-curr-chip:nth-child(1) { animation-delay: .10s; }
+.lp .lp-curr-chip:nth-child(2) { animation-delay: .16s; }
+.lp .lp-curr-chip:nth-child(3) { animation-delay: .22s; }
+.lp .lp-curr-chip:nth-child(4) { animation-delay: .28s; }
+.lp .lp-curr-chip:nth-child(5) { animation-delay: .34s; }
+.lp .lp-curr-chip:nth-child(6) { animation-delay: .40s; }
+
+/* acessibilidade: respeitar quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  .lp, .lp * { animation: none !important; }
+}
