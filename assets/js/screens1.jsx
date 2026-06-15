@@ -8,6 +8,7 @@ function Auth({ initialMode, onBack }) {
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
   const [sentCode, setSentCode] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
   const goMode = (m) => { setErr(""); setOkMsg(""); setMode(m); };
 
@@ -39,12 +40,19 @@ function Auth({ initialMode, onBack }) {
   };
   const primaryAction = mode === "signup" ? doSignup : mode === "login" ? doLogin : mode === "forgot" ? doForgot : doReset;
   const titles = {
-    signup: ["Criar conta gratuita", "Em segundos. Os teus dados ficam guardados neste dispositivo."],
+    signup: ["Criar conta gratuita", "Em segundos. Os teus dados ficam guardados em segurança."],
     login: ["Bem-vindo de volta", "Inicia sessão para continuar."],
     forgot: ["Recuperar acesso", "Indica o email da tua conta para receberes um código de recuperação."],
     reset: ["Definir nova senha", `Enviámos um código para ${f.email || "o teu email"}.`],
   };
   const primaryLabel = { signup: "Criar conta e começar", login: "Entrar", forgot: "Enviar código", reset: "Definir nova senha" }[mode];
+  const loadingLabel = { signup: "A criar conta…", login: "A entrar…", forgot: "A enviar…", reset: "A guardar…" }[mode];
+  const runPrimary = async () => {
+    if (busy) return;
+    setBusy(true);
+    try { await primaryAction(); }
+    finally { setBusy(false); }
+  };
 
   return (
     <div className="login-wrap">
@@ -144,7 +152,12 @@ function Auth({ initialMode, onBack }) {
 
           {err && <div className="alert bad" style={{ marginBottom: 12, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
-          <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4 }} onClick={primaryAction}>{primaryLabel}</button>
+          <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
+          <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4, opacity: busy ? 0.8 : 1, cursor: busy ? "wait" : "pointer" }} onClick={runPrimary}>
+            {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
+            {busy ? loadingLabel : primaryLabel}
+          </button>
+          {busy && (mode === "login" || mode === "signup") && <p className="muted tiny" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>A ligar ao servidor… na primeira vez pode demorar alguns segundos.</p>}
 
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
             {mode === "signup" && <>Já tens conta? <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>Iniciar sessão</button></>}
