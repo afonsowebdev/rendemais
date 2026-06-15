@@ -1,0 +1,5 @@
+# Permite que todos os motores de busca indexem o site
+User-agent: *
+Allow: /
+
+Sitemap: https://rendemais.pt/sitemap.xml
