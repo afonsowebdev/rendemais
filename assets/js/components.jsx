@@ -212,13 +212,13 @@ function Progress({ value, max, color }) {
 
 function EmptyState({ icon, title, msg, action }) {
   return (
-    <div className="card" style={{ display: "grid", placeItems: "center", padding: "56px 24px", textAlign: "center" }}>
+    <div className="card empty-card" style={{ display: "grid", placeItems: "center", padding: "56px 24px", textAlign: "center", width: "100%", boxSizing: "border-box" }}>
       <div className="li-ico" style={{ width: 60, height: 60, marginBottom: 18, background: "var(--accent-soft)" }}>
         <Icon name={icon} size={26} color="var(--accent)" sw={1.8} />
       </div>
       <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-.01em" }}>{title}</div>
       <div className="muted" style={{ marginTop: 7, fontSize: 14, fontWeight: 500, maxWidth: 380, lineHeight: 1.55 }}>{msg}</div>
-      {action && <div style={{ marginTop: 20 }}>{action}</div>}
+      {action && <div className="empty-action" style={{ marginTop: 20, width: "100%" }}>{action}</div>}
     </div>
   );
 }

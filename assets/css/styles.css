@@ -441,3 +441,32 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; } /* mantÃ©m 2x2 no telemÃ³vel */
   .grid[style*="repeat(3"] { grid-template-columns: 1fr !important; }
 }
+
+/* ============================================================
+   CorreÃ§Ãµes de overflow no telemÃ³vel (estado vazio + barra do topo)
+   ============================================================ */
+/* botÃµes do estado vazio: deixam de forÃ§ar largura; empilham no telemÃ³vel */
+.empty-action .row { flex-wrap: wrap; justify-content: center; }
+@media (max-width: 560px) {
+  .empty-card { padding: 40px 18px !important; }
+  .empty-action { width: 100%; }
+  .empty-action .row { flex-direction: column; align-items: stretch; }
+  .empty-action .row .btn { width: 100%; justify-content: center; }
+}
+
+/* barra do topo: seletor de mÃªs compacto e tÃ­tulo que degrada com elegÃ¢ncia */
+@media (max-width: 480px) {
+  .topbar .seg > span { min-width: 60px !important; padding: 0 6px !important; font-size: 12px !important; }
+  .topbar .page-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* mantÃ©m o espaÃ§amento lateral controlado no telemÃ³vel (independente da densidade) */
+@media (max-width: 480px) {
+  [data-density="comfy"] .content,
+  [data-density="compact"] .content { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* rede de seguranÃ§a: nada transborda horizontalmente */
+@media (max-width: 860px) {
+  .content { overflow-x: hidden; }
+}
