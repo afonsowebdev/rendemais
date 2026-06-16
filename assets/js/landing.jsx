@@ -12,14 +12,21 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
     ["coins", "var(--c-educacao)", "Multi-moeda", "Euro, dólar, kwanza, escudo ou metical — escolhes a tua moeda e toda a app passa a usá-la."],
   ];
 
+  // Scroll suave até à secção, sem deixar o "#" colado no endereço.
+  const goSection = (e, id) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  };
+
   return (
     <div className="lp">
       <header className="lp-header">
         <Brand />
         <nav className="lp-nav">
-          <a href="#funcionalidades">Funcionalidades</a>
-          <a href="#vantagens">Vantagens</a>
-          <a href="#moedas">Moedas</a>
+          <a href="#funcionalidades" onClick={(e) => goSection(e, "funcionalidades")}>Funcionalidades</a>
+          <a href="#vantagens" onClick={(e) => goSection(e, "vantagens")}>Vantagens</a>
+          <a href="#moedas" onClick={(e) => goSection(e, "moedas")}>Moedas</a>
           <a href="sobre.html">Sobre</a>
         </nav>
         <div className="lp-header-actions">

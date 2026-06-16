@@ -354,6 +354,23 @@ function Shell() {
     r.style.setProperty("--radius-sm", Math.max(6, t.radius - 6) + "px");
   }, [theme, t.accent, t.font, t.radius, t.density]);
 
+  // Chegada a partir de outra página (ex.: /#funcionalidades vindo de /sobre.html):
+  // faz scroll suave até à secção e limpa o "#" do endereço (URL fica limpo).
+  useEffect(() => {
+    const h = (window.location.hash || "").replace("#", "");
+    if (!h) return;
+    if (["funcionalidades", "vantagens", "moedas"].includes(h)) {
+      let tries = 0;
+      const tryScroll = () => {
+        const el = document.getElementById(h);
+        if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+        if (tries++ < 12) setTimeout(tryScroll, 80);
+      };
+      tryScroll();
+    }
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
+
   const go = (id) => { setRoute(id); document.querySelector(".main")?.scrollTo(0, 0); };
   const open = (type, item) => setModal({ type, item });
 
