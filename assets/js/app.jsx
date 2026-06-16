@@ -22,6 +22,7 @@ const PAGES = {
 const ADD_LABEL = { despesa: "Nova despesa", rendimento: "Novo rendimento", meta: "Nova meta" };
 const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
 const CAT_ICONS = ["cart", "home", "bus", "cap", "wifi", "heart", "spark", "coins", "bolt", "target", "bank", "wallet", "chart", "flag"];
+const CAT_EMOJIS = ["🛒", "🍔", "🍕", "☕", "🍺", "🏠", "🚗", "⛽", "🚌", "✈️", "🏥", "💊", "🎓", "📚", "💻", "📱", "🌐", "🎮", "🎬", "🎵", "🏋️", "💇", "👕", "🎁", "🐕", "🐈", "🌱", "🔧", "💡", "📞", "🎉", "🍷", "💳", "🏦", "📈", "🎯", "❤️", "🍎", "🎂", "🚲", "🛵", "🏖️", "👶", "🩺", "💰", "🧾"];
 const CAT_COLORS = ["var(--c-habitacao)", "var(--c-alimentacao)", "var(--c-transporte)", "var(--c-educacao)", "var(--c-lazer)", "var(--c-internet)", "var(--c-saude)", "var(--c-outros)"];
 
 /* ---------- Criador inline de categoria personalizada ---------- */
@@ -52,6 +53,16 @@ function NewCategoryInline({ onCreate, onCancel }) {
           {CAT_ICONS.map((ic) => (
             <button key={ic} onClick={() => setIcon(ic)} style={{ width: 36, height: 36, borderRadius: 10, display: "grid", placeItems: "center", border: icon === ic ? `2px solid ${color}` : "1px solid var(--border-strong)", background: icon === ic ? `color-mix(in srgb, ${color} 14%, transparent)` : "var(--surface)", cursor: "pointer" }}>
               <Icon name={ic} size={17} color={icon === ic ? color : "var(--ink-2)"} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Ou escolhe um emoji</div>
+        <div className="row" style={{ flexWrap: "wrap", gap: 6, maxHeight: 134, overflowY: "auto" }}>
+          {CAT_EMOJIS.map((em) => (
+            <button key={em} onClick={() => setIcon(em)} style={{ width: 36, height: 36, borderRadius: 10, display: "grid", placeItems: "center", fontSize: 18, lineHeight: 1, border: icon === em ? `2px solid ${color}` : "1px solid var(--border-strong)", background: icon === em ? `color-mix(in srgb, ${color} 14%, transparent)` : "var(--surface)", cursor: "pointer" }}>
+              {em}
             </button>
           ))}
         </div>
