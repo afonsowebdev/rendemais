@@ -20,6 +20,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           <a href="#funcionalidades">Funcionalidades</a>
           <a href="#vantagens">Vantagens</a>
           <a href="#moedas">Moedas</a>
+          <a href="como-funciona.html">Como funciona</a>
         </nav>
         <div className="lp-header-actions">
           <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Tema"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></button>
@@ -42,7 +43,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
             <div className="lp-trust">
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Sem custos</span>
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Dados no teu dispositivo</span>
-              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 6 moedas</span>
+              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 5 moedas</span>
             </div>
           </div>
 
@@ -117,6 +118,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           <Brand size={30} />
           <span className="muted">© 2026 · Gestão de finanças pessoais, simples e privada</span>
           <div className="row" style={{ marginLeft: "auto", gap: 8 }}>
+            <a href="como-funciona.html" className="muted" style={{ textDecoration: "none", fontWeight: 700, marginRight: 6 }}>Como funciona</a>
             <button className="btn btn-ghost" onClick={onLogin}>Entrar</button>
             <button className="btn btn-primary" onClick={onCreate}>Criar conta</button>
           </div>

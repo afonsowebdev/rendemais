@@ -470,3 +470,77 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 @media (max-width: 860px) {
   .content { overflow-x: hidden; }
 }
+
+/* ============================================================
+   PÃ¡gina "Como funciona" (como-funciona.html)
+   ============================================================ */
+.cf-wrap { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+.cf-link-btn { text-decoration: none; }
+
+/* topo */
+.cf-top { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+.cf-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+.cf-logo img { width: 34px; height: 34px; border-radius: 9px; }
+.cf-logo .plus { color: var(--accent); }
+
+/* hero */
+.cf-hero { position: relative; text-align: center; padding: 48px 0 16px; }
+.cf-hero::before { content: ""; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 460px; max-width: 90%; height: 320px; background: radial-gradient(closest-side, var(--accent-soft), transparent); z-index: -1; pointer-events: none; }
+.cf-hero-mark { width: 78px; height: 78px; border-radius: 20px; box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--accent) 55%, transparent); margin-bottom: 22px; }
+.cf-eyebrow { display: inline-block; padding: 6px 14px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 13px; margin-bottom: 18px; }
+.cf-hero h1 { font-size: clamp(28px, 6vw, 46px); line-height: 1.08; letter-spacing: -.03em; margin: 0 0 16px; font-weight: 800; }
+.cf-hero p { font-size: clamp(15px, 3.5vw, 18px); color: var(--ink-2); max-width: 600px; margin: 0 auto; line-height: 1.6; font-weight: 500; }
+.cf-hero-btn { margin-top: 28px; padding: 13px 26px; font-size: 15px; }
+
+/* secÃ§Ãµes */
+.cf-section { margin: 50px 0; }
+.cf-section-title { font-size: clamp(21px, 4.5vw, 28px); letter-spacing: -.02em; margin: 0 0 10px; font-weight: 800; position: relative; padding-left: 16px; }
+.cf-section-title::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 5px; border-radius: 99px; background: var(--accent); }
+.cf-lead { color: var(--ink-2); font-size: 15.5px; line-height: 1.7; max-width: 660px; font-weight: 500; }
+.cf-lead strong { color: var(--ink); }
+
+/* passos */
+.cf-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.cf-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: transform .18s ease, box-shadow .18s ease; }
+.cf-step:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -16px rgba(15,27,45,.28); }
+.cf-step-ico { width: 48px; height: 48px; border-radius: 13px; background: var(--accent-soft); display: grid; place-items: center; font-size: 24px; margin-bottom: 14px; }
+.cf-step-n { display: inline-block; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 6px; }
+.cf-step h3 { margin: 0 0 6px; font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.cf-step p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.55; font-weight: 500; }
+
+/* destaque (disclaimer) */
+.cf-callout { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface) 70%); border: 1.5px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: var(--radius); padding: 30px; }
+.cf-callout-tag { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--accent-ink); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+.cf-callout h2 { font-size: clamp(20px, 4.5vw, 27px); margin: 0 0 14px; letter-spacing: -.02em; font-weight: 800; }
+.cf-callout p { color: var(--ink-2); line-height: 1.7; font-size: 15px; margin: 0 0 12px; font-weight: 500; }
+.cf-callout p:last-of-type { margin-bottom: 0; }
+.cf-callout strong { color: var(--ink); }
+.cf-points { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 13px; }
+.cf-points li { display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; color: var(--ink-2); line-height: 1.55; font-weight: 500; }
+.cf-points strong { color: var(--ink); }
+.cf-point-ic { flex: none; font-size: 19px; line-height: 1.35; }
+
+/* chamada final */
+.cf-cta { text-align: center; border-radius: var(--radius); padding: 46px 24px; margin: 50px 0; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border)); }
+.cf-cta h2 { font-size: clamp(22px, 5vw, 31px); margin: 0 0 10px; letter-spacing: -.02em; font-weight: 800; }
+.cf-cta p { color: var(--ink-2); margin: 0 0 24px; font-size: 15.5px; font-weight: 500; }
+.cf-cta-btn { padding: 14px 28px; font-size: 15.5px; }
+
+/* rodapÃ© */
+.cf-footer { text-align: center; color: var(--ink-3); font-size: 13px; padding: 30px 0 56px; font-weight: 500; }
+.cf-footer a { color: var(--accent-ink); text-decoration: none; font-weight: 700; }
+
+/* animaÃ§Ã£o de entrada */
+@keyframes cfUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.cf-hero-mark { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; }
+.cf-hero .cf-eyebrow { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .08s; }
+.cf-hero h1 { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .16s; }
+.cf-hero p { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .24s; }
+.cf-hero-btn { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; animation-delay: .32s; }
+.cf-reveal { animation: cfUp .6s cubic-bezier(.22,.61,.36,1) both; }
+
+@media (max-width: 560px) { .cf-steps { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .cf-hero-mark, .cf-hero .cf-eyebrow, .cf-hero h1, .cf-hero p, .cf-hero-btn, .cf-reveal { animation: none !important; }
+  .cf-step { transition: none !important; }
+}
