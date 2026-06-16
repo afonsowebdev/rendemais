@@ -330,7 +330,12 @@ function Shell() {
   const fin = useFinance();
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [route, setRoute] = useState("dashboard");
-  const [authView, setAuthView] = useState(null); // null = landing | "signup" | "login"
+  const [authView, setAuthView] = useState(() => {
+    const h = (window.location.hash || "").replace("#", "");
+    if (h === "criar-conta") return "signup";
+    if (h === "entrar") return "login";
+    return null;
+  }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
 
