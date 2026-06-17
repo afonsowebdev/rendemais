@@ -354,12 +354,12 @@ function Shell() {
     r.style.setProperty("--radius-sm", Math.max(6, t.radius - 6) + "px");
   }, [theme, t.accent, t.font, t.radius, t.density]);
 
-  // Chegada a partir de outra página (ex.: /#funcionalidades vindo de /sobre.html):
+  // Chegada com uma âncora de secção (ex.: /#funcionalidades, /#sobre):
   // faz scroll suave até à secção e limpa o "#" do endereço (URL fica limpo).
   useEffect(() => {
     const h = (window.location.hash || "").replace("#", "");
     if (!h) return;
-    if (["funcionalidades", "vantagens", "moedas"].includes(h)) {
+    if (["funcionalidades", "como-funciona", "moedas", "sobre", "vantagens"].includes(h)) {
       let tries = 0;
       const tryScroll = () => {
         const el = document.getElementById(h);

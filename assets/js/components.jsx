@@ -56,7 +56,9 @@ function Sidebar({ route, go, account }) {
   return (
     <aside className="sidebar">
       <div style={{ padding: "4px 8px 22px" }}>
-        <Brand nameColor="#fff" />
+        <button onClick={() => go("dashboard")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }} title="Ir para o Dashboard">
+          <Brand nameColor="#fff" />
+        </button>
       </div>
       <div className="nav-label">Geral</div>
       {nav.map(Item)}

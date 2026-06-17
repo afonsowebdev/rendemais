@@ -515,3 +515,8 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 @media (max-width: 980px) { .sobre-steps { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 900px) { .sobre-hero { padding: 36px 0 4px; } }
 @media (max-width: 560px) { .sobre-steps { grid-template-columns: 1fr; } }
+
+/* Evitar zoom automático do iOS ao tocar nos campos (fonte < 16px causa zoom) */
+@media (max-width: 640px) {
+  .input, .select, textarea, input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="date"] { font-size: 16px; }
+}

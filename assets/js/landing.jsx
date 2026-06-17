@@ -18,16 +18,22 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     history.replaceState(null, "", window.location.pathname + window.location.search);
   };
+  // Logo clicável: volta ao topo.
+  const goTop = (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  };
 
   return (
     <div className="lp">
       <header className="lp-header">
-        <Brand />
+        <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
         <nav className="lp-nav">
           <a href="#funcionalidades" onClick={(e) => goSection(e, "funcionalidades")}>Funcionalidades</a>
-          <a href="#vantagens" onClick={(e) => goSection(e, "vantagens")}>Vantagens</a>
+          <a href="#como-funciona" onClick={(e) => goSection(e, "como-funciona")}>Como funciona</a>
           <a href="#moedas" onClick={(e) => goSection(e, "moedas")}>Moedas</a>
-          <a href="sobre.html">Sobre</a>
+          <a href="#sobre" onClick={(e) => goSection(e, "sobre")}>Sobre</a>
         </nav>
         <div className="lp-header-actions">
           <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Tema"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></button>
@@ -106,6 +112,36 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           </div>
         </section>
 
+        {/* COMO FUNCIONA */}
+        <section className="lp-feats" id="como-funciona">
+          <div className="lp-feats-head">
+            <h2>Como funciona</h2>
+            <p>Quatro passos simples para teres o teu mês debaixo de olho.</p>
+          </div>
+          <div className="lp-feat-grid sobre-steps">
+            <div className="lp-feat">
+              <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>💰</div>
+              <h3>1 · Regista o que recebes</h3>
+              <p>Salário, bolsa, ajuda dos pais, subsídios — tudo o que entra no teu mês.</p>
+            </div>
+            <div className="lp-feat">
+              <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>🧾</div>
+              <h3>2 · Adiciona as despesas</h3>
+              <p>Organiza os teus gastos por categoria e marca-os como fixos ou variáveis.</p>
+            </div>
+            <div className="lp-feat">
+              <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>🎯</div>
+              <h3>3 · Define a tua poupança</h3>
+              <p>Escolhe uma percentagem do que sobra para guardares todos os meses.</p>
+            </div>
+            <div className="lp-feat">
+              <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>📊</div>
+              <h3>4 · Vê o que tens disponível</h3>
+              <p>O Rende+ faz as contas e mostra-te o saldo, os gráficos e as tuas metas.</p>
+            </div>
+          </div>
+        </section>
+
         {/* CURRENCIES */}
         <section className="lp-curr" id="moedas">
           <div>
@@ -118,14 +154,33 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
             ))}
           </div>
         </section>
+
+        {/* SOBRE */}
+        <section id="sobre" style={{ marginBottom: 24 }}>
+          <div className="sobre-objetivo">
+            <h2>Sobre o Rende+</h2>
+            <p>O Rende+ é um gestor de finanças pessoais simples, pensado para estudantes e jovens trabalhadores. O objetivo é dar-te <strong>clareza e controlo</strong>: saberes exatamente quanto tens, evitares surpresas ao fim do mês e construíres, aos poucos, o hábito de poupar.</p>
+          </div>
+          <div className="sobre-note">
+            <span className="sobre-note-tag">🔒 Importante</span>
+            <h2>O Rende+ não mexe no teu dinheiro</h2>
+            <p>O Rende+ é uma ferramenta de <strong>organização e acompanhamento</strong> — não está ligado ao teu banco, não tem acesso às tuas contas e <strong>nunca move nem guarda dinheiro nenhum</strong>. Os teus fundos ficam sempre, 100%, no teu banco e sob o teu controlo.</p>
+            <p>Pensa no Rende+ como um <strong>mapa</strong>: mostra-te o caminho e quanto deves separar, mas quem conduz és tu. Se disser "guarda 95 € para a poupança", cabe-te a ti mover esse valor para a tua conta-poupança e seguir o plano.</p>
+            <ul className="sobre-points">
+              <li><span className="sobre-point-ic">🗺️</span><span>O Rende+ <strong>planeia e regista</strong>; tu <strong>executas</strong> no teu banco real.</span></li>
+              <li><span className="sobre-point-ic">🛡️</span><span>Como não toca no teu dinheiro, não há risco financeiro — só ganhas clareza.</span></li>
+              <li><span className="sobre-point-ic">✍️</span><span>A separação real do dinheiro é da tua responsabilidade — o Rende+ guia-te.</span></li>
+            </ul>
+          </div>
+        </section>
       </div>
 
       <footer className="lp-footer">
         <div className="lp-footer-in">
-          <Brand size={30} />
+          <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={30} /></a>
           <span className="muted">© 2026 · Gestão de finanças pessoais, simples e privada</span>
           <div className="row" style={{ marginLeft: "auto", gap: 8 }}>
-            <a href="sobre.html" className="muted" style={{ textDecoration: "none", fontWeight: 700, marginRight: 6 }}>Sobre</a>
+            <a href="#sobre" onClick={(e) => goSection(e, "sobre")} className="muted" style={{ textDecoration: "none", fontWeight: 700, marginRight: 6 }}>Sobre</a>
             <button className="btn btn-ghost" onClick={onLogin}>Entrar</button>
             <button className="btn btn-primary" onClick={onCreate}>Criar conta</button>
           </div>
