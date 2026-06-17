@@ -22,8 +22,8 @@ const PAGES = {
 };
 const ADD_LABEL = { despesa: "Nova despesa", rendimento: "Novo rendimento", meta: "Nova meta" };
 const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
-const CAT_ICONS = ["cart", "home", "bus", "cap", "wifi", "heart", "spark", "coins", "bolt", "target", "bank", "wallet", "chart", "flag"];
-const CAT_EMOJIS = ["🛒", "🍔", "🍕", "☕", "🍺", "🏠", "🚗", "⛽", "🚌", "✈️", "🏥", "💊", "🎓", "📚", "💻", "📱", "🌐", "🎮", "🎬", "🎵", "🏋️", "💇", "👕", "🎁", "🐕", "🐈", "🌱", "🔧", "💡", "📞", "🎉", "🍷", "💳", "🏦", "📈", "🎯", "❤️", "🍎", "🎂", "🚲", "🛵", "🏖️", "👶", "🩺", "💰", "🧾"];
+const CAT_ICONS = ["cart", "bag", "coffee", "food", "car", "fuel", "bus", "train", "plane", "bike", "home", "key", "bulb", "droplet", "flame", "wifi", "cross", "pill", "heart", "cap", "book", "briefcase", "film", "music", "game", "tv", "dumbbell", "shirt", "scissors", "gift", "tag", "paw", "phone", "tools", "umbrella", "leaf", "bank", "wallet", "card", "coins", "sack", "receipt", "chart", "target", "flag", "spark", "bolt", "cal", "bell"];
+const CAT_EMOJIS = ["🛒", "🍔", "🍕", "☕", "🍺", "🥖", "🥗", "🍣", "🍜", "🥤", "🧋", "🍦", "🧀", "🥩", "🍳", "🥫", "🍫", "🥦", "🍓", "🥚", "🍌", "🍎", "🎂", "🍷", "🏠", "🚿", "🛋️", "🛏️", "🧹", "🧼", "🔌", "🪑", "💡", "💧", "⚡", "🚰", "🔧", "🛠️", "🌱", "🚗", "⛽", "🚌", "✈️", "🚆", "🚇", "🚕", "🚲", "🛵", "🛴", "🅿️", "🎫", "🏥", "💊", "🩺", "💉", "🩹", "🦷", "👓", "🪥", "🧠", "🎓", "📚", "💻", "📱", "📞", "🌐", "💼", "📝", "📅", "🖥️", "🎮", "🎬", "🎵", "🎨", "🎟️", "📷", "⚽", "🎲", "🎸", "🎧", "🏋️", "🧘", "🏖️", "🏕️", "🎉", "💇", "✂️", "💅", "🧖", "👕", "🎁", "🐕", "🐈", "🐾", "🐠", "👶", "🍼", "🧸", "💳", "🏦", "📈", "💰", "🧾", "💶", "💵", "🪙", "💸", "🏧", "🤑", "🎯", "❤️", "☂️", "🔑", "📦", "♻️", "🧳", "🌷"];
 const CAT_COLORS = ["var(--c-habitacao)", "var(--c-alimentacao)", "var(--c-transporte)", "var(--c-educacao)", "var(--c-lazer)", "var(--c-internet)", "var(--c-saude)", "var(--c-outros)"];
 
 /* ---------- Criador inline de categoria personalizada ---------- */
