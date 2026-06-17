@@ -122,25 +122,58 @@ function LineChart({ data, height = 216, color = "var(--accent)", color2 = "var(
   );
 }
 
-function BarPair({ data, height = 200 }) {
-  const W = 560, H = height, pad = { t: 16, b: 26 };
-  const max = Math.max(...data.map((d) => Math.max(d.rec, d.gasto))) * 1.1;
+function BarPair({ data, height = 220, color = "var(--accent)", color2 = "var(--c-transporte)" }) {
+  const ref = React.useRef(null);
+  const [w, setW] = React.useState(560);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => { const nw = Math.round(el.clientWidth || 560); setW((p) => (p === nw ? p : nw)); };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    else { window.addEventListener("resize", measure); }
+    return () => { if (ro) ro.disconnect(); else window.removeEventListener("resize", measure); };
+  }, []);
+
+  const W = Math.max(260, w);
+  const mobile = W < 430;
+  const H = mobile ? 188 : height;
+  const pad = { t: 14, b: 26 };
+  const max = (Math.max(...data.map((d) => Math.max(d.rec, d.gasto))) || 1) * 1.12;
   const groupW = W / data.length;
-  const bw = 16;
+  const bw = Math.min(mobile ? 13 : 17, groupW / 3.2);
+  const gapIn = Math.max(3, bw * 0.28);
+  const base = H - pad.b;
   const y = (v) => pad.t + (1 - v / max) * (H - pad.t - pad.b);
+  // barra com topo arredondado (path), pronta a "crescer" de baixo para cima
+  const bar = (bx, v, fill, key, delay, op) => {
+    const h = base - y(v);
+    if (h <= 0.5) return null;
+    const r = Math.min(bw / 2, 6, h);
+    const top = base - h;
+    const d = `M${bx.toFixed(1)},${base} L${bx.toFixed(1)},${(top + r).toFixed(1)} Q${bx.toFixed(1)},${top.toFixed(1)} ${(bx + r).toFixed(1)},${top.toFixed(1)} L${(bx + bw - r).toFixed(1)},${top.toFixed(1)} Q${(bx + bw).toFixed(1)},${top.toFixed(1)} ${(bx + bw).toFixed(1)},${(top + r).toFixed(1)} L${(bx + bw).toFixed(1)},${base} Z`;
+    return <path key={key} className="bar-rise" d={d} fill={fill} opacity={op} style={{ animationDelay: `${delay}s` }} />;
+  };
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
-      {data.map((d, i) => {
-        const gx = i * groupW + groupW / 2;
-        return (
-          <g key={i}>
-            <rect x={gx - bw - 3} y={y(d.rec)} width={bw} height={H - pad.b - y(d.rec)} rx="4" fill="var(--accent)" />
-            <rect x={gx + 3} y={y(d.gasto)} width={bw} height={H - pad.b - y(d.gasto)} rx="4" fill="var(--c-transporte)" opacity="0.85" />
-            <text x={gx} y={H - 8} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink-3)">{d.m}</text>
-          </g>
-        );
-      })}
-    </svg>
+    <div ref={ref} style={{ width: "100%" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", overflow: "visible" }}>
+        <line x1="0" x2={W} y1={base} y2={base} stroke="var(--border)" strokeWidth="1" />
+        {data.map((d, i) => {
+          const gx = i * groupW + groupW / 2;
+          const x1 = gx - bw - gapIn / 2;
+          const x2 = gx + gapIn / 2;
+          return (
+            <g key={i}>
+              {bar(x1, d.rec, color, "r" + i, 0.05 + i * 0.06, 1)}
+              {bar(x2, d.gasto, color2, "g" + i, 0.1 + i * 0.06, 0.92)}
+              <text x={gx} y={H - 8} textAnchor="middle" fontSize={mobile ? 12 : 11.5} fontWeight="700" fill="var(--ink-3)">{d.m}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 

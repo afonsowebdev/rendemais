@@ -183,9 +183,12 @@ function Definicoes({ theme, setTheme, open }) {
   const [notif, setNotif] = React.useState(true);
   const [alertas, setAlertas] = React.useState(true);
 
-  const Section = ({ title, children }) => (
+  const Section = ({ title, icon, children }) => (
     <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="section-title">{title}</div>{children}
+      <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {icon && <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name={icon} size={16} color="var(--accent)" /></span>}
+        {title}
+      </div>{children}
     </div>
   );
   const Toggle = ({ on, onClick }) => (
@@ -202,21 +205,29 @@ function Definicoes({ theme, setTheme, open }) {
 
   return (
     <div className="content" style={{ maxWidth: 760 }}>
-      <Section title="Perfil">
-        <div className="row" style={{ gap: 16 }}>
-          <Avatar account={a} size={64} fontSize={22} />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 18 }}>{a.nome || "—"}</div>
-            <div className="muted" style={{ fontWeight: 600, fontSize: 13.5, marginTop: 3 }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
-            <div className="row" style={{ gap: 7, marginTop: 9, flexWrap: "wrap" }}>
+      <div className="card profile-card">
+        <div className="profile-banner" />
+        <div className="profile-body">
+          <div className="profile-avwrap">
+            <div className="profile-av"><Avatar account={a} size={72} fontSize={26} /></div>
+            <button className="btn btn-ghost profile-edit" onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
+          <div className="muted" style={{ fontWeight: 600, fontSize: 13.5, marginTop: 3 }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
+          {[a.perfil, a.estado, a.habitacao].filter(Boolean).length > 0 && (
+            <div className="row" style={{ gap: 7, marginTop: 12, flexWrap: "wrap" }}>
               {[a.perfil, a.estado, a.habitacao].filter(Boolean).map((c) => <span className="chip" key={c}>{c}</span>)}
             </div>
+          )}
+          <div className="profile-stats">
+            <div className="pstat"><span className="pstat-ico" style={{ background: "var(--accent-soft)" }}><Icon name="coins" size={16} color="var(--accent)" /></span><div><div className="pstat-v">{a.moeda || "EUR"}</div><div className="pstat-l">Moeda</div></div></div>
+            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-educacao) 16%, transparent)" }}><Icon name="target" size={16} color="var(--c-educacao)" /></span><div><div className="pstat-v">{fin.poupancaPct}%</div><div className="pstat-l">Poupança alvo</div></div></div>
+            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)" }}><Icon name="flag" size={16} color="var(--c-habitacao)" /></span><div><div className="pstat-v">{fin.data.metas.length}</div><div className="pstat-l">{fin.data.metas.length === 1 ? "Meta" : "Metas"}</div></div></div>
           </div>
-          <button className="btn btn-ghost" style={{ marginLeft: "auto" }} onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
         </div>
-      </Section>
+      </div>
 
-      <Section title="Preferências">
+      <Section title="Preferências" icon="gear">
         <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
           <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
         </Rowi>
@@ -232,7 +243,7 @@ function Definicoes({ theme, setTheme, open }) {
         <Rowi label="Alertas inteligentes" sub="Avisos de orçamento e poupança" last><Toggle on={alertas} onClick={() => setAlertas(!alertas)} /></Rowi>
       </Section>
 
-      <Section title="Conta e dados">
+      <Section title="Conta e dados" icon="bank">
         <Rowi label="Categorias de despesa" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) personalizada(s)` : "Cria categorias próprias ao registar uma despesa"}>
           <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="plus" size={14} /> Adicionar</button>
         </Rowi>

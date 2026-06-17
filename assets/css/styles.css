@@ -561,3 +561,22 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .lc-draw { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
   .lc-fade { opacity: 1; animation: none; }
 }
+
+/* ===== Gráfico de barras (receitas vs despesas): crescer de baixo ===== */
+.bar-rise { transform-box: fill-box; transform-origin: bottom; animation: barRise .5s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes barRise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .bar-rise { animation: none; transform: none; } }
+
+/* ===== Cartão de perfil (Definições) ===== */
+.profile-card { padding: 0; overflow: hidden; }
+.profile-banner { height: 84px; background: linear-gradient(120deg, var(--accent), var(--accent-ink)); }
+.profile-body { padding: 0 22px 22px; }
+.profile-avwrap { display: flex; align-items: flex-end; justify-content: space-between; margin-top: -40px; margin-bottom: 12px; }
+.profile-av { padding: 4px; background: var(--surface); border-radius: 50%; display: inline-flex; box-shadow: 0 8px 20px -10px rgba(15,27,45,.35); }
+.profile-edit { margin-bottom: 6px; }
+.profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+.pstat { display: flex; align-items: center; gap: 11px; background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px 14px; }
+.pstat-ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.pstat-v { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+.pstat-l { font-size: 11.5px; color: var(--ink-3); font-weight: 600; margin-top: 1px; }
+@media (max-width: 560px) { .profile-stats { grid-template-columns: 1fr; } }
