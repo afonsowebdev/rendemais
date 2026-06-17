@@ -14,6 +14,7 @@ const PAGES = {
   despesas: { title: "Despesas", add: "despesa" },
   rendimentos: { title: "Rendimentos", add: "rendimento" },
   poupanca: { title: "Poupança", add: "meta" },
+  perfil: { title: "Perfil", add: null },
   contas: { title: "Contas", add: null },
   relatorios: { title: "Relatórios", add: null },
   historico: { title: "Histórico", add: null },
@@ -398,10 +399,11 @@ function Shell() {
     despesas: `Gastos fixos e variáveis · ${fin.monthLabel}`,
     rendimentos: `O que recebes · ${fin.monthLabel}`,
     poupanca: "As tuas metas e objetivos",
+    perfil: "A tua conta e dados",
     contas: "Liga a Revolut e a Wise",
     relatorios: "Análise da tua saúde financeira",
     historico: "Evolução mês a mês",
-    config: "Perfil e preferências",
+    config: "Preferências da aplicação",
   };
   const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
 
@@ -420,6 +422,7 @@ function Shell() {
         {route === "contas" && <Contas open={open} />}
         {route === "relatorios" && <Relatorios />}
         {route === "historico" && <Historico />}
+        {route === "perfil" && <Perfil open={open} />}
         {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} />}
       </div>
       <MobileNav route={route} go={go} onMore={() => setMoreOpen(true)} />

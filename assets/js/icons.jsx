@@ -1,6 +1,7 @@
 /* ===== Icon set (stroke, 1.7) ===== */
 function Icon({ name, size = 18, color = "currentColor", sw = 1.7 }) {
   const P = {
+    user: "M12 8m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M5.5 20.5a6.5 6.5 0 0 1 13 0",
     grid: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
     wallet: "M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v0M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3M3 7h16M17 12h4v4h-4a2 2 0 0 1 0-4z",
     arrowsDown: "M12 5v14M6 13l6 6 6-6",

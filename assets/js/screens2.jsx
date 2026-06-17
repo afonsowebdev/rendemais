@@ -176,6 +176,67 @@ function Historico() {
   );
 }
 
+/* ---------- PERFIL ---------- */
+function Perfil({ open }) {
+  const fin = useFinance();
+  const a = fin.account || {};
+  const metas = fin.data.metas || [];
+  const stats = [
+    { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
+    { ico: "spark", v: BM.eur0(fin.poupado || 0), l: "Poupado", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
+    { ico: "flag", v: metas.length, l: metas.length === 1 ? "Meta" : "Metas", bg: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)", c: "var(--c-habitacao)" },
+  ];
+  const Rowi = ({ label, sub, children, last }) => (
+    <div className="row" style={{ justifyContent: "space-between", paddingBottom: last ? 0 : 14, borderBottom: last ? "none" : "1px solid var(--border)" }}>
+      <div><div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>{sub && <div className="tiny muted" style={{ marginTop: 2, fontWeight: 600 }}>{sub}</div>}</div>
+      {children}
+    </div>
+  );
+  return (
+    <div className="content" style={{ maxWidth: 760 }}>
+      <div className="card card-pad">
+        <div className="row" style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <Avatar account={a} size={64} fontSize={22} />
+          <div style={{ minWidth: 0, flex: "1 1 160px" }}>
+            <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
+            <div className="muted" style={{ fontWeight: 600, fontSize: 13, marginTop: 3, wordBreak: "break-word" }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
+          </div>
+          <button className="btn btn-ghost" onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
+        </div>
+        {[a.perfil, a.estado, a.habitacao].filter(Boolean).length > 0 && (
+          <div className="row" style={{ gap: 7, marginTop: 14, flexWrap: "wrap" }}>
+            {[a.perfil, a.estado, a.habitacao].filter(Boolean).map((c) => <span className="chip" key={c}>{c}</span>)}
+          </div>
+        )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12, marginTop: 16 }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--surface-2)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
+              <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flex: "none", background: s.bg }}><Icon name={s.ico} size={16} color={s.c} /></span>
+              <div style={{ minWidth: 0 }}><div className="tnum" style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>{s.v}</div><div style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginTop: 1 }}>{s.l}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name="bank" size={16} color="var(--accent)" /></span>
+          Conta
+        </div>
+        <Rowi label="Apagar todos os dados" sub="Remove despesas, rendimentos e metas (a conta mantém-se)">
+          <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
+            onClick={() => { if (confirm("Apagar todos os movimentos e metas? Esta ação não pode ser revertida.")) fin.resetData(); }}>
+            <Icon name="trash" size={15} /> Limpar dados
+          </button>
+        </Rowi>
+        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão" last>
+          <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={15} /> Sair</button>
+        </Rowi>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- DEFINIÇÕES ---------- */
 function Definicoes({ theme, setTheme, open }) {
   const fin = useFinance();
@@ -205,39 +266,6 @@ function Definicoes({ theme, setTheme, open }) {
 
   return (
     <div className="content" style={{ maxWidth: 760 }}>
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div style={{ position: "relative", height: 92, background: "linear-gradient(120deg, var(--accent), var(--accent-ink))", overflow: "hidden" }}>
-          <span style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", fontSize: 110, lineHeight: 1, fontWeight: 800, color: "rgba(255,255,255,0.18)", textShadow: "0 6px 18px rgba(0,0,0,0.28)", pointerEvents: "none", userSelect: "none" }}>+</span>
-        </div>
-        <div style={{ padding: "0 22px 22px" }}>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -38, marginBottom: 12 }}>
-            <div style={{ padding: 4, background: "var(--surface)", borderRadius: "50%", display: "inline-flex", boxShadow: "0 8px 20px -10px rgba(15,27,45,0.35)" }}>
-              <Avatar account={a} size={72} fontSize={26} />
-            </div>
-            <button className="btn btn-ghost" style={{ marginBottom: 6 }} onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
-          </div>
-          <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
-          <div className="muted" style={{ fontWeight: 600, fontSize: 13.5, marginTop: 3 }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
-          {[a.perfil, a.estado, a.habitacao].filter(Boolean).length > 0 && (
-            <div className="row" style={{ gap: 7, marginTop: 12, flexWrap: "wrap" }}>
-              {[a.perfil, a.estado, a.habitacao].filter(Boolean).map((c) => <span className="chip" key={c}>{c}</span>)}
-            </div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))", gap: 12, marginTop: 18 }}>
-            {[
-              { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
-              { ico: "target", v: (fin.poupancaPct ?? 20) + "%", l: "Poupança", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
-              { ico: "flag", v: (fin.data.metas || []).length, l: (fin.data.metas || []).length === 1 ? "Meta" : "Metas", bg: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)", c: "var(--c-habitacao)" },
-            ].map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--surface-2)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flex: "none", background: s.bg }}><Icon name={s.ico} size={16} color={s.c} /></span>
-                <div><div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>{s.v}</div><div style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginTop: 1 }}>{s.l}</div></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       <Section title="Preferências" icon="gear">
         <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
           <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
@@ -254,12 +282,12 @@ function Definicoes({ theme, setTheme, open }) {
         <Rowi label="Alertas inteligentes" sub="Avisos de orçamento e poupança" last><Toggle on={alertas} onClick={() => setAlertas(!alertas)} /></Rowi>
       </Section>
 
-      <Section title="Conta e dados" icon="bank">
-        <Rowi label="Categorias de despesa" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) personalizada(s)` : "Cria categorias próprias ao registar uma despesa"}>
+      <Section title="Categorias de despesa" icon="grid">
+        <Rowi label="Categorias personalizadas" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) criada(s)` : "Cria categorias próprias ao registar uma despesa"} last={!(fin.data.customCats || []).length}>
           <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="plus" size={14} /> Adicionar</button>
         </Rowi>
         {(fin.data.customCats || []).length > 0 && (
-          <div className="row" style={{ gap: 8, flexWrap: "wrap", paddingBottom: 14, borderBottom: "1px solid var(--border)" }}>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             {fin.data.customCats.map((c) => (
               <span key={c.key} className="chip" style={{ gap: 7 }}>
                 <span className="dot" style={{ background: c.color }} />{c.nome}
@@ -268,18 +296,9 @@ function Definicoes({ theme, setTheme, open }) {
             ))}
           </div>
         )}
-        <Rowi label="Apagar todos os dados" sub="Remove despesas, rendimentos e metas (a conta mantém-se)">
-          <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
-            onClick={() => { if (confirm("Apagar todos os movimentos e metas? Esta ação não pode ser revertida.")) fin.resetData(); }}>
-            <Icon name="trash" size={15} /> Limpar dados
-          </button>
-        </Rowi>
-        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão" last>
-          <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={15} /> Sair</button>
-        </Rowi>
       </Section>
     </div>
   );
 }
 
-Object.assign(window, { Poupanca, Relatorios, Historico, Definicoes });
+Object.assign(window, { Perfil, Poupanca, Relatorios, Historico, Definicoes });

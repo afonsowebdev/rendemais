@@ -40,7 +40,6 @@ function Sidebar({ route, go, account }) {
     { id: "despesas", label: "Despesas", icon: "wallet" },
     { id: "rendimentos", label: "Rendimentos", icon: "arrowsDown" },
     { id: "poupanca", label: "Poupança", icon: "target" },
-    { id: "contas", label: "Contas", icon: "bank" },
   ];
   const nav2 = [
     { id: "relatorios", label: "Relatórios", icon: "report" },
@@ -65,7 +64,7 @@ function Sidebar({ route, go, account }) {
       <div className="nav-label">Análise</div>
       {nav2.map(Item)}
       <div className="sidebar-foot">
-        <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("config")}>
+        <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("perfil")}>
           <Avatar account={account} size={34} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{account?.nome || "A minha conta"}</div>
@@ -126,7 +125,7 @@ function MobileNav({ route, go, onMore }) {
     { id: "rendimentos", label: "Receitas", icon: "arrowsDown" },
     { id: "poupanca", label: "Poupança", icon: "target" },
   ];
-  const moreRoutes = ["contas", "relatorios", "historico", "config"];
+  const moreRoutes = ["relatorios", "historico", "perfil", "config"];
   return (
     <nav className="mobilenav">
       {tabs.map((t) => (
@@ -145,9 +144,9 @@ function MobileNav({ route, go, onMore }) {
 
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout }) {
   const items = [
-    { id: "contas", label: "Contas", icon: "bank" },
     { id: "relatorios", label: "Relatórios", icon: "report" },
     { id: "historico", label: "Histórico", icon: "history" },
+    { id: "perfil", label: "Perfil", icon: "user" },
     { id: "config", label: "Definições", icon: "gear" },
   ];
   return (
