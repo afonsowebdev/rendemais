@@ -49,8 +49,23 @@ function DonutChart({ data, size = 168, thickness = 24, center }) {
 }
 
 function LineChart({ data, height = 216, color = "var(--accent)", color2 = "var(--c-transporte)" }) {
-  const pad = { t: 18, r: 14, b: 28, l: 14 };
-  const W = 560, H = height;
+  const ref = React.useRef(null);
+  const [w, setW] = React.useState(560);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => { const nw = Math.round(el.clientWidth || 560); setW((p) => (p === nw ? p : nw)); };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    else { window.addEventListener("resize", measure); }
+    return () => { if (ro) ro.disconnect(); else window.removeEventListener("resize", measure); };
+  }, []);
+
+  const W = Math.max(260, w);              // largura real -> sem distorção (mesmo no telemóvel)
+  const mobile = W < 430;
+  const H = mobile ? 200 : height;
+  const pad = { t: 18, r: 16, b: 28, l: 16 };
   const vals = data.flatMap((d) => [d.rec, d.gasto]);
   const max = (Math.max(...vals) || 1) * 1.14;
   const min = Math.min(0, ...vals);
@@ -74,32 +89,36 @@ function LineChart({ data, height = 216, color = "var(--accent)", color2 = "var(
   const gastoLine = smooth(toPts("gasto"));
   const base = H - pad.b;
   const recArea = recLine + ` L${x(data.length - 1).toFixed(1)},${base} L${x(0).toFixed(1)},${base} Z`;
+  const fs = mobile ? 12 : 11.5;
+  const rRec = mobile ? 4 : 3.8, rGasto = mobile ? 3.4 : 3.2;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{ overflow: "visible" }}>
-      <defs>
-        <linearGradient id="lg-rec" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.20" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {[0, 0.5, 1].map((g, i) => {
-        const gy = pad.t + g * (H - pad.t - pad.b);
-        return <line key={i} x1={pad.l} x2={W - pad.r} y1={gy} y2={gy} stroke="var(--border)" strokeWidth="1" strokeDasharray={g === 1 ? undefined : "3 6"} opacity={g === 1 ? 0.9 : 0.55} />;
-      })}
-      <path className="lc-fade" d={recArea} fill="url(#lg-rec)" />
-      <path className="lc-fade" d={gastoLine} fill="none" stroke={color2} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 7" opacity="0.9" />
-      <path className="lc-draw" pathLength="1" d={recLine} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <g className="lc-fade">
-        {data.map((d, i) => (
-          <g key={i}>
-            <circle cx={x(i)} cy={y(d.gasto)} r="3" fill="var(--surface)" stroke={color2} strokeWidth="2" opacity="0.9" />
-            <circle cx={x(i)} cy={y(d.rec)} r="3.6" fill="var(--surface)" stroke={color} strokeWidth="2.4" />
-            <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink-3)">{d.m}</text>
-          </g>
-        ))}
-      </g>
-    </svg>
+    <div ref={ref} style={{ width: "100%" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", overflow: "visible" }}>
+        <defs>
+          <linearGradient id="lg-rec" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.20" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 0.5, 1].map((g, i) => {
+          const gy = pad.t + g * (H - pad.t - pad.b);
+          return <line key={i} x1={pad.l} x2={W - pad.r} y1={gy} y2={gy} stroke="var(--border)" strokeWidth="1" strokeDasharray={g === 1 ? undefined : "3 6"} opacity={g === 1 ? 0.9 : 0.55} />;
+        })}
+        <path className="lc-fade" d={recArea} fill="url(#lg-rec)" />
+        <path className="lc-fade" d={gastoLine} fill="none" stroke={color2} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 7" opacity="0.9" />
+        <path className="lc-draw" pathLength="1" d={recLine} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <g className="lc-fade">
+          {data.map((d, i) => (
+            <g key={i}>
+              <circle cx={x(i)} cy={y(d.gasto)} r={rGasto} fill="var(--surface)" stroke={color2} strokeWidth="2" opacity="0.9" />
+              <circle cx={x(i)} cy={y(d.rec)} r={rRec} fill="var(--surface)" stroke={color} strokeWidth="2.4" />
+              <text x={x(i)} y={H - 8} textAnchor="middle" fontSize={fs} fontWeight="700" fill="var(--ink-3)">{d.m}</text>
+            </g>
+          ))}
+        </g>
+      </svg>
+    </div>
   );
 }
 
