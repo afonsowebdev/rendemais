@@ -3,8 +3,10 @@ window.BM = (function () {
   // ---- moedas suportadas ----
   const currencies = {
     EUR: { code: "EUR", sym: "€",   nome: "Euro",                 pais: "Zona Euro",  pos: "before" },
+    GBP: { code: "GBP", sym: "£",   nome: "Libra esterlina",      pais: "Reino Unido",pos: "before" },
     AOA: { code: "AOA", sym: "Kz",  nome: "Kwanza angolano",      pais: "Angola",     pos: "after"  },
     USD: { code: "USD", sym: "$",   nome: "Dólar americano",      pais: "EUA",        pos: "before" },
+    CAD: { code: "CAD", sym: "C$",  nome: "Dólar canadiano",      pais: "Canadá",     pos: "before" },
     CVE: { code: "CVE", sym: "Esc", nome: "Escudo cabo-verdiano", pais: "Cabo Verde", pos: "after"  },
     MZN: { code: "MZN", sym: "MT",  nome: "Metical moçambicano",  pais: "Moçambique", pos: "after"  },
     BRL: { code: "BRL", sym: "R$",  nome: "Real brasileiro",      pais: "Brasil",     pos: "before" },

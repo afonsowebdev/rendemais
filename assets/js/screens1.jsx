@@ -1,5 +1,50 @@
 /* ===== Screens (parte 1): Auth, Dashboard, Despesas, Rendimentos ===== */
 
+/* ---------- força da palavra-passe ---------- */
+function pwChecks(p) {
+  p = p || "";
+  return { len: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), num: /[0-9]/.test(p), special: /[^A-Za-z0-9]/.test(p) };
+}
+function pwScore(p) { return Object.values(pwChecks(p)).filter(Boolean).length; }
+function pwStrong(p) { return pwScore(p) === 5; }
+
+/* input de palavra-passe com botão de mostrar/ocultar (olho) */
+function PwInput({ value, onChange, placeholder, show, toggle, autoComplete }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <input className="input" type={show ? "text" : "password"} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} style={{ paddingRight: 44 }} />
+      <button type="button" onClick={toggle} tabIndex={-1} aria-label={show ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+        style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 7, display: "grid", placeItems: "center", color: "var(--ink-3)", borderRadius: 8 }}>
+        <Icon name={show ? "eyeOff" : "eye"} size={18} />
+      </button>
+    </div>
+  );
+}
+
+/* medidor de força: barras + critérios (fraca → forte) */
+function Strength({ value }) {
+  if (!value) return null;
+  const c = pwChecks(value), s = pwScore(value);
+  const level = s <= 2 ? 0 : s <= 4 ? 1 : 2;
+  const meta = [{ t: "Fraca", col: "var(--neg)" }, { t: "Média", col: "var(--c-transporte)" }, { t: "Forte", col: "var(--accent)" }][level];
+  const reqs = [["len", "8+ caracteres"], ["upper", "Maiúscula"], ["lower", "Minúscula"], ["num", "Número"], ["special", "Símbolo"]];
+  return (
+    <div style={{ marginTop: -4, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 4, marginBottom: 7 }}>
+        {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < s ? meta.col : "var(--border)", transition: "background .2s" }} />)}
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: meta.col, marginBottom: 6 }}>Força: {meta.t}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px" }}>
+        {reqs.map(([k, lbl]) => (
+          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: c[k] ? "var(--accent)" : "var(--ink-3)" }}>
+            <Icon name={c[k] ? "check" : "dots"} size={12} color={c[k] ? "var(--accent)" : "var(--ink-3)"} /> {lbl}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- AUTH: criar conta / iniciar sessão ---------- */
 function Auth({ initialMode, onBack }) {
   const fin = useFinance();
@@ -9,11 +54,14 @@ function Auth({ initialMode, onBack }) {
   const [okMsg, setOkMsg] = React.useState("");
   const [sentCode, setSentCode] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [showPw, setShowPw] = React.useState(false);
+  const [showPw2, setShowPw2] = React.useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
   const goMode = (m) => { setErr(""); setOkMsg(""); setMode(m); };
 
   const doSignup = async () => {
-    if (!f.nome.trim() || !f.email.trim() || f.password.length < 4) { setErr("Preenche nome, email e uma palavra-passe (mín. 4 caracteres)."); return; }
+    if (!f.nome.trim() || !f.email.trim()) { setErr("Preenche o nome e o email."); return; }
+    if (!pwStrong(f.password)) { setErr("Palavra-passe fraca. Usa pelo menos 8 caracteres, com maiúscula, minúscula, número e símbolo."); return; }
     setErr("");
     try {
       await fin.signup({ nome: f.nome, email: f.email, password: f.password, idade: f.idade, cidade: f.cidade, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda });
@@ -32,7 +80,7 @@ function Auth({ initialMode, onBack }) {
   };
   const doReset = () => {
     if (f.code.trim() !== sentCode) return setErr("Código incorreto. Confirma o código enviado para o email.");
-    if ((f.password || "").length < 4) return setErr("A nova palavra-passe deve ter pelo menos 4 caracteres.");
+    if (!pwStrong(f.password)) return setErr("Define uma palavra-passe forte (8+ caracteres, com maiúscula, minúscula, número e símbolo).");
     if (f.password !== f.password2) return setErr("As palavras-passe não coincidem.");
     fin.resetPassword(f.password);
     setF((s) => ({ ...s, password: "", password2: "", code: "" }));
@@ -129,8 +177,9 @@ function Auth({ initialMode, onBack }) {
           )}
 
           {(mode === "signup" || mode === "login") && (
-            <Field label="Palavra-passe"><input className="input" type="password" value={f.password} onChange={set("password")} placeholder="••••••••" /></Field>
+            <Field label="Palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} /></Field>
           )}
+          {mode === "signup" && <Strength value={f.password} />}
 
           {mode === "login" && (
             <div style={{ textAlign: "right", marginTop: -6, marginBottom: 8 }}>
@@ -145,8 +194,9 @@ function Auth({ initialMode, onBack }) {
                 <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>Código de recuperação (demo): <span className="tnum" style={{ letterSpacing: ".12em", fontSize: 14 }}>{sentCode}</span></span>
               </div>
               <Field label="Código de recuperação"><input className="input tnum" value={f.code} onChange={set("code")} placeholder="123456" inputMode="numeric" maxLength={6} /></Field>
-              <Field label="Nova palavra-passe"><input className="input" type="password" value={f.password} onChange={set("password")} placeholder="••••••••" /></Field>
-              <Field label="Confirmar palavra-passe"><input className="input" type="password" value={f.password2} onChange={set("password2")} placeholder="••••••••" /></Field>
+              <Field label="Nova palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
+              <Strength value={f.password} />
+              <Field label="Confirmar palavra-passe"><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" /></Field>
             </>
           )}
 

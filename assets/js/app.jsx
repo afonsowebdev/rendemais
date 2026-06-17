@@ -339,6 +339,10 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
+  const [lang, setLangState] = useState(I18N.detect());
+  const tr = I18N.make(lang);
+  const setLang = (v) => { setLangState(v); I18N.save(v); };
+  useEffect(() => { document.documentElement.setAttribute("lang", lang); }, [lang]);
 
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
@@ -390,7 +394,7 @@ function Shell() {
 
   if (!fin.session) {
     if (authView) return (<><Auth initialMode={authView} onBack={() => setAuthView(null)} />{panel}</>);
-    return (<><Landing onCreate={() => setAuthView("signup")} onLogin={() => setAuthView("login")} theme={theme} setTheme={setTheme} />{panel}</>);
+    return (<><Landing onCreate={() => setAuthView("signup")} onLogin={() => setAuthView("login")} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tr={tr} />{panel}</>);
   }
 
   const P = PAGES[route];
