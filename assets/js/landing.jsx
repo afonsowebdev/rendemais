@@ -9,7 +9,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
   const feats = [
     ["wallet", "var(--c-habitacao)", "Regista despesas", "Organiza gastos fixos e variáveis por categoria e vê exatamente para onde vai o teu dinheiro, mês a mês."],
     ["target", "var(--accent)", "Poupa com objetivos", "Define uma percentagem de poupança sobre o que sobra e acompanha as tuas metas com barras de progresso."],
-    ["coins", "var(--c-educacao)", "Multi-moeda", "Euro, dólar, kwanza, escudo ou metical — escolhes a tua moeda e toda a app passa a usá-la."],
+    ["coins", "var(--c-educacao)", "Multi-moeda", "Euro, dólar, kwanza, escudo, metical ou real — escolhes a tua moeda e toda a app passa a usá-la."],
   ];
 
   // Scroll suave até à secção, sem deixar o "#" colado no endereço.
@@ -33,7 +33,6 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           <a href="#funcionalidades" onClick={(e) => goSection(e, "funcionalidades")}>Funcionalidades</a>
           <a href="#como-funciona" onClick={(e) => goSection(e, "como-funciona")}>Como funciona</a>
           <a href="#moedas" onClick={(e) => goSection(e, "moedas")}>Moedas</a>
-          <a href="#sobre" onClick={(e) => goSection(e, "sobre")}>Sobre</a>
         </nav>
         <div className="lp-header-actions">
           <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Tema"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></button>
@@ -47,7 +46,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
         <section className="lp-hero">
           <div>
             <span className="lp-eyebrow"><Icon name="spark" size={14} /> Finanças pessoais, sem complicações</span>
-            <h1 className="lp-h1">Gere o teu dinheiro <span className="accent">de forma simples.</span></h1>
+            <h1 className="lp-h1">Controla o teu dinheiro <span className="accent">de forma simples.</span></h1>
             <p className="lp-sub">Regista a tua receita, subtrai as despesas e define quanto queres poupar. O Rende+ mostra-te, num instante, quanto tens disponível até ao fim do mês.</p>
             <div className="lp-cta">
               <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}><Icon name="arrowsDown" size={16} color="#fff" /> Criar conta gratuita</button>
@@ -56,7 +55,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
             <div className="lp-trust">
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Sem custos</span>
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Dados no teu dispositivo</span>
-              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 6 moedas</span>
+              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 5 moedas</span>
             </div>
           </div>
 
@@ -180,7 +179,6 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={30} /></a>
           <span className="muted">© 2026 · Gestão de finanças pessoais, simples e privada</span>
           <div className="row" style={{ marginLeft: "auto", gap: 8 }}>
-            <a href="#sobre" onClick={(e) => goSection(e, "sobre")} className="muted" style={{ textDecoration: "none", fontWeight: 700, marginRight: 6 }}>Sobre</a>
             <button className="btn btn-ghost" onClick={onLogin}>Entrar</button>
             <button className="btn btn-primary" onClick={onCreate}>Criar conta</button>
           </div>
