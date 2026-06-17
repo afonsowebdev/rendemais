@@ -181,6 +181,7 @@ function Perfil({ open }) {
   const fin = useFinance();
   const a = fin.account || {};
   const metas = fin.data.metas || [];
+  const [confirmClear, setConfirmClear] = React.useState(false);
   const stats = [
     { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
     { ico: "spark", v: BM.eur0(fin.poupado || 0), l: "Poupado", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
@@ -225,7 +226,7 @@ function Perfil({ open }) {
         </div>
         <Rowi label="Apagar todos os dados" sub="Remove despesas, rendimentos e metas (a conta mantém-se)">
           <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
-            onClick={() => { if (confirm("Apagar todos os movimentos e metas? Esta ação não pode ser revertida.")) fin.resetData(); }}>
+            onClick={() => setConfirmClear(true)}>
             <Icon name="trash" size={15} /> Limpar dados
           </button>
         </Rowi>
@@ -233,6 +234,29 @@ function Perfil({ open }) {
           <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={15} /> Sair</button>
         </Rowi>
       </div>
+
+      {confirmClear && (
+        <div className="modal-bg" onClick={() => setConfirmClear(false)}>
+          <div className="modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: "30px 26px", textAlign: "center" }}>
+              <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
+                <Icon name="trash" size={28} color="var(--neg)" />
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>Limpar todos os dados?</div>
+              <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
+                Vais remover todas as despesas, rendimentos e metas. A tua conta mantém-se, mas <strong style={{ color: "var(--ink)" }}>esta ação não pode ser revertida</strong>.
+              </div>
+              <div className="row" style={{ gap: 10, marginTop: 24 }}>
+                <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmClear(false)}>Cancelar</button>
+                <button className="btn" style={{ flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none" }}
+                  onClick={() => { setConfirmClear(false); fin.resetData(); }}>
+                  <Icon name="trash" size={15} color="#fff" /> Limpar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
