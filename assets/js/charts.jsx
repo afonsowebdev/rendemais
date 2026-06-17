@@ -5,22 +5,39 @@ function DonutChart({ data, size = 168, thickness = 24, center }) {
   const r = (size - thickness) / 2;
   const cx = size / 2, cy = size / 2;
   const C = 2 * Math.PI * r;
+  const items = data.filter((d) => d.valor > 0);
+  const gap = items.length > 1 ? Math.min(C * 0.012, 6) : 0; // espaço entre fatias
+  const uid = "dn" + Math.random().toString(36).slice(2, 9);
   let acc = 0;
   return (
-    <div style={{ position: "relative", width: size, height: size, flex: "none" }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+    <div className="donut-wrap" style={{ position: "relative", width: size, height: size, flex: "none" }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+        <defs>
+          <filter id={uid} x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" floodColor="rgba(15,27,45,.20)" />
+          </filter>
+        </defs>
+        {/* trilho de fundo */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--surface-2)" strokeWidth={thickness} />
-        {data.map((d, i) => {
-          const frac = d.valor / total;
-          const len = frac * C;
-          const el = (
-            <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={d.color}
-              strokeWidth={thickness} strokeDasharray={`${len} ${C - len}`}
-              strokeDashoffset={-acc} strokeLinecap="butt" />
-          );
-          acc += len;
-          return el;
-        })}
+        <g filter={`url(#${uid})`}>
+          {data.map((d, i) => {
+            if (d.valor <= 0) return null;
+            const frac = d.valor / total;
+            const len = frac * C;
+            // arredonda as pontas sem distorcer a proporção: descontamos a espessura
+            // (que as pontas redondas voltam a preencher) e centramos a fatia na fenda.
+            const seg = Math.max(len - gap - thickness, 0.5);
+            const start = acc + gap / 2 + thickness / 2;
+            const el = (
+              <circle key={i} className="donut-seg" cx={cx} cy={cy} r={r} fill="none" stroke={d.color}
+                strokeWidth={thickness} strokeDasharray={`${seg} ${C - seg}`}
+                strokeDashoffset={-start} strokeLinecap="round"
+                style={{ animationDelay: `${0.1 + i * 0.08}s` }} />
+            );
+            acc += len;
+            return el;
+          })}
+        </g>
       </svg>
       {center && (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center" }}>
