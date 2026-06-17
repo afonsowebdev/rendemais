@@ -19,6 +19,7 @@ function FinanceProvider({ children }) {
   const [session, setSession] = React.useState(null); // só fica preenchido depois de validar o token
   const [data, setData] = React.useState(() => ({ ...EMPTY_DATA }));
   const [month, setMonth] = React.useState(() => BM.todayISO().slice(0, 7));
+  const pctTimer = React.useRef(null); // debounce para gravar a % de poupança
 
   // guarda a conta em cache local (para o ecrã de login pré-preencher)
   React.useEffect(() => { if (account) save(LS.acc, account); }, [account]);
@@ -182,9 +183,15 @@ function FinanceProvider({ children }) {
     try { await API.atualizarPerfil({ orcamento: v }); setData((d) => ({ ...d, orcamento: v })); setAccount((a) => ({ ...(a || {}), orcamento: v })); }
     catch (e) { erroAlerta(e); }
   };
-  const setPoupancaPct = async (v) => {
-    try { await API.atualizarPerfil({ poupancaPct: v }); setData((d) => ({ ...d, poupancaPct: v })); setAccount((a) => ({ ...(a || {}), poupancaPct: v })); }
-    catch (e) { erroAlerta(e); }
+  const setPoupancaPct = (v) => {
+    // atualiza o ecrã já (sem esperar o servidor) — evita o tremor do slider ao arrastar
+    setData((d) => ({ ...d, poupancaPct: v }));
+    setAccount((a) => ({ ...(a || {}), poupancaPct: v }));
+    // grava no servidor só quando o utilizador pára de arrastar (debounce)
+    clearTimeout(pctTimer.current);
+    pctTimer.current = setTimeout(() => {
+      API.atualizarPerfil({ poupancaPct: v }).catch((e) => erroAlerta(e));
+    }, 400);
   };
 
   // categorias de despesa personalizadas

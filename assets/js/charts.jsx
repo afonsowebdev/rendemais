@@ -48,37 +48,57 @@ function DonutChart({ data, size = 168, thickness = 24, center }) {
   );
 }
 
-function LineChart({ data, height = 200, color = "var(--accent)", color2 = "var(--c-transporte)" }) {
-  const pad = { t: 16, r: 12, b: 26, l: 12 };
+function LineChart({ data, height = 216, color = "var(--accent)", color2 = "var(--c-transporte)" }) {
+  const pad = { t: 18, r: 14, b: 28, l: 14 };
   const W = 560, H = height;
-  const keys = data.map((d) => d.m);
-  const max = Math.max(...data.map((d) => Math.max(d.rec, d.gasto))) * 1.12;
-  const min = Math.min(...data.map((d) => Math.min(d.rec, d.gasto))) * 0.82;
-  const x = (i) => pad.l + (i / (data.length - 1)) * (W - pad.l - pad.r);
-  const y = (v) => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b);
-  const line = (sel) => data.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d[sel]).toFixed(1)}`).join(" ");
-  const area = (sel) => line(sel) + ` L${x(data.length - 1)},${H - pad.b} L${x(0)},${H - pad.b} Z`;
+  const vals = data.flatMap((d) => [d.rec, d.gasto]);
+  const max = (Math.max(...vals) || 1) * 1.14;
+  const min = Math.min(0, ...vals);
+  const x = (i) => pad.l + (i / (data.length - 1 || 1)) * (W - pad.l - pad.r);
+  const y = (v) => pad.t + (1 - (v - min) / (max - min || 1)) * (H - pad.t - pad.b);
+
+  // curva suave (Catmull-Rom -> Bézier), sem distorcer os pontos reais
+  const toPts = (sel) => data.map((d, i) => ({ x: x(i), y: y(d[sel]) }));
+  const smooth = (P) => {
+    if (P.length < 2) return P.length ? `M${P[0].x},${P[0].y}` : "";
+    let d = `M${P[0].x.toFixed(1)},${P[0].y.toFixed(1)}`;
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    return d;
+  };
+  const recLine = smooth(toPts("rec"));
+  const gastoLine = smooth(toPts("gasto"));
+  const base = H - pad.b;
+  const recArea = recLine + ` L${x(data.length - 1).toFixed(1)},${base} L${x(0).toFixed(1)},${base} Z`;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{ overflow: "visible" }}>
       <defs>
         <linearGradient id="lg-rec" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.20" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[0.25, 0.5, 0.75].map((g, i) => (
-        <line key={i} x1={pad.l} x2={W - pad.r} y1={pad.t + g * (H - pad.t - pad.b)} y2={pad.t + g * (H - pad.t - pad.b)}
-          stroke="var(--border)" strokeWidth="1" strokeDasharray="3 5" />
-      ))}
-      <path d={area("rec")} fill="url(#lg-rec)" />
-      <path d={line("rec")} fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={line("gasto")} fill="none" stroke={color2} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 5" />
-      {data.map((d, i) => (
-        <g key={i}>
-          <circle cx={x(i)} cy={y(d.rec)} r="3.4" fill="var(--surface)" stroke={color} strokeWidth="2.4" />
-          <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink-3)">{d.m}</text>
-        </g>
-      ))}
+      {[0, 0.5, 1].map((g, i) => {
+        const gy = pad.t + g * (H - pad.t - pad.b);
+        return <line key={i} x1={pad.l} x2={W - pad.r} y1={gy} y2={gy} stroke="var(--border)" strokeWidth="1" strokeDasharray={g === 1 ? undefined : "3 6"} opacity={g === 1 ? 0.9 : 0.55} />;
+      })}
+      <path className="lc-fade" d={recArea} fill="url(#lg-rec)" />
+      <path className="lc-fade" d={gastoLine} fill="none" stroke={color2} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 7" opacity="0.9" />
+      <path className="lc-draw" pathLength="1" d={recLine} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <g className="lc-fade">
+        {data.map((d, i) => (
+          <g key={i}>
+            <circle cx={x(i)} cy={y(d.gasto)} r="3" fill="var(--surface)" stroke={color2} strokeWidth="2" opacity="0.9" />
+            <circle cx={x(i)} cy={y(d.rec)} r="3.6" fill="var(--surface)" stroke={color} strokeWidth="2.4" />
+            <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--ink-3)">{d.m}</text>
+          </g>
+        ))}
+      </g>
     </svg>
   );
 }
