@@ -121,7 +121,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
             <div className="lp-feat">
               <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>💰</div>
               <h3>1 · Regista o que recebes</h3>
-              <p>Salário, bolsa, ajuda dos pais, subsídios — tudo o que entra no teu mês.</p>
+              <p>Salário, bolsa, ajuda dos pais, subsídios tudo o que entra no teu mês.</p>
             </div>
             <div className="lp-feat">
               <div className="lp-feat-ico" style={{ background: "var(--accent-soft)", fontSize: 24 }}>🧾</div>
@@ -163,12 +163,12 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
           <div className="sobre-note">
             <span className="sobre-note-tag">🔒 Importante</span>
             <h2>O Rende+ não mexe no teu dinheiro</h2>
-            <p>O Rende+ é uma ferramenta de <strong>organização e acompanhamento</strong> — não está ligado ao teu banco, não tem acesso às tuas contas e <strong>nunca move nem guarda dinheiro nenhum</strong>. Os teus fundos ficam sempre, 100%, no teu banco e sob o teu controlo.</p>
+            <p>O Rende+ é uma ferramenta de <strong>organização e acompanhamento</strong> não está ligado ao teu banco, não tem acesso às tuas contas e <strong>nunca move nem guarda dinheiro nenhum</strong>. Os teus fundos ficam sempre, 100%, no teu banco e sob o teu controlo.</p>
             <p>Pensa no Rende+ como um <strong>mapa</strong>: mostra-te o caminho e quanto deves separar, mas quem conduz és tu. Se disser "guarda 95 € para a poupança", cabe-te a ti mover esse valor para a tua conta-poupança e seguir o plano.</p>
             <ul className="sobre-points">
               <li><span className="sobre-point-ic">🗺️</span><span>O Rende+ <strong>planeia e regista</strong>; tu <strong>executas</strong> no teu banco real.</span></li>
-              <li><span className="sobre-point-ic">🛡️</span><span>Como não toca no teu dinheiro, não há risco financeiro — só ganhas clareza.</span></li>
-              <li><span className="sobre-point-ic">✍️</span><span>A separação real do dinheiro é da tua responsabilidade — o Rende+ guia-te.</span></li>
+              <li><span className="sobre-point-ic">🛡️</span><span>Como não toca no teu dinheiro, não há risco financeiro, só ganhas clareza.</span></li>
+              <li><span className="sobre-point-ic">✍️</span><span>A separação real do dinheiro é da tua responsabilidade, o Rende+ guia-te.</span></li>
             </ul>
           </div>
         </section>
