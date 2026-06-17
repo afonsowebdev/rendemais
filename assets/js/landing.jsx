@@ -47,7 +47,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
         <section className="lp-hero">
           <div>
             <span className="lp-eyebrow"><Icon name="spark" size={14} /> Finanças pessoais, sem complicações</span>
-            <h1 className="lp-h1">Controla o teu dinheiro <span className="accent">de forma simples.</span></h1>
+            <h1 className="lp-h1">Gere o teu dinheiro <span className="accent">de forma simples.</span></h1>
             <p className="lp-sub">Regista a tua receita, subtrai as despesas e define quanto queres poupar. O Rende+ mostra-te, num instante, quanto tens disponível até ao fim do mês.</p>
             <div className="lp-cta">
               <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}><Icon name="arrowsDown" size={16} color="#fff" /> Criar conta gratuita</button>
