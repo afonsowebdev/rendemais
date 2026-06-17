@@ -56,7 +56,7 @@ function Landing({ onCreate, onLogin, theme, setTheme }) {
             <div className="lp-trust">
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Sem custos</span>
               <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> Dados no teu dispositivo</span>
-              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 5 moedas</span>
+              <span className="lp-trust-item"><Icon name="check" size={16} color="var(--accent)" /> 6 moedas</span>
             </div>
           </div>
 
