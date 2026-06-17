@@ -205,12 +205,16 @@ function Definicoes({ theme, setTheme, open }) {
 
   return (
     <div className="content" style={{ maxWidth: 760 }}>
-      <div className="card profile-card">
-        <div className="profile-banner" />
-        <div className="profile-body">
-          <div className="profile-avwrap">
-            <div className="profile-av"><Avatar account={a} size={72} fontSize={26} /></div>
-            <button className="btn btn-ghost profile-edit" onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
+      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: 92, background: "linear-gradient(120deg, var(--accent), var(--accent-ink))", overflow: "hidden" }}>
+          <span style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", fontSize: 110, lineHeight: 1, fontWeight: 800, color: "rgba(255,255,255,0.18)", textShadow: "0 6px 18px rgba(0,0,0,0.28)", pointerEvents: "none", userSelect: "none" }}>+</span>
+        </div>
+        <div style={{ padding: "0 22px 22px" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: -38, marginBottom: 12 }}>
+            <div style={{ padding: 4, background: "var(--surface)", borderRadius: "50%", display: "inline-flex", boxShadow: "0 8px 20px -10px rgba(15,27,45,0.35)" }}>
+              <Avatar account={a} size={72} fontSize={26} />
+            </div>
+            <button className="btn btn-ghost" style={{ marginBottom: 6 }} onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
           </div>
           <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
           <div className="muted" style={{ fontWeight: 600, fontSize: 13.5, marginTop: 3 }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
@@ -219,10 +223,17 @@ function Definicoes({ theme, setTheme, open }) {
               {[a.perfil, a.estado, a.habitacao].filter(Boolean).map((c) => <span className="chip" key={c}>{c}</span>)}
             </div>
           )}
-          <div className="profile-stats">
-            <div className="pstat"><span className="pstat-ico" style={{ background: "var(--accent-soft)" }}><Icon name="coins" size={16} color="var(--accent)" /></span><div><div className="pstat-v">{a.moeda || "EUR"}</div><div className="pstat-l">Moeda</div></div></div>
-            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-educacao) 16%, transparent)" }}><Icon name="target" size={16} color="var(--c-educacao)" /></span><div><div className="pstat-v">{fin.poupancaPct ?? 20}%</div><div className="pstat-l">Poupança alvo</div></div></div>
-            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)" }}><Icon name="flag" size={16} color="var(--c-habitacao)" /></span><div><div className="pstat-v">{(fin.data.metas || []).length}</div><div className="pstat-l">{(fin.data.metas || []).length === 1 ? "Meta" : "Metas"}</div></div></div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))", gap: 12, marginTop: 18 }}>
+            {[
+              { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
+              { ico: "target", v: (fin.poupancaPct ?? 20) + "%", l: "Poupança", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
+              { ico: "flag", v: (fin.data.metas || []).length, l: (fin.data.metas || []).length === 1 ? "Meta" : "Metas", bg: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)", c: "var(--c-habitacao)" },
+            ].map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--surface-2)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
+                <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flex: "none", background: s.bg }}><Icon name={s.ico} size={16} color={s.c} /></span>
+                <div><div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>{s.v}</div><div style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginTop: 1 }}>{s.l}</div></div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
