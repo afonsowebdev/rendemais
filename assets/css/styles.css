@@ -543,4 +543,11 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .input, .select, textarea, input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="date"] { font-size: 16px; }
 }
 
-/*
+/* ===== Gráfico donut: entrada elegante ===== */
+.donut-wrap { animation: donutIn .5s cubic-bezier(.22,.61,.36,1) both; }
+.donut-seg { opacity: 0; animation: donutSeg .55s ease forwards; }
+@keyframes donutIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes donutSeg { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .donut-wrap, .donut-seg { animation: none !important; opacity: 1 !important; }
+}
