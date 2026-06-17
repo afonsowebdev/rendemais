@@ -221,8 +221,8 @@ function Definicoes({ theme, setTheme, open }) {
           )}
           <div className="profile-stats">
             <div className="pstat"><span className="pstat-ico" style={{ background: "var(--accent-soft)" }}><Icon name="coins" size={16} color="var(--accent)" /></span><div><div className="pstat-v">{a.moeda || "EUR"}</div><div className="pstat-l">Moeda</div></div></div>
-            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-educacao) 16%, transparent)" }}><Icon name="target" size={16} color="var(--c-educacao)" /></span><div><div className="pstat-v">{fin.poupancaPct}%</div><div className="pstat-l">Poupança alvo</div></div></div>
-            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)" }}><Icon name="flag" size={16} color="var(--c-habitacao)" /></span><div><div className="pstat-v">{fin.data.metas.length}</div><div className="pstat-l">{fin.data.metas.length === 1 ? "Meta" : "Metas"}</div></div></div>
+            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-educacao) 16%, transparent)" }}><Icon name="target" size={16} color="var(--c-educacao)" /></span><div><div className="pstat-v">{fin.poupancaPct ?? 20}%</div><div className="pstat-l">Poupança alvo</div></div></div>
+            <div className="pstat"><span className="pstat-ico" style={{ background: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)" }}><Icon name="flag" size={16} color="var(--c-habitacao)" /></span><div><div className="pstat-v">{(fin.data.metas || []).length}</div><div className="pstat-l">{(fin.data.metas || []).length === 1 ? "Meta" : "Metas"}</div></div></div>
           </div>
         </div>
       </div>
