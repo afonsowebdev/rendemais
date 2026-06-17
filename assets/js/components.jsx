@@ -231,15 +231,15 @@ function Modal({ title, sub, onClose, children, footer, wide }) {
   return (
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" style={wide ? { maxWidth: 560 } : null} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
             {sub && <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{sub}</div>}
           </div>
           <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={onClose}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span></button>
         </div>
-        <div style={{ padding: 20 }}>{children}</div>
-        {footer && <div style={{ padding: "0 20px 20px", display: "flex", gap: 10, justifyContent: "flex-end" }}>{footer}</div>}
+        <div style={{ padding: 20, overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>{children}</div>
+        {footer && <div style={{ padding: "14px 20px 20px", display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0, borderTop: "1px solid var(--border)" }}>{footer}</div>}
       </div>
     </div>
   );

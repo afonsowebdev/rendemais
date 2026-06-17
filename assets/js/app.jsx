@@ -59,7 +59,7 @@ function NewCategoryInline({ onCreate, onCancel }) {
       </div>
       <div>
         <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Ou escolhe um emoji</div>
-        <div className="row" style={{ flexWrap: "wrap", gap: 6, maxHeight: 134, overflowY: "auto" }}>
+        <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
           {CAT_EMOJIS.map((em) => (
             <button key={em} onClick={() => setIcon(em)} style={{ width: 36, height: 36, borderRadius: 10, display: "grid", placeItems: "center", fontSize: 18, lineHeight: 1, border: icon === em ? `2px solid ${color}` : "1px solid var(--border-strong)", background: icon === em ? `color-mix(in srgb, ${color} 14%, transparent)` : "var(--surface)", cursor: "pointer" }}>
               {em}
