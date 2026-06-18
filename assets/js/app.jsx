@@ -10,8 +10,10 @@ function useT() {
   const [lang] = useLang();
   return I18N.make(lang);
 }
+function tfmt(s, vars) { if (vars) Object.keys(vars).forEach((k) => { s = s.split("{" + k + "}").join(vars[k]); }); return s; }
 window.useLang = useLang;
 window.useT = useT;
+window.tfmt = tfmt;
 const { useState, useEffect } = React;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -410,16 +412,18 @@ function Shell() {
   }
 
   const P = PAGES[route];
+  const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
+  const pageTitle = tr(titleByRoute[route] || "lbl_dashboard");
   const subByRoute = {
-    dashboard: `Resumo financeiro · ${fin.monthLabel}`,
-    despesas: `Gastos fixos e variáveis · ${fin.monthLabel}`,
-    rendimentos: `O que recebes · ${fin.monthLabel}`,
-    poupanca: "As tuas metas e objetivos",
-    perfil: "A tua conta e dados",
-    contas: "Liga a Revolut e a Wise",
-    relatorios: "Análise da tua saúde financeira",
-    historico: "Evolução mês a mês",
-    config: "Preferências da aplicação",
+    dashboard: tfmt(tr("sub_dashboard"), { month: fin.monthLabel }),
+    despesas: tfmt(tr("sub_despesas"), { month: fin.monthLabel }),
+    rendimentos: tfmt(tr("sub_rendimentos"), { month: fin.monthLabel }),
+    poupanca: tr("sub_poupanca"),
+    perfil: tr("sub_perfil"),
+    contas: tr("sub_contas"),
+    relatorios: tr("sub_relatorios"),
+    historico: tr("sub_historico"),
+    config: tr("sub_config"),
   };
   const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
 
@@ -427,8 +431,8 @@ function Shell() {
     <div className="app">
       <Sidebar route={route} go={go} account={fin.account} />
       <div className="main">
-        <Topbar title={P.title} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
-          onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? ADD_LABEL[P.add] : null}
+        <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
+          onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? tr("add_" + P.add) : null}
           monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
             canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}

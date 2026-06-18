@@ -379,6 +379,13 @@ function Dashboard({ go, open }) {
 /* ---------- DESPESAS ---------- */
 function Despesas({ open }) {
   const fin = useFinance();
+  const tr = useT();
+  const tt = (k, v) => tfmt(tr(k), v);
+  const tcat = (key) => {
+    if (BM.cats[key]) { const kk = "cat_" + key, vv = tr(kk); return vv === kk ? BM.cats[key].nome : vv; }
+    const cc = (fin.data.customCats || []).find((c) => c.key === key);
+    return cc ? cc.nome : tr("cat_outros");
+  };
   const [tipo, setTipo] = React.useState("todas");
   const [cat, setCat] = React.useState("todas");
   const catKeys = Object.keys(BM.cats);
@@ -389,41 +396,41 @@ function Despesas({ open }) {
   return (
     <div className="content">
       <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-        <Kpi label="Total de despesas" value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" sub={`${fin.despMes.length} ${fin.despMes.length === 1 ? "movimento" : "movimentos"} este mês`} />
-        <Kpi label="Despesas fixas" value={BM.eur0(fin.fixas)} icon="home" color="var(--c-habitacao)" sub="Renda, contas, propina…" />
-        <Kpi label="Despesas variáveis" value={BM.eur0(fin.variaveis)} icon="cart" color="var(--c-alimentacao)" sub="Alimentação, lazer, saúde…" />
+        <Kpi label={tr("exp_total")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" sub={tt(fin.despMes.length === 1 ? "exp_moves_one" : "exp_moves_many", { n: fin.despMes.length })} />
+        <Kpi label={tr("exp_fixed")} value={BM.eur0(fin.fixas)} icon="home" color="var(--c-habitacao)" sub={tr("exp_fixed_sub")} />
+        <Kpi label={tr("exp_variable")} value={BM.eur0(fin.variaveis)} icon="cart" color="var(--c-alimentacao)" sub={tr("exp_variable_sub")} />
       </div>
 
       {fin.despMes.length === 0 ? (
-        <EmptyState icon="wallet" title="Ainda não há despesas este mês"
-          msg="Adiciona a tua primeira despesa e escolhe se é fixa (todos os meses) ou variável (pontual). O gráfico desenha-se automaticamente."
-          action={<button className="btn btn-primary" onClick={() => open("despesa")}><Icon name="plus" size={16} color="#fff" /> Adicionar despesa</button>} />
+        <EmptyState icon="wallet" title={tr("exp_empty_t")}
+          msg={tr("exp_empty_msg")}
+          action={<button className="btn btn-primary" onClick={() => open("despesa")}><Icon name="plus" size={16} color="#fff" /> {tr("add_expense")}</button>} />
       ) : (
         <div className="card">
           <div className="card-pad" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", borderBottom: "1px solid var(--border)" }}>
             <div className="seg">
               {["todas", "fixa", "variavel"].map((t) => (
-                <button key={t} className={tipo === t ? "on" : ""} onClick={() => setTipo(t)}>{t === "todas" ? "Todas" : t === "fixa" ? "Fixas" : "Variáveis"}</button>
+                <button key={t} className={tipo === t ? "on" : ""} onClick={() => setTipo(t)}>{t === "todas" ? tr("filter_all") : t === "fixa" ? tr("filter_fixed") : tr("filter_variable")}</button>
               ))}
             </div>
             <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginLeft: 4 }}>
-              <button className={"chip" + (cat === "todas" ? " sel" : "")} onClick={() => setCat("todas")}>Todas</button>
+              <button className={"chip" + (cat === "todas" ? " sel" : "")} onClick={() => setCat("todas")}>{tr("filter_all")}</button>
               {catKeys.filter((k) => fin.despMes.some((d) => d.cat === k)).map((k) => (
                 <button key={k} className={"chip" + (cat === k ? " sel" : "")} onClick={() => setCat(k)}>
-                  <span className="dot" style={{ background: cat === k ? "#fff" : BM.cats[k].color }} />{BM.cats[k].nome}
+                  <span className="dot" style={{ background: cat === k ? "#fff" : BM.cats[k].color }} />{tcat(k)}
                 </button>
               ))}
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table className="t">
-              <thead><tr><th>Despesa</th><th>Categoria</th><th>Tipo</th><th>Data</th><th style={{ textAlign: "right" }}>Valor</th><th></th></tr></thead>
+              <thead><tr><th>{tr("th_expense")}</th><th>{tr("th_category")}</th><th>{tr("th_type")}</th><th>{tr("th_date")}</th><th style={{ textAlign: "right" }}>{tr("th_value")}</th><th></th></tr></thead>
               <tbody>
                 {rows.map((d) => (
                   <tr key={d.id}>
                     <td><div className="row" style={{ gap: 12 }}><CatBadge catKey={d.cat} size={36} r={10} /><span style={{ fontWeight: 700 }}>{d.nome}</span></div></td>
-                    <td><span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="dot" style={{ background: (BM.cats[d.cat] || BM.cats.outros).color }} />{(BM.cats[d.cat] || BM.cats.outros).nome}</span></td>
-                    <td><span className="chip" style={{ padding: "3px 9px" }}>{d.tipo === "fixa" ? "Fixa" : "Variável"}</span></td>
+                    <td><span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="dot" style={{ background: (BM.cats[d.cat] || BM.cats.outros).color }} />{tcat(d.cat)}</span></td>
+                    <td><span className="chip" style={{ padding: "3px 9px" }}>{d.tipo === "fixa" ? tr("fixed") : tr("variable")}</span></td>
                     <td className="muted">{BM.fmtData(d.data)}</td>
                     <td className="tnum" style={{ textAlign: "right", fontWeight: 800, color: "var(--neg)" }}>−{BM.eur(d.valor)}</td>
                     <td><div className="row" style={{ gap: 4, justifyContent: "flex-end" }}>
@@ -436,8 +443,8 @@ function Despesas({ open }) {
             </table>
           </div>
           <div className="card-pad row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border)" }}>
-            <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{rows.length} {rows.length === 1 ? "resultado" : "resultados"}</span>
-            <span style={{ fontWeight: 800 }}>Total: <span className="tnum">{BM.eur(total)}</span></span>
+            <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{tt(rows.length === 1 ? "results_one" : "results_many", { n: rows.length })}</span>
+            <span style={{ fontWeight: 800 }}>{tr("total_label")}: <span className="tnum">{BM.eur(total)}</span></span>
           </div>
         </div>
       )}
@@ -448,6 +455,8 @@ function Despesas({ open }) {
 /* ---------- PLANO DE POUPANÇA (calculadora com slider 10–50%) ---------- */
 function SavingsPlanner({ open }) {
   const fin = useFinance();
+  const tr = useT();
+  const tt = (k, v) => tfmt(tr(k), v);
   const pct = fin.poupancaPct;
   const receita = fin.totalRec;
   const despesas = fin.totalGasto;
@@ -469,31 +478,29 @@ function SavingsPlanner({ open }) {
     <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div className="section-head" style={{ marginBottom: 6 }}>
         <div>
-          <div className="section-title">Plano de poupança</div>
-          <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Sobre o que sobra ({fin.monthLabel}), decide quanto guardar para ti.</div>
+          <div className="section-title">{tr("sp_title")}</div>
+          <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tt("sp_sub", { month: fin.monthLabel })}</div>
         </div>
         <span className="li-ico" style={{ width: 40, height: 40, background: "var(--accent-soft)" }}><Icon name="target" size={19} color="var(--accent)" sw={2} /></span>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 22, alignItems: "stretch" }}>
-        {/* esquerda: decomposição */}
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <Linha label="Receita total" valor={receita} sinal="+" cor="var(--accent)" />
-          <Linha label="Total de despesas" valor={despesas} sinal="−" cor="var(--neg)" />
-          <Linha label="Restante" valor={restante} sinal={restante < 0 ? "−" : ""} cor={restante < 0 ? "var(--neg)" : "var(--ink)"} forte />
+          <Linha label={tr("sp_total_income")} valor={receita} sinal="+" cor="var(--accent)" />
+          <Linha label={tr("exp_total")} valor={despesas} sinal="−" cor="var(--neg)" />
+          <Linha label={tr("sp_remaining")} valor={restante} sinal={restante < 0 ? "−" : ""} cor={restante < 0 ? "var(--neg)" : "var(--ink)"} forte />
         </div>
 
-        {/* direita: slider + resultado */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14, background: "var(--surface-2)", borderRadius: "var(--radius-sm)", padding: 18 }}>
           {semSobra ? (
             <div className="muted" style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.55, display: "flex", gap: 10, alignItems: "flex-start" }}>
               <Icon name="info" size={18} color="var(--warn)" />
-              <span>Este mês não sobra nada para poupar — as despesas já igualam ou superam a receita. Reduz despesas ou regista mais rendimentos.</span>
+              <span>{tr("sp_nosurplus")}</span>
             </div>
           ) : (
             <>
               <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-2)" }}>Percentagem a poupar</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-2)" }}>{tr("sp_pct_label")}</span>
                 <span className="tnum" style={{ fontSize: 26, fontWeight: 800, color: "var(--accent)" }}>{pct}%</span>
               </div>
               <input type="range" min="10" max="50" step="5" value={pct} onChange={(e) => fin.setPoupancaPct(+e.target.value)} className="range" />
@@ -501,12 +508,12 @@ function SavingsPlanner({ open }) {
                 <span className="tiny muted" style={{ fontWeight: 700 }}>10%</span>
                 <span className="tiny muted" style={{ fontWeight: 700 }}>50%</span>
               </div>
-              <Linha label={`Poupança (${pct}% do restante)`} valor={planoTotal} sinal="−" cor="var(--c-educacao)" forte />
-              {jaGuardado > 0 && <Linha label="Já guardado este mês" valor={jaGuardado} sinal="✓ " cor="var(--accent)" />}
+              <Linha label={tt("sp_savings_line", { pct })} valor={planoTotal} sinal="−" cor="var(--c-educacao)" forte />
+              {jaGuardado > 0 && <Linha label={tr("sp_saved_month")} valor={jaGuardado} sinal="✓ " cor="var(--accent)" />}
               <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginTop: 2, padding: "12px 14px", background: "var(--accent-soft)", borderRadius: "var(--radius-sm)" }}>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>Disponível</div>
-                  <div className="tiny muted" style={{ fontWeight: 600 }}>para gastares este mês</div>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>{tr("sp_available")}</div>
+                  <div className="tiny muted" style={{ fontWeight: 600 }}>{tr("sp_available_sub")}</div>
                 </div>
                 <span className="tnum" style={{ fontWeight: 800, fontSize: 24, color: "var(--accent-ink)" }}>{BM.eur(disponivel)}</span>
               </div>
@@ -518,8 +525,8 @@ function SavingsPlanner({ open }) {
       {!semSobra && (
         <div className="row" style={{ justifyContent: "flex-end", marginTop: 8, gap: 10, alignItems: "center" }}>
           {falta > 0
-            ? <button className="btn btn-primary" onClick={() => open("reservar", { amount: falta })}><Icon name="target" size={15} color="#fff" /> Guardar {BM.eur0(falta)} na poupança</button>
-            : <span className="row tiny" style={{ fontWeight: 700, color: "var(--accent)", gap: 6 }}><Icon name="check" size={15} color="var(--accent)" /> Já separaste a poupança deste mês</span>}
+            ? <button className="btn btn-primary" onClick={() => open("reservar", { amount: falta })}><Icon name="target" size={15} color="#fff" /> {tt("sp_save_btn", { x: BM.eur0(falta) })}</button>
+            : <span className="row tiny" style={{ fontWeight: 700, color: "var(--accent)", gap: 6 }}><Icon name="check" size={15} color="var(--accent)" /> {tr("sp_already_saved")}</span>}
         </div>
       )}
     </div>
@@ -529,6 +536,10 @@ function SavingsPlanner({ open }) {
 /* ---------- RENDIMENTOS ---------- */
 function Rendimentos({ open }) {
   const fin = useFinance();
+  const tr = useT();
+  const tt = (k, v) => tfmt(tr(k), v);
+  const INC_KEY = { "Salário": "ic_salario", "Bolsa": "ic_bolsa", "Ajuda Familiar": "ic_ajuda", "Subsídios": "ic_subsidios", "Apoios do Estado": "ic_apoios", "Freelance": "ic_freelance", "Outros": "ic_outros" };
+  const ticat = (label) => { const k = INC_KEY[label]; return k ? tr(k) : label; };
   const rec = fin.rendMes.filter((r) => r.rec).reduce((s, r) => s + (+r.valor || 0), 0);
   const extra = fin.totalRec - rec;
   const rows = [...fin.rendMes].sort((a, b) => (b.data || "").localeCompare(a.data || ""));
@@ -536,28 +547,28 @@ function Rendimentos({ open }) {
   return (
     <div className="content">
       <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-        <Kpi label="Rendimento do mês" value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" sub={`${fin.rendMes.length} ${fin.rendMes.length === 1 ? "fonte" : "fontes"}`} />
-        <Kpi label="Recorrente" value={BM.eur0(rec)} icon="cal" color="var(--c-habitacao)" sub="Todos os meses" />
-        <Kpi label="Extra / pontual" value={BM.eur0(extra)} icon="spark" color="var(--c-educacao)" sub="Freelance, prendas…" />
+        <Kpi label={tr("inc_total")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" sub={tt(fin.rendMes.length === 1 ? "inc_source_one" : "inc_source_many", { n: fin.rendMes.length })} />
+        <Kpi label={tr("inc_recurring")} value={BM.eur0(rec)} icon="cal" color="var(--c-habitacao)" sub={tr("inc_every_month")} />
+        <Kpi label={tr("inc_extra")} value={BM.eur0(extra)} icon="spark" color="var(--c-educacao)" sub={tr("inc_extra_sub")} />
       </div>
 
       {fin.rendMes.length === 0 ? (
-        <EmptyState icon="arrowsDown" title="Ainda não registaste rendimentos"
-          msg="Adiciona tudo o que recebes este mês: salário, bolsa, ajuda dos pais, subsídios ou apoios do Estado."
-          action={<button className="btn btn-primary" onClick={() => open("rendimento")}><Icon name="plus" size={16} color="#fff" /> Adicionar rendimento</button>} />
+        <EmptyState icon="arrowsDown" title={tr("inc_empty_t")}
+          msg={tr("inc_empty_msg")}
+          action={<button className="btn btn-primary" onClick={() => open("rendimento")}><Icon name="plus" size={16} color="#fff" /> {tr("add_income")}</button>} />
       ) : (
         <>
         <SavingsPlanner open={open} />
         <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
           <div className="card card-pad">
-            <div className="section-title" style={{ marginBottom: 6 }}>Rendimentos deste mês</div>
+            <div className="section-title" style={{ marginBottom: 6 }}>{tr("inc_this_month")}</div>
             <div className="list">
               {rows.map((r) => (
                 <div className="li" key={r.id}>
                   <div className="li-ico" style={{ background: "var(--accent-soft)" }}><Icon name="arrowsDown" size={18} color="var(--accent)" sw={2} /></div>
                   <div className="li-main">
                     <div className="li-title">{r.fonte}</div>
-                    <div className="li-sub">{r.cat} · {BM.fmtData(r.data)} · {r.rec ? "recorrente" : "pontual"}</div>
+                    <div className="li-sub">{ticat(r.cat)} · {BM.fmtData(r.data)} · {r.rec ? tr("inc_recurring_low") : tr("inc_oneoff")}</div>
                   </div>
                   <div className="li-amt tnum" style={{ color: "var(--accent)" }}>+{BM.eur(r.valor)}</div>
                   <div className="row" style={{ gap: 4 }}>
@@ -569,13 +580,13 @@ function Rendimentos({ open }) {
             </div>
           </div>
           <div className="card card-pad">
-            <div className="section-title" style={{ marginBottom: 14 }}>Origem dos rendimentos</div>
+            <div className="section-title" style={{ marginBottom: 14 }}>{tr("inc_origin")}</div>
             <div className="row" style={{ gap: 20 }}>
-              <DonutChart data={fin.incBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 800 }}>{BM.eur0(fin.totalRec)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>/ mês</div></div>} />
+              <DonutChart data={fin.incBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 800 }}>{BM.eur0(fin.totalRec)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                 {fin.incBreak.map((c) => (
                   <div key={c.key} className="row" style={{ justifyContent: "space-between" }}>
-                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{c.nome}</span>
+                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{ticat(c.nome)}</span>
                     <span className="tnum" style={{ fontWeight: 700, fontSize: 13 }}>{BM.eur0(c.valor)}</span>
                   </div>
                 ))}

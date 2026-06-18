@@ -35,16 +35,17 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
 }
 
 function Sidebar({ route, go, account }) {
+  const tr = useT();
   const nav = [
-    { id: "dashboard", label: "Dashboard", icon: "grid" },
-    { id: "despesas", label: "Despesas", icon: "wallet" },
-    { id: "rendimentos", label: "Rendimentos", icon: "arrowsDown" },
-    { id: "poupanca", label: "Poupança", icon: "target" },
+    { id: "dashboard", label: tr("lbl_dashboard"), icon: "grid" },
+    { id: "despesas", label: tr("lbl_expenses"), icon: "wallet" },
+    { id: "rendimentos", label: tr("lbl_income"), icon: "arrowsDown" },
+    { id: "poupanca", label: tr("lbl_savings"), icon: "target" },
   ];
   const nav2 = [
-    { id: "relatorios", label: "Relatórios", icon: "report" },
-    { id: "historico", label: "Histórico", icon: "history" },
-    { id: "config", label: "Definições", icon: "gear" },
+    { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
+    { id: "historico", label: tr("lbl_history"), icon: "history" },
+    { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const Item = (n) => (
     <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)}>
@@ -55,20 +56,20 @@ function Sidebar({ route, go, account }) {
   return (
     <aside className="sidebar">
       <div style={{ padding: "4px 8px 22px" }}>
-        <button onClick={() => go("dashboard")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }} title="Ir para o Dashboard">
+        <button onClick={() => go("dashboard")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }} title={tr("go_dashboard")}>
           <Brand nameColor="#fff" />
         </button>
       </div>
-      <div className="nav-label">Geral</div>
+      <div className="nav-label">{tr("lbl_general")}</div>
       {nav.map(Item)}
-      <div className="nav-label">Análise</div>
+      <div className="nav-label">{tr("lbl_analysis")}</div>
       {nav2.map(Item)}
       <div className="sidebar-foot">
         <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("perfil")}>
           <Avatar account={account} size={34} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{account?.nome || "A minha conta"}</div>
-            <div style={{ fontSize: 11.5, opacity: .6 }}>{[account?.perfil, account?.cidade].filter(Boolean).join(" · ") || "Perfil"}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{account?.nome || tr("lbl_my_account")}</div>
+            <div style={{ fontSize: 11.5, opacity: .6 }}>{[account?.perfil, account?.cidade].filter(Boolean).join(" · ") || tr("lbl_profile")}</div>
           </div>
         </button>
       </div>
@@ -77,15 +78,16 @@ function Sidebar({ route, go, account }) {
 }
 
 function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday }) {
+  const tr = useT();
   return (
     <div className="row" style={{ gap: 8 }}>
       {!isCurrent && onToday && (
-        <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={onToday}>Mês atual</button>
+        <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={onToday}>{tr("month_current")}</button>
       )}
       <div className="seg" style={{ padding: 2 }}>
         <button onClick={onPrev} style={{ padding: "6px 9px" }}><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
         <span style={{ display: "grid", placeItems: "center", padding: "0 12px", fontSize: 13, fontWeight: 700, minWidth: 96 }}>{label}</span>
-        <button onClick={canNext ? onNext : undefined} disabled={!canNext} title={canNext ? "" : "Já estás no mês atual"}
+        <button onClick={canNext ? onNext : undefined} disabled={!canNext} title={canNext ? "" : tr("month_at_current")}
           style={{ padding: "6px 9px", opacity: canNext ? 1 : 0.35, cursor: canNext ? "pointer" : "not-allowed" }}><Icon name="chevR" size={15} /></button>
       </div>
     </div>
@@ -93,6 +95,7 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
 }
 
 function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav }) {
+  const tr = useT();
   return (
     <div className="topbar">
       <div className="row" style={{ gap: 11, minWidth: 0 }}>
@@ -106,24 +109,25 @@ function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthN
         {monthNav}
         {onAdd && (
           <button className="btn btn-primary" onClick={onAdd}>
-            <Icon name="plus" size={16} color="#fff" /> <span className="hide-mobile">{addLabel || "Adicionar"}</span>
+            <Icon name="plus" size={16} color="#fff" /> <span className="hide-mobile">{addLabel || tr("add_generic")}</span>
           </button>
         )}
-        <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Tema">
+        <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={tr("theme_title")}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
         </button>
-        <button className="icon-btn hide-mobile" onClick={onLogout} title="Sair"><Icon name="logout" size={18} /></button>
+        <button className="icon-btn hide-mobile" onClick={onLogout} title={tr("logout_short")}><Icon name="logout" size={18} /></button>
       </div>
     </div>
   );
 }
 
 function MobileNav({ route, go, onMore }) {
+  const tr = useT();
   const tabs = [
-    { id: "dashboard", label: "Início", icon: "grid" },
-    { id: "despesas", label: "Despesas", icon: "wallet" },
-    { id: "rendimentos", label: "Receitas", icon: "arrowsDown" },
-    { id: "poupanca", label: "Poupança", icon: "target" },
+    { id: "dashboard", label: tr("lbl_home"), icon: "grid" },
+    { id: "despesas", label: tr("lbl_expenses"), icon: "wallet" },
+    { id: "rendimentos", label: tr("lbl_income_m"), icon: "arrowsDown" },
+    { id: "poupanca", label: tr("lbl_savings"), icon: "target" },
   ];
   const moreRoutes = ["relatorios", "historico", "perfil", "config"];
   return (
@@ -136,18 +140,19 @@ function MobileNav({ route, go, onMore }) {
       ))}
       <button className={"mtab" + (moreRoutes.includes(route) ? " on" : "")} onClick={onMore}>
         <Icon name="dots" size={21} sw={2.4} />
-        <span>Mais</span>
+        <span>{tr("lbl_more")}</span>
       </button>
     </nav>
   );
 }
 
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout }) {
+  const tr = useT();
   const items = [
-    { id: "relatorios", label: "Relatórios", icon: "report" },
-    { id: "historico", label: "Histórico", icon: "history" },
-    { id: "perfil", label: "Perfil", icon: "user" },
-    { id: "config", label: "Definições", icon: "gear" },
+    { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
+    { id: "historico", label: tr("lbl_history"), icon: "history" },
+    { id: "perfil", label: tr("lbl_profile"), icon: "user" },
+    { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   return (
     <div className="sheet-bg" onClick={onClose}>
@@ -160,10 +165,10 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout }) {
         ))}
         <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
         <button className="sheet-item" onClick={() => { setTheme(theme === "dark" ? "light" : "dark"); }}>
-          <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? "Modo claro" : "Modo escuro"}
+          <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}
         </button>
         <button className="sheet-item" style={{ color: "var(--neg)" }} onClick={() => { onClose(); onLogout(); }}>
-          <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>Terminar sessão
+          <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>{tr("logout_full")}
         </button>
       </div>
     </div>
