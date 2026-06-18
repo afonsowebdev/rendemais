@@ -223,6 +223,13 @@ function Auth({ initialMode, onBack }) {
 /* ---------- DASHBOARD ---------- */
 function Dashboard({ go, open }) {
   const fin = useFinance();
+  const tr = useT();
+  const tt = (k, v) => { let s = tr(k); if (v) Object.keys(v).forEach((kk) => { s = s.split("{" + kk + "}").join(v[kk]); }); return s; };
+  const tcat = (key) => {
+    if (BM.cats[key]) { const kk = "cat_" + key, vv = tr(kk); return vv === kk ? BM.cats[key].nome : vv; }
+    const cc = (fin.data.customCats || []).find((c) => c.key === key);
+    return cc ? cc.nome : tr("cat_outros");
+  };
   const hasData = fin.despMes.length > 0 || fin.rendMes.length > 0;
   const orc = fin.data.orcamento;
   const pctGasto = orc ? Math.round((fin.totalGasto / orc) * 100) : null;
@@ -234,21 +241,21 @@ function Dashboard({ go, open }) {
   if (!hasData) {
     return (
       <div className="content">
-        <EmptyState icon="bolt" title={`Vamos começar, ${(fin.account?.nome || "").split(" ")[0] || "olá"}!`}
-          msg={`Ainda não há movimentos em ${fin.monthLabel}. Começa por adicionar um rendimento ou uma despesa — os gráficos preenchem-se sozinhos a cada movimento.`}
+        <EmptyState icon="bolt" title={tt("dash_empty_title", { nome: (fin.account?.nome || "").split(" ")[0] || "olá" })}
+          msg={tt("dash_empty_msg", { month: fin.monthLabel })}
           action={
             <div className="row" style={{ gap: 10 }}>
-              <button className="btn btn-primary" onClick={() => open("rendimento")}><Icon name="arrowsDown" size={16} color="#fff" /> Adicionar rendimento</button>
-              <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="wallet" size={16} /> Adicionar despesa</button>
+              <button className="btn btn-primary" onClick={() => open("rendimento")}><Icon name="arrowsDown" size={16} color="#fff" /> {tr("add_income")}</button>
+              <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="wallet" size={16} /> {tr("add_expense")}</button>
             </div>
           } />
         <div className="grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-          {[["arrowsDown", "1. Regista o que recebes", "Salário, bolsa, ajuda dos pais, subsídios…"],
-            ["wallet", "2. Adiciona despesas", "Marca cada uma como fixa ou variável."],
-            ["chart", "3. Vê os gráficos", "Tudo se atualiza automaticamente a cada movimento."]].map(([ic, t, d]) => (
-            <div className="card card-pad" key={t}>
+          {[["arrowsDown", tr("dash_step1_t"), tr("dash_step1_d")],
+            ["wallet", tr("dash_step2_t"), tr("dash_step2_d")],
+            ["chart", tr("dash_step3_t"), tr("dash_step3_d")]].map(([ic, ti, d]) => (
+            <div className="card card-pad" key={ti}>
               <div className="kpi-ico" style={{ background: "var(--accent-soft)", marginBottom: 12 }}><Icon name={ic} size={19} color="var(--accent)" /></div>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>{t}</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{ti}</div>
               <div className="tiny muted" style={{ marginTop: 5, fontWeight: 600, lineHeight: 1.5 }}>{d}</div>
             </div>
           ))}
@@ -258,11 +265,11 @@ function Dashboard({ go, open }) {
   }
 
   const alerts = [];
-  if (pctGasto != null && pctGasto >= 80) alerts.push(["warn", "bell", `Já usaste ${pctGasto}% do orçamento`, `Faltam ${BM.eur(Math.max(0, orc - fin.totalGasto))} para o limite de ${BM.eur0(orc)}.`]);
-  if (fin.saldo < 0) alerts.push(["bad", "info", "Saldo negativo este mês", `Gastaste ${BM.eur(-fin.saldo)} a mais do que recebeste.`]);
-  else if (taxaPoup >= 10) alerts.push(["ok", "target", `Estás a poupar ${taxaPoup}% do que recebes`, "Bom trabalho — continua assim!"]);
+  if (pctGasto != null && pctGasto >= 80) alerts.push(["warn", "bell", tt("dash_alert_budget_t", { pct: pctGasto }), tt("dash_alert_budget_d", { x: BM.eur(Math.max(0, orc - fin.totalGasto)), y: BM.eur0(orc) })]);
+  if (fin.saldo < 0) alerts.push(["bad", "info", tr("dash_alert_neg_t"), tt("dash_alert_neg_d", { x: BM.eur(-fin.saldo) })]);
+  else if (taxaPoup >= 10) alerts.push(["ok", "target", tt("dash_alert_save_t", { pct: taxaPoup }), tr("dash_alert_save_d")]);
   const nearMeta = fin.data.metas.find((m) => m.atual / m.alvo >= 0.7 && m.atual < m.alvo);
-  if (nearMeta) alerts.push(["ok", "target", `Estás perto da meta "${nearMeta.nome}"`, `Faltam ${BM.eur0(nearMeta.alvo - nearMeta.atual)}.`]);
+  if (nearMeta) alerts.push(["ok", "target", tt("dash_alert_meta_t", { nome: nearMeta.nome }), tt("dash_alert_meta_d", { x: BM.eur0(nearMeta.alvo - nearMeta.atual) })]);
 
   return (
     <div className="content">
@@ -273,36 +280,36 @@ function Dashboard({ go, open }) {
       )}
 
       <div className="grid" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
-        <Kpi label="Total recebido" value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
-        <Kpi label="Total gasto" value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
-        <Kpi label="Saldo disponível" value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} sub={fin.poupancaSeparada > 0 ? `Após ${BM.eur0(fin.poupancaSeparada)} p/ poupança` : "Até ao fim do mês"} />
-        <Kpi label="Total poupado" value={BM.eur0(fin.poupado)} icon="target" color="var(--c-educacao)" sub={`${fin.data.metas.length} ${fin.data.metas.length === 1 ? "meta ativa" : "metas ativas"}`} />
+        <Kpi label={tr("kpi_received")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
+        <Kpi label={tr("kpi_spent")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
+        <Kpi label={tr("kpi_available")} value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} sub={fin.poupancaSeparada > 0 ? tt("kpi_after_savings", { x: BM.eur0(fin.poupancaSeparada) }) : tr("kpi_until_eom")} />
+        <Kpi label={tr("kpi_saved")} value={BM.eur0(fin.poupado)} icon="target" color="var(--c-educacao)" sub={tt(fin.data.metas.length === 1 ? "kpi_meta_one" : "kpi_meta_many", { n: fin.data.metas.length })} />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 14 }}>
-            <div><div className="section-title">Evolução mensal</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Recebido vs. gasto · últimos 6 meses</div></div>
+            <div><div className="section-title">{tr("dash_evolution")}</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tr("dash_evolution_sub")}</div></div>
             <div className="row tiny" style={{ fontWeight: 700 }}>
-              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> Recebido</span>
-              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> Gasto</span>
+              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")}</span>
+              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")}</span>
             </div>
           </div>
           <LineChart data={fin.series} height={216} />
         </div>
         <div className="card card-pad">
-          <div className="section-title" style={{ marginBottom: 14 }}>Gastos por categoria</div>
+          <div className="section-title" style={{ marginBottom: 14 }}>{tr("dash_by_category")}</div>
           {fin.catBreak.length === 0 ? (
             <div style={{ display: "grid", placeItems: "center", height: 200, textAlign: "center" }} className="muted tiny">
-              <div><Icon name="cart" size={26} color="var(--ink-3)" /><div style={{ marginTop: 8, fontWeight: 600 }}>Sem despesas este mês</div></div>
+              <div><Icon name="cart" size={26} color="var(--ink-3)" /><div style={{ marginTop: 8, fontWeight: 600 }}>{tr("dash_no_expenses")}</div></div>
             </div>
           ) : (
             <div className="row" style={{ gap: 20, alignItems: "center" }}>
-              <DonutChart data={fin.catBreak} center={<div><div className="tnum" style={{ fontSize: 21, fontWeight: 800 }}>{BM.eur0(fin.totalGasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>gasto</div></div>} />
+              <DonutChart data={fin.catBreak} center={<div><div className="tnum" style={{ fontSize: 21, fontWeight: 800 }}>{BM.eur0(fin.totalGasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("spent_lower")}</div></div>} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 9 }}>
                 {fin.catBreak.slice(0, 6).map((c) => (
                   <div key={c.key} className="row" style={{ justifyContent: "space-between" }}>
-                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{c.nome}</span>
+                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{tcat(c.key)}</span>
                     <span className="tnum" style={{ fontWeight: 700, fontSize: 13 }}>{BM.eur0(c.valor)}</span>
                   </div>
                 ))}
@@ -315,17 +322,17 @@ function Dashboard({ go, open }) {
       <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 6 }}>
-            <div className="section-title">Movimentos recentes</div>
-            <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("despesas")}>Ver todos <Icon name="chevR" size={14} /></button>
+            <div className="section-title">{tr("dash_recent")}</div>
+            <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("despesas")}>{tr("see_all")} <Icon name="chevR" size={14} /></button>
           </div>
-          {recent.length === 0 ? <div className="muted tiny" style={{ padding: "24px 0", fontWeight: 600 }}>Sem despesas este mês.</div> : (
+          {recent.length === 0 ? <div className="muted tiny" style={{ padding: "24px 0", fontWeight: 600 }}>{tr("dash_no_expenses")}.</div> : (
             <div className="list">
               {recent.map((d) => (
                 <div className="li" key={d.id}>
                   <CatBadge catKey={d.cat} />
                   <div className="li-main">
                     <div className="li-title">{d.nome}</div>
-                    <div className="li-sub">{(BM.cats[d.cat] || BM.cats.outros).nome} · {BM.fmtData(d.data)} · {d.tipo === "fixa" ? "Fixa" : "Variável"}</div>
+                    <div className="li-sub">{tcat(d.cat)} · {BM.fmtData(d.data)} · {d.tipo === "fixa" ? tr("fixed") : tr("variable")}</div>
                   </div>
                   <div className="li-amt tnum" style={{ color: "var(--neg)" }}>−{BM.eur(d.valor)}</div>
                 </div>
@@ -334,22 +341,22 @@ function Dashboard({ go, open }) {
           )}
         </div>
         <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div className="section-head"><div className="section-title">Orçamento do mês</div>
-            <button className="btn btn-soft" style={{ padding: "5px 10px" }} onClick={() => open("orcamento")}><Icon name="edit" size={13} /> Definir</button>
+          <div className="section-head"><div className="section-title">{tr("dash_budget")}</div>
+            <button className="btn btn-soft" style={{ padding: "5px 10px" }} onClick={() => open("orcamento")}><Icon name="edit" size={13} /> {tr("define")}</button>
           </div>
           {orc ? (
             <div>
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 9 }}>
                 <span className="tnum" style={{ fontWeight: 800, fontSize: 18 }}>{BM.eur0(fin.totalGasto)}</span>
-                <span className="muted tiny" style={{ fontWeight: 700 }}>de {BM.eur0(orc)}</span>
+                <span className="muted tiny" style={{ fontWeight: 700 }}>{tt("of_amount", { x: BM.eur0(orc) })}</span>
               </div>
               <Progress value={fin.totalGasto} max={orc} color={pctGasto > 80 ? "var(--warn)" : "var(--accent)"} />
-              <div className="tiny muted" style={{ marginTop: 9, fontWeight: 600 }}>Restam {BM.eur(Math.max(0, orc - fin.totalGasto))} · {pctGasto}% utilizado</div>
+              <div className="tiny muted" style={{ marginTop: 9, fontWeight: 600 }}>{tt("budget_left", { x: BM.eur(Math.max(0, orc - fin.totalGasto)), pct: pctGasto })}</div>
             </div>
-          ) : <div className="muted tiny" style={{ fontWeight: 600 }}>Define um orçamento mensal para acompanhares os teus limites.</div>}
+          ) : <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("budget_empty")}</div>}
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 13 }}>
-            <div className="tiny" style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>Metas</div>
-            {fin.data.metas.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>Sem metas. <button onClick={() => go("poupanca")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, cursor: "pointer", padding: 0, font: "inherit" }}>Criar a primeira →</button></div> :
+            <div className="tiny" style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>{tr("goals_label")}</div>
+            {fin.data.metas.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("goals_empty")} <button onClick={() => go("poupanca")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, cursor: "pointer", padding: 0, font: "inherit" }}>{tr("goals_create_first")}</button></div> :
               fin.data.metas.map((m) => (
                 <div key={m.id}>
                   <div className="row" style={{ justifyContent: "space-between", marginBottom: 7 }}>

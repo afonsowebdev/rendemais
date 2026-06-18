@@ -1,4 +1,17 @@
 /* ===== App shell: routing, tema, tweaks, modais funcionais ===== */
+
+// Hooks de idioma — fonte única no store global I18N. Qualquer ecrã chama useT().
+function useLang() {
+  const [lang, setLang] = React.useState(I18N.getLang());
+  React.useEffect(() => I18N.subscribe(setLang), []);
+  return [lang, I18N.setLangGlobal];
+}
+function useT() {
+  const [lang] = useLang();
+  return I18N.make(lang);
+}
+window.useLang = useLang;
+window.useT = useT;
 const { useState, useEffect } = React;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -339,9 +352,8 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
-  const [lang, setLangState] = useState(I18N.detect());
+  const [lang, setLang] = useLang();
   const tr = I18N.make(lang);
-  const setLang = (v) => { setLangState(v); I18N.save(v); };
   useEffect(() => { document.documentElement.setAttribute("lang", lang); }, [lang]);
 
   const theme = t.dark ? "dark" : "light";
