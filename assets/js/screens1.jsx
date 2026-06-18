@@ -10,10 +10,11 @@ function pwStrong(p) { return pwScore(p) === 5; }
 
 /* input de palavra-passe com botão de mostrar/ocultar (olho) */
 function PwInput({ value, onChange, placeholder, show, toggle, autoComplete }) {
+  const tr = useT();
   return (
     <div style={{ position: "relative" }}>
       <input className="input" type={show ? "text" : "password"} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} style={{ paddingRight: 44 }} />
-      <button type="button" onClick={toggle} tabIndex={-1} aria-label={show ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+      <button type="button" onClick={toggle} tabIndex={-1} aria-label={show ? tr("pw_hide") : tr("pw_show")}
         style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 7, display: "grid", placeItems: "center", color: "var(--ink-3)", borderRadius: 8 }}>
         <Icon name={show ? "eyeOff" : "eye"} size={18} />
       </button>
@@ -23,17 +24,18 @@ function PwInput({ value, onChange, placeholder, show, toggle, autoComplete }) {
 
 /* medidor de força: barras + critérios (fraca → forte) */
 function Strength({ value }) {
+  const tr = useT();
   if (!value) return null;
   const c = pwChecks(value), s = pwScore(value);
   const level = s <= 2 ? 0 : s <= 4 ? 1 : 2;
-  const meta = [{ t: "Fraca", col: "var(--neg)" }, { t: "Média", col: "var(--c-transporte)" }, { t: "Forte", col: "var(--accent)" }][level];
-  const reqs = [["len", "8+ caracteres"], ["upper", "Maiúscula"], ["lower", "Minúscula"], ["num", "Número"], ["special", "Símbolo"]];
+  const meta = [{ t: tr("pw_weak"), col: "var(--neg)" }, { t: tr("pw_medium"), col: "var(--c-transporte)" }, { t: tr("pw_strong"), col: "var(--accent)" }][level];
+  const reqs = [["len", tr("pw_len")], ["upper", tr("pw_upper")], ["lower", tr("pw_lower")], ["num", tr("pw_num")], ["special", tr("pw_special")]];
   return (
     <div style={{ marginTop: -4, marginBottom: 12 }}>
       <div style={{ display: "flex", gap: 4, marginBottom: 7 }}>
         {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i < s ? meta.col : "var(--border)", transition: "background .2s" }} />)}
       </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: meta.col, marginBottom: 6 }}>Força: {meta.t}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: meta.col, marginBottom: 6 }}>{tr("pw_strength")}: {meta.t}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px" }}>
         {reqs.map(([k, lbl]) => (
           <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, color: c[k] ? "var(--accent)" : "var(--ink-3)" }}>
@@ -48,6 +50,7 @@ function Strength({ value }) {
 /* ---------- AUTH: criar conta / iniciar sessão ---------- */
 function Auth({ initialMode, onBack }) {
   const fin = useFinance();
+  const tr = useT();
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
   const [f, setF] = React.useState({ nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: "EUR" });
   const [err, setErr] = React.useState("");
@@ -60,41 +63,41 @@ function Auth({ initialMode, onBack }) {
   const goMode = (m) => { setErr(""); setOkMsg(""); setMode(m); };
 
   const doSignup = async () => {
-    if (!f.nome.trim() || !f.email.trim()) { setErr("Preenche o nome e o email."); return; }
-    if (!pwStrong(f.password)) { setErr("Palavra-passe fraca. Usa pelo menos 8 caracteres, com maiúscula, minúscula, número e símbolo."); return; }
+    if (!f.nome.trim() || !f.email.trim()) { setErr(tr("auth_err_fill")); return; }
+    if (!pwStrong(f.password)) { setErr(tr("auth_err_weak")); return; }
     setErr("");
     try {
       await fin.signup({ nome: f.nome, email: f.email, password: f.password, idade: f.idade, cidade: f.cidade, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda });
-    } catch (e) { setErr(e.message || "Não foi possível criar a conta."); }
+    } catch (e) { setErr(e.message || tr("auth_err_signup")); }
   };
   const doLogin = async () => {
     setErr("");
     try { await fin.login(f.email, f.password); }
-    catch (e) { setErr(e.message || "Email ou palavra-passe incorretos."); }
+    catch (e) { setErr(e.message || tr("auth_err_login")); }
   };
   const doForgot = () => {
-    if (!f.email.trim()) return setErr("Indica o email da tua conta.");
-    if (!fin.emailExists(f.email)) return setErr("Não encontrámos nenhuma conta com esse email.");
+    if (!f.email.trim()) return setErr(tr("auth_err_email"));
+    if (!fin.emailExists(f.email)) return setErr(tr("auth_err_noaccount"));
     setSentCode(fin.genResetCode());
     setErr(""); setOkMsg(""); setMode("reset");
   };
   const doReset = () => {
-    if (f.code.trim() !== sentCode) return setErr("Código incorreto. Confirma o código enviado para o email.");
-    if (!pwStrong(f.password)) return setErr("Define uma palavra-passe forte (8+ caracteres, com maiúscula, minúscula, número e símbolo).");
-    if (f.password !== f.password2) return setErr("As palavras-passe não coincidem.");
+    if (f.code.trim() !== sentCode) return setErr(tr("auth_err_code"));
+    if (!pwStrong(f.password)) return setErr(tr("auth_err_weak2"));
+    if (f.password !== f.password2) return setErr(tr("auth_err_mismatch"));
     fin.resetPassword(f.password);
     setF((s) => ({ ...s, password: "", password2: "", code: "" }));
-    setErr(""); setOkMsg("Palavra-passe alterada com sucesso. Já podes iniciar sessão."); setMode("login");
+    setErr(""); setOkMsg(tr("auth_ok_reset")); setMode("login");
   };
   const primaryAction = mode === "signup" ? doSignup : mode === "login" ? doLogin : mode === "forgot" ? doForgot : doReset;
   const titles = {
-    signup: ["Criar conta gratuita", "Em segundos. Os teus dados ficam guardados em segurança."],
-    login: ["Bem-vindo de volta", "Inicia sessão para continuar."],
-    forgot: ["Recuperar acesso", "Indica o email da tua conta para receberes um código de recuperação."],
-    reset: ["Definir nova senha", `Enviámos um código para ${f.email || "o teu email"}.`],
+    signup: [tr("auth_title_signup"), tr("auth_sub_signup")],
+    login: [tr("auth_title_login"), tr("auth_sub_login")],
+    forgot: [tr("auth_title_forgot"), tr("auth_sub_forgot")],
+    reset: [tr("auth_title_reset"), tr("auth_sub_reset").split("{email}").join(f.email || tr("auth_your_email"))],
   };
-  const primaryLabel = { signup: "Criar conta e começar", login: "Entrar", forgot: "Enviar código", reset: "Definir nova senha" }[mode];
-  const loadingLabel = { signup: "A criar conta…", login: "A entrar…", forgot: "A enviar…", reset: "A guardar…" }[mode];
+  const primaryLabel = { signup: tr("auth_btn_signup"), login: tr("auth_btn_login"), forgot: tr("auth_btn_forgot"), reset: tr("auth_btn_reset") }[mode];
+  const loadingLabel = { signup: tr("auth_load_signup"), login: tr("auth_load_login"), forgot: tr("auth_load_forgot"), reset: tr("auth_load_reset") }[mode];
   const runPrimary = async () => {
     if (busy) return;
     setBusy(true);
@@ -108,30 +111,30 @@ function Auth({ initialMode, onBack }) {
         <Brand nameColor="#fff" onClick={onBack} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 470, position: "relative", zIndex: 1 }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start", padding: "6px 13px", borderRadius: 999, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.16)", fontSize: 12.5, fontWeight: 700, marginBottom: 22 }}>
-            <Icon name="spark" size={14} color="var(--accent)" /> Finanças pessoais, sem complicações
+            <Icon name="spark" size={14} color="var(--accent)" /> {tr("hero_eyebrow")}
           </span>
           <h2 style={{ fontSize: 40, lineHeight: 1.07, fontWeight: 800, letterSpacing: "-.035em", margin: "0 0 16px", textWrap: "balance" }}>
-            Controla o teu dinheiro <span style={{ color: "var(--accent)" }}>de forma simples.</span>
+            {tr("hero_h1_a")}<span style={{ color: "var(--accent)" }}>{tr("hero_h1_b")}</span>
           </h2>
           <p style={{ fontSize: 16, lineHeight: 1.6, opacity: .82, fontWeight: 500, margin: "0 0 28px", maxWidth: "33em" }}>
-            Rendimentos, despesas e poupança num só lugar. Vê os números e os gráficos a atualizarem-se a cada movimento.
+            {tr("auth_hero_sub")}
           </p>
           <div style={{ background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.13)", borderRadius: 18, padding: 18, display: "flex", flexDirection: "column", gap: 13 }}>
             <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .6 }}>Saldo disponível</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .6 }}>{tr("prev_balance")}</div>
                 <div className="tnum" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.03em", marginTop: 3 }}>{BM.eur0(1525)}</div>
               </div>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12.5, fontWeight: 700, color: "var(--accent)" }}><Icon name="arrowUp" size={13} color="var(--accent)" /> +12%</span>
             </div>
             <div className="bar" style={{ background: "rgba(255,255,255,.12)" }}><i style={{ width: "67%", background: "var(--accent)" }} /></div>
             <div className="row" style={{ gap: 18 }}>
-              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--accent)" }} /> Recebido {BM.eur0(960)}</span>
-              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> Gasto {BM.eur0(643)}</span>
+              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")} {BM.eur0(960)}</span>
+              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")} {BM.eur0(643)}</span>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 11, marginTop: 24 }}>
-            {[["wallet", "Despesas fixas e variáveis organizadas"], ["target", "Várias poupanças e metas separadas"], ["coins", "Funciona em 6 moedas"]].map(([ic, t]) => (
+            {[["wallet", tr("auth_feat1")], ["target", tr("auth_feat2")], ["coins", tr("auth_feat3").split("{n}").join(Object.keys(BM.currencies).length)]].map(([ic, t]) => (
               <div key={t} className="row" style={{ gap: 12 }}>
                 <span style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,.1)", display: "grid", placeItems: "center", flex: "none" }}><Icon name={ic} size={16} color="var(--accent)" /></span>
                 <span style={{ fontSize: 14, fontWeight: 600, opacity: .9 }}>{t}</span>
@@ -140,14 +143,14 @@ function Auth({ initialMode, onBack }) {
           </div>
         </div>
         <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 9, fontSize: 12.5, fontWeight: 600, opacity: .72, marginTop: 8 }}>
-          <Icon name="check" size={15} color="var(--accent)" /> Os teus dados ficam guardados no teu dispositivo.
+          <Icon name="check" size={15} color="var(--accent)" /> {tr("auth_hero_trust")}
         </div>
       </div>
 
       <div className="login-form">
         <div className="login-card">
           <div className="login-form-brand"><Brand /></div>
-          {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6 }}>← Voltar ao início</button>}
+          {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6 }}>{tr("auth_back_home")}</button>}
           <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-.02em", margin: "0 0 6px" }}>{titles[mode][0]}</h2>
           <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500 }}>{titles[mode][1]}</p>
 
@@ -155,16 +158,16 @@ function Auth({ initialMode, onBack }) {
 
           {mode === "signup" && (
             <>
-              <Field label="Nome"><input className="input" value={f.nome} onChange={set("nome")} placeholder="O teu nome" /></Field>
+              <Field label={tr("auth_name")}><input className="input" value={f.nome} onChange={set("nome")} placeholder={tr("auth_name_ph")} /></Field>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="Idade"><input className="input" type="number" value={f.idade} onChange={set("idade")} placeholder="21" /></Field>
-                <Field label="Cidade"><input className="input" value={f.cidade} onChange={set("cidade")} placeholder="Coimbra" /></Field>
+                <Field label={tr("auth_age")}><input className="input" type="number" value={f.idade} onChange={set("idade")} placeholder="21" /></Field>
+                <Field label={tr("auth_city")}><input className="input" value={f.cidade} onChange={set("cidade")} placeholder="Coimbra" /></Field>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="Situação"><select className="select" value={f.perfil} onChange={set("perfil")}>{["Estudante", "Trabalhador", "Estudante e Trabalhador"].map((o) => <option key={o}>{o}</option>)}</select></Field>
-                <Field label="Estado civil"><select className="select" value={f.estado} onChange={set("estado")}>{["Solteiro(a)", "Casado(a)"].map((o) => <option key={o}>{o}</option>)}</select></Field>
+                <Field label={tr("auth_situation")}><select className="select" value={f.perfil} onChange={set("perfil")}>{[["Estudante", tr("auth_opt_student")], ["Trabalhador", tr("auth_opt_worker")], ["Estudante e Trabalhador", tr("auth_opt_both")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
+                <Field label={tr("auth_marital")}><select className="select" value={f.estado} onChange={set("estado")}>{[["Solteiro(a)", tr("auth_opt_single")], ["Casado(a)", tr("auth_opt_married")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
               </div>
-              <Field label="Moeda" hint="Usada em todos os valores da aplicação.">
+              <Field label={tr("auth_currency")} hint={tr("auth_currency_hint")}>
                 <select className="select" value={f.moeda} onChange={set("moeda")}>
                   {Object.values(BM.currencies).map((c) => <option key={c.code} value={c.code}>{c.sym} ({c.code})</option>)}
                 </select>
@@ -173,17 +176,17 @@ function Auth({ initialMode, onBack }) {
           )}
 
           {(mode === "signup" || mode === "login" || mode === "forgot") && (
-            <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="nome@email.pt" /></Field>
+            <Field label={tr("email")}><input className="input" value={f.email} onChange={set("email")} placeholder={tr("auth_email_ph")} /></Field>
           )}
 
           {(mode === "signup" || mode === "login") && (
-            <Field label="Palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} /></Field>
+            <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} /></Field>
           )}
           {mode === "signup" && <Strength value={f.password} />}
 
           {mode === "login" && (
             <div style={{ textAlign: "right", marginTop: -6, marginBottom: 8 }}>
-              <button onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>Esqueci-me da senha?</button>
+              <button onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>{tr("auth_forgot_link")}</button>
             </div>
           )}
 
@@ -191,12 +194,12 @@ function Auth({ initialMode, onBack }) {
             <>
               <div className="alert ok" style={{ marginBottom: 14, padding: "10px 12px" }}>
                 <Icon name="info" size={16} color="var(--accent)" />
-                <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>Código de recuperação (demo): <span className="tnum" style={{ letterSpacing: ".12em", fontSize: 14 }}>{sentCode}</span></span>
+                <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>{tr("auth_reset_code_demo")} <span className="tnum" style={{ letterSpacing: ".12em", fontSize: 14 }}>{sentCode}</span></span>
               </div>
-              <Field label="Código de recuperação"><input className="input tnum" value={f.code} onChange={set("code")} placeholder="123456" inputMode="numeric" maxLength={6} /></Field>
-              <Field label="Nova palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
+              <Field label={tr("auth_reset_code_label")}><input className="input tnum" value={f.code} onChange={set("code")} placeholder="123456" inputMode="numeric" maxLength={6} /></Field>
+              <Field label={tr("auth_new_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
               <Strength value={f.password} />
-              <Field label="Confirmar palavra-passe"><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" /></Field>
+              <Field label={tr("auth_confirm_password")}><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" /></Field>
             </>
           )}
 
@@ -207,12 +210,12 @@ function Auth({ initialMode, onBack }) {
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
             {busy ? loadingLabel : primaryLabel}
           </button>
-          {busy && (mode === "login" || mode === "signup") && <p className="muted tiny" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>A ligar ao servidor… na primeira vez pode demorar alguns segundos.</p>}
+          {busy && (mode === "login" || mode === "signup") && <p className="muted tiny" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>{tr("auth_connecting")}</p>}
 
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
-            {mode === "signup" && <>Já tens conta? <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>Iniciar sessão</button></>}
-            {mode === "login" && <>Ainda não tens conta? <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>Criar conta</button></>}
-            {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>← Voltar a iniciar sessão</button>}
+            {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
+            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("signup")}</button></>}
+            {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
           </p>
         </div>
       </div>
