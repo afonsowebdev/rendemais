@@ -9,6 +9,10 @@ const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 const EMPTY_DATA = { despesas: [], rendimentos: [], metas: [], orcamento: null, contas: [], poupancaPct: 20, customCats: [], aforros: [] };
 // paleta de cores das metas (o backend não guarda a cor; mantemo-la de forma estável aqui)
 const PALETA = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
+// estado "concluída" das metas, guardado localmente (fiável mesmo que o backend ainda não suporte o campo)
+const FECH_KEY = "rende_metas_fechadas";
+const lerFechadas = () => { try { return JSON.parse(localStorage.getItem(FECH_KEY) || "{}"); } catch (e) { return {}; } };
+const gravarFechadas = (map) => { try { localStorage.setItem(FECH_KEY, JSON.stringify(map)); } catch (e) {} };
 const mkeyLocal = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0");
 
 // mostra um erro de forma simples (pode-se trocar por algo mais bonito no futuro)
@@ -40,10 +44,12 @@ function FinanceProvider({ children }) {
       API.listar("categorias"),
     ]);
     const aforros = [];
+    const fech = lerFechadas();
     const metas = (metasRaw || []).map((m, i) => {
       (m.aforros || []).forEach((a) => aforros.push({ id: a.id, metaId: m.id, valor: a.valor, data: a.data }));
       const { aforros: _omit, ...rest } = m;
-      return { ...rest, cor: PALETA[i % PALETA.length] };
+      const fechadaEm = (rest.fechada ? rest.fechadaEm : null) || fech[m.id] || null;
+      return { ...rest, cor: PALETA[i % PALETA.length], fechada: !!(rest.fechada || fech[m.id]), fechadaEm };
     });
     const customCats = (categorias || []).map((c) => ({ key: c.id, nome: c.nome, color: c.cor, icon: c.icon }));
     customCats.forEach((c) => { BM.cats[c.key] = { nome: c.nome, color: c.color, icon: c.icon, custom: true }; });
@@ -161,8 +167,20 @@ function FinanceProvider({ children }) {
     remove: async (id) => {
       try {
         await API.apagar("metas", id);
+        const map = lerFechadas(); delete map[id]; gravarFechadas(map);
         setData((d) => ({ ...d, metas: d.metas.filter((x) => x.id !== id), aforros: (d.aforros || []).filter((a) => a.metaId !== id) }));
       } catch (e) { erroAlerta(e); }
+    },
+    fechar: async (id) => {
+      const mes = BM.monthKey(BM.todayISO());
+      const map = lerFechadas(); map[id] = mes; gravarFechadas(map);
+      setData((d) => ({ ...d, metas: d.metas.map((x) => (x.id === id ? { ...x, fechada: true, fechadaEm: mes } : x)) }));
+      try { await API.editar("metas", id, { fechada: true, fechadaEm: mes }); } catch (e) {}
+    },
+    reabrir: async (id) => {
+      const map = lerFechadas(); delete map[id]; gravarFechadas(map);
+      setData((d) => ({ ...d, metas: d.metas.map((x) => (x.id === id ? { ...x, fechada: false, fechadaEm: null } : x)) }));
+      try { await API.editar("metas", id, { fechada: false, fechadaEm: null }); } catch (e) {}
     },
   };
   // depositar numa poupança: soma ao acumulado e regista um movimento datado
@@ -304,7 +322,15 @@ function FinanceProvider({ children }) {
       return { key, label: `${BM.MESES[m - 1]} ${y}`, rec, gasto, atual: key === month };
     });
 
-    return { despMes, rendMes, totalGasto, totalRec, fixas, variaveis, poupado, saldo, poupancaPct, poupancaPlano, planoTotal, poupadoMes, poupancaSeparada, disponivel, catBreak, incBreak, series, historico };
+    const winKeys = series.map((s) => s.key);
+    const metaSeries = data.metas.map((m) => {
+      const af = (data.aforros || []).filter((a) => a.metaId === m.id);
+      let acum = af.filter((a) => BM.monthKey(a.data) < winKeys[0]).reduce((s, a) => s + (+a.valor || 0), 0);
+      const points = winKeys.map((k) => { acum += af.filter((a) => BM.monthKey(a.data) === k).reduce((s, a) => s + (+a.valor || 0), 0); return acum; });
+      return { id: m.id, nome: m.nome, cor: m.cor, alvo: +m.alvo || 0, atual: +m.atual || 0, fechada: !!m.fechada, fechadaEm: m.fechadaEm || null, points };
+    });
+
+    return { despMes, rendMes, totalGasto, totalRec, fixas, variaveis, poupado, saldo, poupancaPct, poupancaPlano, planoTotal, poupadoMes, poupancaSeparada, disponivel, catBreak, incBreak, series, metaSeries, historico };
   }, [data, month]);
 
   const monthLabel = (() => { const [y, m] = month.split("-").map(Number); return `${BM.MESES[m - 1]} ${y}`; })();

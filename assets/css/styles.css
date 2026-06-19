@@ -607,22 +607,20 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .app.sb-collapsed .sidebar {
     position: fixed; left: 0; top: 0; bottom: 0; width: 76px;
     overflow: hidden; z-index: 35;
+    padding-left: 8px; padding-right: 8px;
   }
-  .app.sb-collapsed .sidebar:hover { width: 256px; box-shadow: 16px 0 48px -20px rgba(8,14,24,.55); }
-  .app.sb-collapsed .sidebar:not(:hover) { padding-left: 8px; padding-right: 8px; }
 
-  /* esconder por completo os textos quando recolhido e sem rato em cima */
-  .app.sb-collapsed .sidebar:not(:hover) .nav-item > span,
-  .app.sb-collapsed .sidebar:not(:hover) .nav-label,
-  .app.sb-collapsed .sidebar:not(:hover) .brand-name,
-  .app.sb-collapsed .sidebar:not(:hover) .brand-sub,
-  .app.sb-collapsed .sidebar:not(:hover) .uc-text { display: none; }
+  /* recolhida = só ícones (sem abrir ao passar o rato; só abre ao clicar em expandir) */
+  .app.sb-collapsed .sidebar .nav-item > span,
+  .app.sb-collapsed .sidebar .nav-label,
+  .app.sb-collapsed .sidebar .brand-name,
+  .app.sb-collapsed .sidebar .brand-sub,
+  .app.sb-collapsed .sidebar .uc-text { display: none; }
 
-  /* centrar os ícones (inclui o perfil e o botão de recolher) */
-  .app.sb-collapsed .sidebar:not(:hover) .nav-item,
-  .app.sb-collapsed .sidebar:not(:hover) .sb-toggle,
-  .app.sb-collapsed .sidebar:not(:hover) .user-chip,
-  .app.sb-collapsed .sidebar:not(:hover) .brand { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+  .app.sb-collapsed .sidebar .nav-item,
+  .app.sb-collapsed .sidebar .sb-toggle,
+  .app.sb-collapsed .sidebar .user-chip,
+  .app.sb-collapsed .sidebar .brand { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
 }
 
 /* Barras horizontais do gráfico de despesas */

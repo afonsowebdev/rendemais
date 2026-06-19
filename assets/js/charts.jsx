@@ -270,4 +270,55 @@ function SavingsArea({ data, height = 168 }) {
   );
 }
 
-Object.assign(window, { DonutChart, LineChart, BarPair, Sparkline, BarBreakdown, SavingsArea });
+function MultiLineSavings({ months, series, height = 220 }) {
+  const ref = React.useRef(null);
+  const [w, setW] = React.useState(560);
+  React.useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const measure = () => { const nw = Math.round(el.clientWidth || 560); setW((p) => (p === nw ? p : nw)); };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    else { window.addEventListener("resize", measure); }
+    return () => { if (ro) ro.disconnect(); else window.removeEventListener("resize", measure); };
+  }, []);
+  const W = Math.max(260, w);
+  const mobile = W < 430;
+  const H = mobile ? 200 : height;
+  const pad = { t: 16, r: 14, b: 26, l: 14 };
+  const n = months.length;
+  const max = Math.max(1, ...series.flatMap((s) => s.points)) * 1.12;
+  const x = (i) => pad.l + (i / (n - 1 || 1)) * (W - pad.l - pad.r);
+  const y = (v) => pad.t + (1 - v / (max || 1)) * (H - pad.t - pad.b);
+  const smooth = (pts) => {
+    if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : "";
+    let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    return d;
+  };
+  return (
+    <div ref={ref} style={{ width: "100%" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", overflow: "visible" }}>
+        {[0, 0.5, 1].map((g, i) => { const gy = pad.t + g * (H - pad.t - pad.b); return <line key={i} x1={pad.l} x2={W - pad.r} y1={gy} y2={gy} stroke="var(--border)" strokeWidth="1" strokeDasharray={g === 1 ? undefined : "3 6"} opacity={g === 1 ? 0.9 : 0.5} />; })}
+        {series.map((s) => {
+          const P = s.points.map((v, i) => ({ x: x(i), y: y(v) }));
+          const last = P[P.length - 1];
+          return (
+            <g key={s.id} className="lc-fade">
+              <path d={smooth(P)} fill="none" stroke={s.cor} strokeWidth={s.fechada ? 2 : 2.8} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.fechada ? "2 6" : undefined} opacity={s.fechada ? 0.65 : 1} />
+              {last && <circle cx={last.x} cy={last.y} r={mobile ? 4 : 3.6} fill="var(--surface)" stroke={s.cor} strokeWidth="2.4" opacity={s.fechada ? 0.65 : 1} />}
+            </g>
+          );
+        })}
+        {months.map((m, i) => <text key={i} x={x(i)} y={H - 7} textAnchor="middle" fontSize={mobile ? 12 : 11.5} fontWeight="700" fill="var(--ink-3)">{m}</text>)}
+      </svg>
+    </div>
+  );
+}
+
+Object.assign(window, { DonutChart, LineChart, BarPair, Sparkline, BarBreakdown, SavingsArea, MultiLineSavings });

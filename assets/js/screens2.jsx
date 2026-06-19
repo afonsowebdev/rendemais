@@ -7,6 +7,7 @@ function Poupanca({ open }) {
   const totalAlvo = metas.reduce((s, m) => s + (+m.alvo || 0), 0);
   const totalAtual = metas.reduce((s, m) => s + (+m.atual || 0), 0);
   const pct = totalAlvo > 0 ? Math.round((totalAtual / totalAlvo) * 100) : 0;
+  const mesLabel = (key) => { const [y, mo] = (key || "").split("-").map(Number); return mo ? BM.MESES[mo - 1] + " " + y : ""; };
 
   return (
     <div className="content">
@@ -21,14 +22,15 @@ function Poupanca({ open }) {
           const isOpen = !m.alvo || m.alvo <= 0;
           const p = isOpen ? null : Math.round((m.atual / m.alvo) * 100);
           const done = !isOpen && m.atual >= m.alvo;
+          const fechada = !!m.fechada;
           return (
-            <div className="card card-pad" key={m.id} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="card card-pad" key={m.id} style={{ display: "flex", flexDirection: "column", gap: 16, opacity: fechada ? 0.74 : 1 }}>
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <div className="li-ico" style={{ width: 44, height: 44, background: `color-mix(in srgb, ${m.cor} 16%, transparent)` }}>
-                  <Icon name={done ? "check" : "target"} size={20} color={m.cor} sw={2} />
+                  <Icon name={done || fechada ? "check" : "target"} size={20} color={m.cor} sw={2} />
                 </div>
                 <div className="row" style={{ gap: 4 }}>
-                  <span className="chip" style={{ background: `color-mix(in srgb, ${m.cor} 14%, transparent)`, color: m.cor, borderColor: "transparent" }}>{isOpen ? "Livre" : p + "%"}</span>
+                  <span className="chip" style={{ background: `color-mix(in srgb, ${m.cor} 14%, transparent)`, color: m.cor, borderColor: "transparent" }}>{fechada ? "Concluída" : isOpen ? "Livre" : p + "%"}</span>
                   <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={() => open("meta", m)}><Icon name="edit" size={13} /></button>
                   <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={() => fin.meta.remove(m.id)}><Icon name="trash" size={13} /></button>
                 </div>
@@ -40,9 +42,14 @@ function Poupanca({ open }) {
               {isOpen
                 ? <div className="bar" style={{ opacity: .5 }}><i style={{ width: "100%", background: m.cor }} /></div>
                 : <Progress value={m.atual} max={m.alvo} color={m.cor} />}
-              <div className="row" style={{ justifyContent: "space-between" }}>
-                <span className="tiny muted" style={{ fontWeight: 700 }}>{isOpen ? "Poupança sem objetivo fixo" : done ? "Meta atingida 🎉" : `Faltam ${BM.eur0(m.alvo - m.atual)}`}</span>
-                {!done && <button className="btn btn-soft" style={{ padding: "6px 12px" }} onClick={() => open("deposit", m)}>+ Depositar</button>}
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                <span className="tiny muted" style={{ fontWeight: 700 }}>{fechada ? `Concluída${m.fechadaEm ? " · " + mesLabel(m.fechadaEm) : ""}` : isOpen ? "Poupança sem objetivo fixo" : done ? "Meta atingida 🎉" : `Faltam ${BM.eur0(m.alvo - m.atual)}`}</span>
+                <div className="row" style={{ gap: 8 }}>
+                  {!fechada && <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => open("deposit", m)}><Icon name="plus" size={14} /> Depositar</button>}
+                  {fechada
+                    ? <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => fin.meta.reabrir(m.id)}><Icon name="history" size={14} /> Reabrir</button>
+                    : <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => fin.meta.fechar(m.id)}><Icon name="check" size={14} /> Concluir</button>}
+                </div>
               </div>
             </div>
           );
@@ -55,6 +62,25 @@ function Poupanca({ open }) {
           </div>
         </button>
       </div>
+
+      {metas.length > 0 && (
+        <div className="card card-pad">
+          <div className="section-head" style={{ marginBottom: 12 }}>
+            <div>
+              <div className="section-title">Evolução das poupanças</div>
+              <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Acumulado de cada meta, mês a mês — as concluídas aparecem a tracejado</div>
+            </div>
+          </div>
+          <MultiLineSavings months={fin.series.map((s) => s.m)} series={fin.metaSeries} />
+          <div className="row" style={{ flexWrap: "wrap", gap: 16, marginTop: 14 }}>
+            {fin.metaSeries.map((s) => (
+              <span key={s.id} className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 700, opacity: s.fechada ? 0.6 : 1 }}>
+                <span className="dot" style={{ background: s.cor }} />{s.nome}{s.fechada ? " (concluída)" : ""}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {fin.totalRec > 0 && fin.saldo > 0 && metas.length > 0 && (
         <Alert kind="ok" icon="target" title={`Este mês sobrou-te ${BM.eur0(fin.saldo)} para poupar.`}>
