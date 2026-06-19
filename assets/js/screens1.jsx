@@ -317,25 +317,35 @@ function Dashboard({ go, open }) {
           <LineChart data={fin.series} height={216} />
         </div>
         <div className="card card-pad">
-          <div className="section-title" style={{ marginBottom: 14 }}>{tr("dash_by_category")}</div>
+          <div className="section-head" style={{ marginBottom: 16 }}>
+            <div className="section-title">{tr("dash_by_category")}</div>
+            <span className="tnum" style={{ fontWeight: 800, fontSize: 15 }}>{BM.eur0(fin.totalGasto)}</span>
+          </div>
           {fin.catBreak.length === 0 ? (
             <div style={{ display: "grid", placeItems: "center", height: 200, textAlign: "center" }} className="muted tiny">
               <div><Icon name="cart" size={26} color="var(--ink-3)" /><div style={{ marginTop: 8, fontWeight: 600 }}>{tr("dash_no_expenses")}</div></div>
             </div>
           ) : (
-            <div className="row" style={{ gap: 20, alignItems: "center" }}>
-              <DonutChart data={fin.catBreak} center={<div><div className="tnum" style={{ fontSize: 21, fontWeight: 800 }}>{BM.eur0(fin.totalGasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("spent_lower")}</div></div>} />
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 9 }}>
-                {fin.catBreak.slice(0, 6).map((c) => (
-                  <div key={c.key} className="row" style={{ justifyContent: "space-between" }}>
-                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{tcat(c.key)}</span>
-                    <span className="tnum" style={{ fontWeight: 700, fontSize: 13 }}>{BM.eur0(c.valor)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <BarBreakdown data={fin.catBreak.slice(0, 7)} money={BM.eur0} labelOf={(c) => tcat(c.key)} />
           )}
         </div>
+      </div>
+
+      <div className="card card-pad">
+        <div className="section-head" style={{ marginBottom: 10 }}>
+          <div><div className="section-title">{tr("dash_savings_evo")}</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tr("dash_savings_evo_sub")}</div></div>
+          <div style={{ textAlign: "right" }}>
+            <div className="tnum" style={{ fontWeight: 800, fontSize: 18, color: "var(--c-educacao)" }}>{BM.eur0(fin.poupado)}</div>
+            <div className="tiny muted" style={{ fontWeight: 700 }}>{tr("kpi_saved")}</div>
+          </div>
+        </div>
+        {(fin.poupado === 0 && fin.series.every((s) => !s.poupAcum)) ? (
+          <div style={{ display: "grid", placeItems: "center", height: 150, textAlign: "center" }} className="muted tiny">
+            <div><Icon name="target" size={26} color="var(--ink-3)" /><div style={{ marginTop: 8, fontWeight: 600 }}>{tr("dash_no_savings")}</div></div>
+          </div>
+        ) : (
+          <SavingsArea data={fin.series} />
+        )}
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>

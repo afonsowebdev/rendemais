@@ -281,12 +281,16 @@ function FinanceProvider({ children }) {
     const [yy, mm] = month.split("-").map(Number);
     const mkey = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0");
     const series = [];
+    const windowStart = mkey(new Date(yy, mm - 1 - 5, 1));
+    let acum = (data.aforros || []).filter((a) => BM.monthKey(a.data) < windowStart).reduce((s, a) => s + (+a.valor || 0), 0);
     for (let i = 5; i >= 0; i--) {
       const dt = new Date(yy, mm - 1 - i, 1);
       const key = mkey(dt);
       const rec = data.rendimentos.filter((x) => BM.monthKey(x.data) === key).reduce((s, x) => s + (+x.valor || 0), 0);
       const gasto = data.despesas.filter((x) => BM.monthKey(x.data) === key).reduce((s, x) => s + (+x.valor || 0), 0);
-      series.push({ m: BM.MESES[dt.getMonth()], key, rec, gasto });
+      const pou = (data.aforros || []).filter((a) => BM.monthKey(a.data) === key).reduce((s, a) => s + (+a.valor || 0), 0);
+      acum += pou;
+      series.push({ m: BM.MESES[dt.getMonth()], key, rec, gasto, pou, poupAcum: acum });
     }
     const allKeys = Array.from(new Set([...data.despesas, ...data.rendimentos].map((x) => BM.monthKey(x.data)))).filter(Boolean).sort().reverse();
     const historico = allKeys.map((key) => {

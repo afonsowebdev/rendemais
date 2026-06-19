@@ -189,4 +189,85 @@ function Sparkline({ data, w = 92, h = 32, color = "var(--accent)" }) {
   );
 }
 
-Object.assign(window, { DonutChart, LineChart, BarPair, Sparkline });
+function BarBreakdown({ data, money, labelOf }) {
+  const max = Math.max(1, ...data.map((d) => d.valor || 0));
+  const tot = data.reduce((s, d) => s + (d.valor || 0), 0) || 1;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+      {data.map((c) => {
+        const pct = Math.round((c.valor / tot) * 100);
+        const w = Math.max(4, Math.round((c.valor / max) * 100));
+        return (
+          <div key={c.key}>
+            <div className="row" style={{ justifyContent: "space-between", marginBottom: 7, alignItems: "baseline" }}>
+              <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 700 }}><span className="dot" style={{ background: c.color }} />{labelOf ? labelOf(c) : c.nome}</span>
+              <span className="tnum" style={{ fontSize: 12.5, fontWeight: 700 }}>{money(c.valor)} <span className="muted" style={{ fontWeight: 600 }}>· {pct}%</span></span>
+            </div>
+            <div style={{ height: 10, borderRadius: 999, background: "var(--surface-2)", overflow: "hidden" }}>
+              <div className="bb-fill" style={{ width: w + "%", height: "100%", borderRadius: 999, background: c.color }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SavingsArea({ data, height = 168 }) {
+  const ref = React.useRef(null);
+  const [w, setW] = React.useState(420);
+  React.useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const measure = () => { const nw = Math.round(el.clientWidth || 420); setW((p) => (p === nw ? p : nw)); };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    else { window.addEventListener("resize", measure); }
+    return () => { if (ro) ro.disconnect(); else window.removeEventListener("resize", measure); };
+  }, []);
+  const W = Math.max(240, w);
+  const H = height;
+  const pad = { t: 16, r: 14, b: 26, l: 14 };
+  const vals = data.map((d) => d.poupAcum || 0);
+  const max = (Math.max(...vals) || 1) * 1.12;
+  const x = (i) => pad.l + (i / (data.length - 1 || 1)) * (W - pad.l - pad.r);
+  const y = (v) => pad.t + (1 - v / (max || 1)) * (H - pad.t - pad.b);
+  const P = data.map((d, i) => ({ x: x(i), y: y(d.poupAcum || 0) }));
+  const smooth = (pts) => {
+    if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : "";
+    let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    return d;
+  };
+  const line = smooth(P);
+  const base = H - pad.b;
+  const area = line + ` L${x(data.length - 1).toFixed(1)},${base} L${x(0).toFixed(1)},${base} Z`;
+  const last = P[P.length - 1];
+  return (
+    <div ref={ref} style={{ width: "100%" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", overflow: "visible" }}>
+        <defs>
+          <linearGradient id="sav-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--c-educacao)" stopOpacity="0.26" />
+            <stop offset="100%" stopColor="var(--c-educacao)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 0.5, 1].map((g, i) => { const gy = pad.t + g * (H - pad.t - pad.b); return <line key={i} x1={pad.l} x2={W - pad.r} y1={gy} y2={gy} stroke="var(--border)" strokeWidth="1" strokeDasharray={g === 1 ? undefined : "3 6"} opacity={g === 1 ? 0.9 : 0.5} />; })}
+        <path className="lc-fade" d={area} fill="url(#sav-grad)" />
+        <path className="lc-draw" pathLength="1" d={line} fill="none" stroke="var(--c-educacao)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <g className="lc-fade">
+          {P.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3.4" fill="var(--surface)" stroke="var(--c-educacao)" strokeWidth="2.2" />)}
+          {data.map((d, i) => <text key={i} x={x(i)} y={H - 7} textAnchor="middle" fontSize="11.5" fontWeight="700" fill="var(--ink-3)">{d.m}</text>)}
+        </g>
+        {last && <circle cx={last.x} cy={last.y} r="5" fill="var(--c-educacao)" />}
+      </svg>
+    </div>
+  );
+}
+
+Object.assign(window, { DonutChart, LineChart, BarPair, Sparkline, BarBreakdown, SavingsArea });

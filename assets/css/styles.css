@@ -616,3 +616,7 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .app.sb-collapsed .sidebar:not(:hover) .user-chip,
   .app.sb-collapsed .sidebar:not(:hover) .brand { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
 }
+
+/* Barras horizontais do gráfico de despesas */
+.bb-fill { transform-origin: left center; animation: bbGrow .6s cubic-bezier(.4,0,.2,1); }
+@keyframes bbGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
