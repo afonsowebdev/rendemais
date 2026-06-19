@@ -1,26 +1,27 @@
 /* ===== Rende+ — catálogo + helpers (sem dados) ===== */
 window.BM = (function () {
-  // ---- moedas suportadas ----
+  // ---- moedas suportadas (cada uma com a sua localidade, casas decimais e posição do símbolo) ----
   const currencies = {
-    EUR: { code: "EUR", sym: "€",   nome: "Euro",                 pais: "Zona Euro",  pos: "before" },
-    GBP: { code: "GBP", sym: "£",   nome: "Libra esterlina",      pais: "Reino Unido",pos: "before" },
-    AOA: { code: "AOA", sym: "Kz",  nome: "Kwanza angolano",      pais: "Angola",     pos: "after"  },
-    USD: { code: "USD", sym: "$",   nome: "Dólar americano",      pais: "EUA",        pos: "before" },
-    CAD: { code: "CAD", sym: "C$",  nome: "Dólar canadiano",      pais: "Canadá",     pos: "before" },
-    CVE: { code: "CVE", sym: "Esc", nome: "Escudo cabo-verdiano", pais: "Cabo Verde", pos: "after"  },
-    MZN: { code: "MZN", sym: "MT",  nome: "Metical moçambicano",  pais: "Moçambique", pos: "after"  },
-    BRL: { code: "BRL", sym: "R$",  nome: "Real brasileiro",      pais: "Brasil",     pos: "before" },
+    EUR: { code: "EUR", sym: "€",   nome: "Euro",                 pais: "Zona Euro",  pos: "before", space: true,  locale: "pt-PT", dec: 2 },
+    GBP: { code: "GBP", sym: "£",   nome: "Libra esterlina",      pais: "Reino Unido",pos: "before", space: false, locale: "en-GB", dec: 2 },
+    AOA: { code: "AOA", sym: "Kz",  nome: "Kwanza angolano",      pais: "Angola",     pos: "after",  space: true,  locale: "pt-PT", dec: 0 },
+    USD: { code: "USD", sym: "$",   nome: "Dólar americano",      pais: "EUA",        pos: "before", space: false, locale: "en-US", dec: 2 },
+    CAD: { code: "CAD", sym: "C$",  nome: "Dólar canadiano",      pais: "Canadá",     pos: "before", space: false, locale: "en-CA", dec: 2 },
+    CVE: { code: "CVE", sym: "Esc", nome: "Escudo cabo-verdiano", pais: "Cabo Verde", pos: "after",  space: true,  locale: "pt-PT", dec: 0 },
+    MZN: { code: "MZN", sym: "MT",  nome: "Metical moçambicano",  pais: "Moçambique", pos: "after",  space: true,  locale: "pt-PT", dec: 0 },
+    BRL: { code: "BRL", sym: "R$",  nome: "Real brasileiro",      pais: "Brasil",     pos: "before", space: true,  locale: "pt-BR", dec: 2 },
   };
   let curCode = "EUR";
   const setCurrency = (c) => { if (currencies[c]) curCode = c; };
   const curInfo = () => currencies[curCode] || currencies.EUR;
   const fmtMoney = (n, dec) => {
     const c = curInfo();
-    const v = (+n || 0).toLocaleString("pt-PT", { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    return c.pos === "before" ? `${c.sym}${v}` : `${v}\u00A0${c.sym}`;
+    const places = (dec === undefined) ? (c.dec != null ? c.dec : 2) : dec;
+    const v = (+n || 0).toLocaleString(c.locale || "pt-PT", { minimumFractionDigits: places, maximumFractionDigits: places });
+    return c.pos === "before" ? `${c.sym}${c.space ? "\u00A0" : ""}${v}` : `${v}\u00A0${c.sym}`;
   };
-  const eur = (n) => fmtMoney(n, 2);
-  const eur0 = (n) => fmtMoney(n, 0);
+  const eur = (n) => fmtMoney(n);      // casas decimais próprias da moeda (€ usa 2, Kz usa 0, etc.)
+  const eur0 = (n) => fmtMoney(n, 0);  // versão compacta sem decimais, mantendo os separadores da moeda
 
   // categorias de DESPESA (chave -> nome, cor, ícone)
   const cats = {

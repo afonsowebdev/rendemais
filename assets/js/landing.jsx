@@ -16,9 +16,10 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     return () => clearInterval(id);
   }, []);
   const fmtP = (n) => {
-    const c = (BM.currencies && BM.currencies[pcur]) || { sym: "€" };
-    const v = Math.round(n * (PREVIEW_FX[pcur] || 1));
-    return c.sym + " " + v.toLocaleString("pt-PT");
+    const c = (BM.currencies && BM.currencies[pcur]) || { sym: "€", pos: "before", space: true, locale: "pt-PT", dec: 2 };
+    const places = c.dec != null ? c.dec : 2;
+    const v = (n * (PREVIEW_FX[pcur] || 1)).toLocaleString(c.locale || "pt-PT", { minimumFractionDigits: places, maximumFractionDigits: places });
+    return c.pos === "after" ? `${v}\u00A0${c.sym}` : `${c.sym}${c.space ? "\u00A0" : ""}${v}`;
   };
   const feats = [
     ["wallet", "var(--c-habitacao)", tr("feat1_title"), tr("feat1_desc")],
