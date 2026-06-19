@@ -111,7 +111,7 @@ function EntryModal({ type, item, onClose }) {
     if (type === "despesa") return { nome: item?.nome || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || "alimentacao", tipo: item?.tipo || "variavel" };
     if (type === "rendimento") return { fonte: item?.fonte || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || "Salário", rec: item?.rec ?? true };
     if (type === "meta") return { nome: item?.nome || "", alvo: item?.alvo ?? "", atual: item?.atual ?? 0, cor: item?.cor || META_CORES[0] };
-    if (type === "deposit") return { valor: "" };
+    if (type === "deposit") return { valor: "", inicial: false };
     if (type === "orcamento") return { valor: fin.data.orcamento ?? "" };
     if (type === "sync") { const movs = (BM.bancos[item?.banco] || {}).importar || []; return { sel: movs.map(() => true) }; }
     if (type === "reservar") return { modo: fin.data.metas.length ? "existente" : "nova", metaId: fin.data.metas[0]?.id || "", nome: "" };
@@ -143,10 +143,10 @@ function EntryModal({ type, item, onClose }) {
     } else if (type === "meta") {
       if (!f.nome.trim() || num(f.alvo) <= 0) return setErr("Indica um nome e um objetivo maior que zero.");
       const payload = { nome: f.nome.trim(), alvo: num(f.alvo), atual: num(f.atual), cor: f.cor };
-      editing ? fin.meta.edit(item.id, payload) : fin.meta.add(payload);
+      editing ? fin.meta.edit(item.id, payload) : fin.meta.add({ ...payload, inicial: true });
     } else if (type === "deposit") {
       if (num(f.valor) <= 0) return setErr("Indica um valor a depositar.");
-      fin.deposit(item.id, num(f.valor));
+      fin.deposit(item.id, num(f.valor), !!f.inicial);
     } else if (type === "orcamento") {
       fin.setOrcamento(num(f.valor) > 0 ? num(f.valor) : null);
     } else if (type === "sync") {
@@ -225,7 +225,7 @@ function EntryModal({ type, item, onClose }) {
         <Field label="Nome da meta"><input className="input" autoFocus value={f.nome} onChange={set("nome")} placeholder="Ex: Fundo de emergência" /></Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label={`Objetivo (${fin.curSym})`}><input className="input" type="number" step="1" value={f.alvo} onChange={set("alvo")} placeholder="1000" /></Field>
-          <Field label={`Já poupado (${fin.curSym})`}><input className="input" type="number" step="1" value={f.atual} onChange={set("atual")} placeholder="0" /></Field>
+          <Field label={`Já poupado (${fin.curSym})`} hint="O que já tinhas — não desconta da receita."><input className="input" type="number" step="1" value={f.atual} onChange={set("atual")} placeholder="0" /></Field>
         </div>
         <Field label="Cor">
           <div className="row" style={{ gap: 8 }}>
@@ -241,6 +241,10 @@ function EntryModal({ type, item, onClose }) {
         <Field label={`Valor a depositar (${fin.curSym})`} hint={(item?.alvo || 0) > 0 ? `Em falta: ${BM.eur0((item?.alvo || 0) - (item?.atual || 0))}` : `Acumulado: ${BM.eur0(item?.atual || 0)}`}>
           <input className="input" autoFocus type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" />
         </Field>
+        <label className="row" style={{ gap: 10, cursor: "pointer", fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, marginTop: 2, color: "var(--ink-2)" }}>
+          <input type="checkbox" checked={!!f.inicial} onChange={(e) => setF((s) => ({ ...s, inicial: e.target.checked }))} style={{ width: 17, height: 17, accentColor: "var(--accent)", flex: "none", marginTop: 1 }} />
+          <span>Já tinha este valor poupado — adicionar à minha poupança <b>sem descontar</b> da receita deste mês.</span>
+        </label>
       </>}
 
       {type === "orcamento" && <>

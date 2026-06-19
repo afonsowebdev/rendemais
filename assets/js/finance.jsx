@@ -147,11 +147,13 @@ function FinanceProvider({ children }) {
         const atual = +item.atual || 0;
         const m = await API.criar("metas", { nome: item.nome, alvo: +item.alvo || 0, atual });
         let novoAforro = null;
-        if (atual > 0) novoAforro = await API.criar("aforros", { metaId: m.id, valor: atual, data: BM.todayISO() });
+        const ini = !!item.inicial; // poupança que o utilizador já tinha (não desconta da receita deste mês)
+        const dataAforro = ini ? prevMonthISO() : BM.todayISO();
+        if (atual > 0) novoAforro = await API.criar("aforros", { metaId: m.id, valor: atual, data: dataAforro, inicial: ini });
         setData((d) => ({
           ...d,
           metas: [...d.metas, { ...m, cor: item.cor || PALETA[d.metas.length % PALETA.length] }],
-          aforros: novoAforro ? [...(d.aforros || []), novoAforro] : (d.aforros || []),
+          aforros: novoAforro ? [...(d.aforros || []), { ...novoAforro, inicial: ini, data: novoAforro.data || dataAforro }] : (d.aforros || []),
         }));
         return m;
       } catch (e) { erroAlerta(e); }
@@ -164,17 +166,19 @@ function FinanceProvider({ children }) {
     },
   };
   // depositar numa poupança: soma ao acumulado e regista um movimento datado
-  const deposit = async (id, valor) => {
+  const prevMonthISO = () => { const d = new Date(); d.setDate(1); d.setDate(0); return d.toISOString().slice(0, 10); };
+  const deposit = async (id, valor, inicial = false) => {
     try {
       const m = (data.metas || []).find((x) => x.id === id);
       const novo = (m ? (+m.atual || 0) : 0) + (+valor || 0);
       const capado = (m && m.alvo > 0) ? Math.min(m.alvo, novo) : novo;
       await API.editar("metas", id, { atual: capado });
-      const aforro = await API.criar("aforros", { metaId: id, valor: +valor || 0, data: BM.todayISO() });
+      const dataAforro = inicial ? prevMonthISO() : BM.todayISO();
+      const aforro = await API.criar("aforros", { metaId: id, valor: +valor || 0, data: dataAforro, inicial: !!inicial });
       setData((d) => ({
         ...d,
         metas: d.metas.map((x) => (x.id === id ? { ...x, atual: capado } : x)),
-        aforros: [...(d.aforros || []), aforro],
+        aforros: [...(d.aforros || []), { ...aforro, inicial: !!inicial, data: aforro.data || dataAforro }],
       }));
     } catch (e) { erroAlerta(e); }
   };
@@ -261,7 +265,7 @@ function FinanceProvider({ children }) {
     const saldo = totalRec - totalGasto;
     const poupancaPct = data.poupancaPct ?? 20;
     const planoTotal = saldo > 0 ? Math.round((poupancaPct / 100) * saldo * 100) / 100 : 0;
-    const poupadoMes = (data.aforros || []).filter((a) => BM.monthKey(a.data) === month).reduce((s, a) => s + (+a.valor || 0), 0);
+    const poupadoMes = (data.aforros || []).filter((a) => !a.inicial && BM.monthKey(a.data) === month).reduce((s, a) => s + (+a.valor || 0), 0);
     const poupancaSeparada = Math.max(poupadoMes, planoTotal);
     const poupancaPlano = planoTotal;
     const disponivel = saldo - poupancaSeparada;

@@ -285,7 +285,7 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .login-form-brand { display: flex; }
   .topbar .page-sub { display: none; }
 
-  .main { padding-bottom: 74px; }
+  .main { padding-bottom: 90px; }
   .topbar { padding: 14px 16px; gap: 10px; }
   .page-title { font-size: 19px; }
   .page-sub { font-size: 12px; }
@@ -306,20 +306,28 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
   .grid[style*="repeat(2"] { grid-template-columns: 1fr !important; }
   .grid[style*="1fr 1fr"]:not([style*="1fr 1fr 1fr"]) { grid-template-columns: 1fr !important; }
 
-  /* bottom tab bar */
+  /* bottom tab bar — pílula flutuante com aba ativa expansível */
   .mobilenav {
-    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(14px); border-top: 1px solid var(--border);
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    display: flex; position: fixed; z-index: 50;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 12px; right: 12px;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border); border-radius: 22px;
+    padding: 7px; gap: 4px; align-items: center;
+    box-shadow: 0 16px 38px -12px rgba(8,14,24,.34);
   }
   .mtab {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    background: none; border: none; padding: 5px 2px; color: var(--ink-3);
-    font-size: 10.5px; font-weight: 700; font-family: inherit; border-radius: 10px;
+    flex: 1 1 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px;
+    background: none; border: none; padding: 11px 6px; color: var(--ink-3);
+    font-size: 13px; font-weight: 700; font-family: inherit; border-radius: 15px;
+    cursor: pointer; min-width: 0; overflow: hidden;
+    transition: color .18s, background .18s, flex-grow .24s cubic-bezier(.4,0,.2,1);
   }
-  .mtab.on { color: var(--accent); }
-  .mtab span { letter-spacing: -.01em; }
+  .mtab svg { flex: none; }
+  .mtab span { white-space: nowrap; max-width: 0; opacity: 0; overflow: hidden; transition: max-width .24s cubic-bezier(.4,0,.2,1), opacity .18s ease; }
+  .mtab.on { color: var(--accent-ink); background: var(--accent-soft); flex-grow: 2.2; }
+  .mtab.on span { max-width: 92px; opacity: 1; }
+  [data-theme="dark"] .mtab.on { color: var(--accent); }
 }
 
 @media (max-width: 480px) {
