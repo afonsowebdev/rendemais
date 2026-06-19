@@ -1,7 +1,7 @@
 /* ===== Rende+ — design tokens ===== */
 :root {
-  --radius: 16px;
-  --radius-sm: 10px;
+  --radius: 13px;
+  --radius-sm: 9px;
   --radius-pill: 999px;
   --gap: 1px; /* density-driven scaling handled via --space */
   --space: 1;
@@ -580,3 +580,34 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 .pstat-v { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
 .pstat-l { font-size: 11.5px; color: var(--ink-3); font-weight: 600; margin-top: 1px; }
 @media (max-width: 560px) { .profile-stats { grid-template-columns: 1fr; } }
+
+/* Hero — transição suave ao alternar de moeda */
+@keyframes curFade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+.cur-fade { animation: curFade .45s ease; }
+.cur-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-ink); }
+
+/* ===== Barra lateral retrátil (apenas desktop) ===== */
+.sb-toggle { opacity: .55 !important; margin-bottom: 6px; }
+.sb-toggle:hover { opacity: 1 !important; }
+@media (min-width: 861px) {
+  .app { transition: grid-template-columns .22s ease; }
+  .sidebar { transition: width .2s ease, box-shadow .2s ease; }
+  .nav-item > span, .nav-label, .brand-name, .brand-sub, .uc-text { white-space: nowrap; transition: opacity .14s ease; }
+
+  .app.sb-collapsed { grid-template-columns: 76px 1fr; }
+  .app.sb-collapsed .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 76px;
+    overflow: hidden; z-index: 35;
+  }
+  .app.sb-collapsed .sidebar:hover { width: 256px; box-shadow: 16px 0 48px -20px rgba(8,14,24,.55); }
+
+  .app.sb-collapsed .sidebar:not(:hover) .nav-item > span,
+  .app.sb-collapsed .sidebar:not(:hover) .nav-label,
+  .app.sb-collapsed .sidebar:not(:hover) .brand-name,
+  .app.sb-collapsed .sidebar:not(:hover) .brand-sub,
+  .app.sb-collapsed .sidebar:not(:hover) .uc-text { opacity: 0; pointer-events: none; }
+
+  .app.sb-collapsed .sidebar:not(:hover) .nav-item,
+  .app.sb-collapsed .sidebar:not(:hover) .sb-toggle { gap: 0; }
+  .app.sb-collapsed .sidebar:not(:hover) .user-chip { justify-content: center; padding-left: 0; padding-right: 0; }
+}

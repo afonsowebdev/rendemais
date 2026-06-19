@@ -354,6 +354,8 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
+  const [sbCollapsed, setSbCollapsed] = useState(() => { try { return localStorage.getItem("rende_sb") === "1"; } catch (e) { return false; } });
+  const toggleSidebar = () => setSbCollapsed((v) => { const n = !v; try { localStorage.setItem("rende_sb", n ? "1" : "0"); } catch (e) {} return n; });
   const [lang, setLang] = useLang();
   const tr = I18N.make(lang);
   useEffect(() => { document.documentElement.setAttribute("lang", lang); }, [lang]);
@@ -428,8 +430,8 @@ function Shell() {
   const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
 
   return (
-    <div className="app">
-      <Sidebar route={route} go={go} account={fin.account} />
+    <div className={"app" + (sbCollapsed ? " sb-collapsed" : "")}>
+      <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
         <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
           onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? tr("add_" + P.add) : null}

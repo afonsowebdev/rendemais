@@ -65,7 +65,7 @@ function FinanceProvider({ children }) {
   const signup = async (info) => {
     const resp = await API.registar({ email: info.email, password: info.password, nome: info.nome, moeda: info.moeda });
     API.setToken(resp.token);
-    const extra = { idade: info.idade, cidade: info.cidade, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao };
+    const extra = { idade: info.idade, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao };
     setAccount((a) => ({ ...(a || {}), ...(resp.user || {}), ...extra }));
     await carregarTudo();
   };

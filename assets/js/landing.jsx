@@ -6,6 +6,20 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     { nome: tr("m_transporte"), color: "var(--c-transporte)", valor: 60 },
     { nome: tr("m_lazer"), color: "var(--c-lazer)", valor: 48 },
   ];
+  // Hero: alterna entre as 8 moedas (valores ~realistas via câmbio aproximado)
+  const PREVIEW_ORDER = ["EUR", "BRL", "USD", "AOA", "GBP", "CVE", "MZN", "CAD"];
+  const PREVIEW_FX = { EUR: 1, USD: 1.08, GBP: 0.85, CAD: 1.48, BRL: 6.2, AOA: 950, CVE: 110.27, MZN: 69 };
+  const [pcur, setPcur] = React.useState("EUR");
+  React.useEffect(() => {
+    let i = 0;
+    const id = setInterval(() => { i = (i + 1) % PREVIEW_ORDER.length; setPcur(PREVIEW_ORDER[i]); }, 2800);
+    return () => clearInterval(id);
+  }, []);
+  const fmtP = (n) => {
+    const c = (BM.currencies && BM.currencies[pcur]) || { sym: "€" };
+    const v = Math.round(n * (PREVIEW_FX[pcur] || 1));
+    return c.sym + " " + v.toLocaleString("pt-PT");
+  };
   const feats = [
     ["wallet", "var(--c-habitacao)", tr("feat1_title"), tr("feat1_desc")],
     ["target", "var(--accent)", tr("feat2_title"), tr("feat2_desc")],
@@ -84,17 +98,20 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
                 <div>
                   <div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_balance")}</div>
-                  <div className="tnum" style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-.03em", marginTop: 2 }}>{BM.eur0(317)}</div>
+                  <div key={pcur} className="tnum cur-fade" style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-.03em", marginTop: 2 }}>{fmtP(317)}</div>
                 </div>
-                <span className="delta up"><Icon name="arrowUp" size={13} /> +12%</span>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                  <span key={pcur} className="cur-pill cur-fade">{pcur}</span>
+                  <span className="delta up"><Icon name="arrowUp" size={13} /> +12%</span>
+                </div>
               </div>
               <div className="row" style={{ gap: 18, alignItems: "center" }}>
-                <DonutChart data={donut} size={132} thickness={20} center={<div><div className="tnum" style={{ fontSize: 16, fontWeight: 800 }}>{BM.eur0(563)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("prev_spent")}</div></div>} />
+                <DonutChart data={donut} size={132} thickness={20} center={<div key={pcur} className="cur-fade"><div className="tnum" style={{ fontSize: 16, fontWeight: 800 }}>{fmtP(563)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("prev_spent")}</div></div>} />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
                   {donut.map((c) => (
                     <div key={c.nome} className="row" style={{ justifyContent: "space-between" }}>
                       <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{c.nome}</span>
-                      <span className="tnum tiny" style={{ fontWeight: 700 }}>{BM.eur0(c.valor)}</span>
+                      <span key={pcur} className="tnum tiny cur-fade" style={{ fontWeight: 700 }}>{fmtP(c.valor)}</span>
                     </div>
                   ))}
                 </div>
@@ -103,7 +120,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <div className="lp-float" style={{ top: -18, right: 6 }}>
               <div className="row" style={{ gap: 10 }}>
                 <span className="li-ico" style={{ width: 34, height: 34, background: "var(--accent-soft)" }}><Icon name="target" size={16} color="var(--accent)" sw={2} /></span>
-                <div><div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_savings")}</div><div className="tnum" style={{ fontWeight: 800, fontSize: 15 }}>{BM.eur0(95)}</div></div>
+                <div><div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_savings")}</div><div key={pcur} className="tnum cur-fade" style={{ fontWeight: 800, fontSize: 15 }}>{fmtP(95)}</div></div>
               </div>
             </div>
             <div className="lp-float" style={{ bottom: -20, left: -10 }}>

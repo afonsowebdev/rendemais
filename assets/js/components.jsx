@@ -34,7 +34,7 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
   );
 }
 
-function Sidebar({ route, go, account }) {
+function Sidebar({ route, go, account, collapsed, onToggle }) {
   const tr = useT();
   const nav = [
     { id: "dashboard", label: tr("lbl_dashboard"), icon: "grid" },
@@ -48,7 +48,7 @@ function Sidebar({ route, go, account }) {
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const Item = (n) => (
-    <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)}>
+    <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)} title={n.label}>
       <Icon name={n.icon} size={19} />
       <span>{n.label}</span>
     </button>
@@ -65,9 +65,13 @@ function Sidebar({ route, go, account }) {
       <div className="nav-label">{tr("lbl_analysis")}</div>
       {nav2.map(Item)}
       <div className="sidebar-foot">
-        <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("perfil")}>
+        <button className="nav-item sb-toggle" onClick={onToggle} title={collapsed ? tr("sb_expand") : tr("sb_collapse")}>
+          <span style={{ display: "grid", transform: collapsed ? "none" : "rotate(180deg)" }}><Icon name="chevR" size={18} /></span>
+          <span>{collapsed ? tr("sb_expand") : tr("sb_collapse")}</span>
+        </button>
+        <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("perfil")} title={account?.nome || tr("lbl_my_account")}>
           <Avatar account={account} size={34} />
-          <div style={{ minWidth: 0 }}>
+          <div className="uc-text" style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{account?.nome || tr("lbl_my_account")}</div>
             <div style={{ fontSize: 11.5, opacity: .6 }}>{[account?.perfil, account?.cidade].filter(Boolean).join(" · ") || tr("lbl_profile")}</div>
           </div>

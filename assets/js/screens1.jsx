@@ -9,12 +9,12 @@ function pwScore(p) { return Object.values(pwChecks(p)).filter(Boolean).length; 
 function pwStrong(p) { return pwScore(p) === 5; }
 
 /* input de palavra-passe com botão de mostrar/ocultar (olho) */
-function PwInput({ value, onChange, placeholder, show, toggle, autoComplete }) {
+function PwInput({ value, onChange, placeholder, show, toggle, autoComplete, disabled }) {
   const tr = useT();
   return (
-    <div style={{ position: "relative" }}>
-      <input className="input" type={show ? "text" : "password"} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} style={{ paddingRight: 44 }} />
-      <button type="button" onClick={toggle} tabIndex={-1} aria-label={show ? tr("pw_hide") : tr("pw_show")}
+    <div style={{ position: "relative", opacity: disabled ? 0.5 : 1 }}>
+      <input className="input" type={show ? "text" : "password"} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} disabled={disabled} style={{ paddingRight: 44 }} />
+      <button type="button" onClick={toggle} tabIndex={-1} disabled={disabled} aria-label={show ? tr("pw_hide") : tr("pw_show")}
         style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 7, display: "grid", placeItems: "center", color: "var(--ink-3)", borderRadius: 8 }}>
         <Icon name={show ? "eyeOff" : "eye"} size={18} />
       </button>
@@ -52,7 +52,9 @@ function Auth({ initialMode, onBack }) {
   const fin = useFinance();
   const tr = useT();
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
-  const [f, setF] = React.useState({ nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: "EUR" });
+  const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); return { nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: BM.currencyForCountry(pais) }; });
+  const [cidadeOutra, setCidadeOutra] = React.useState(false);
+  const setCountry = (code) => { setCidadeOutra(false); setF((s) => ({ ...s, pais: code, cidade: "", moeda: BM.currencyForCountry(code) })); };
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
   const [sentCode, setSentCode] = React.useState("");
@@ -65,12 +67,14 @@ function Auth({ initialMode, onBack }) {
   const doSignup = async () => {
     if (!f.nome.trim() || !f.email.trim()) { setErr(tr("auth_err_fill")); return; }
     if (!pwStrong(f.password)) { setErr(tr("auth_err_weak")); return; }
+    if (f.password !== f.password2) { setErr(tr("auth_err_mismatch")); return; }
     setErr("");
     try {
-      await fin.signup({ nome: f.nome, email: f.email, password: f.password, idade: f.idade, cidade: f.cidade, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda });
+      await fin.signup({ nome: f.nome, email: f.email, password: f.password, idade: f.idade, cidade: f.cidade, pais: f.pais, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda });
     } catch (e) { setErr(e.message || tr("auth_err_signup")); }
   };
   const doLogin = async () => {
+    if (!f.email.trim() || !f.password) { setErr(tr("auth_err_fill")); return; }
     setErr("");
     try { await fin.login(f.email, f.password); }
     catch (e) { setErr(e.message || tr("auth_err_login")); }
@@ -160,13 +164,23 @@ function Auth({ initialMode, onBack }) {
             <>
               <Field label={tr("auth_name")}><input className="input" value={f.nome} onChange={set("nome")} placeholder={tr("auth_name_ph")} /></Field>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Field label={tr("auth_country")}>
+                  <select className="select" value={f.pais} onChange={(e) => setCountry(e.target.value)}>
+                    {BM.countries.map((c) => <option key={c.code} value={c.code}>{tr("country_" + c.code)}</option>)}
+                  </select>
+                </Field>
                 <Field label={tr("auth_age")}><input className="input" type="number" value={f.idade} onChange={set("idade")} placeholder="21" /></Field>
-                <Field label={tr("auth_city")}><input className="input" value={f.cidade} onChange={set("cidade")} placeholder="Coimbra" /></Field>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label={tr("auth_situation")}><select className="select" value={f.perfil} onChange={set("perfil")}>{[["Estudante", tr("auth_opt_student")], ["Trabalhador", tr("auth_opt_worker")], ["Estudante e Trabalhador", tr("auth_opt_both")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
-                <Field label={tr("auth_marital")}><select className="select" value={f.estado} onChange={set("estado")}>{[["Solteiro(a)", tr("auth_opt_single")], ["Casado(a)", tr("auth_opt_married")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
-              </div>
+              <Field label={tr("auth_city")}>
+                <select className="select" value={cidadeOutra ? "__other__" : f.cidade}
+                  onChange={(e) => { if (e.target.value === "__other__") { setCidadeOutra(true); setF((s) => ({ ...s, cidade: "" })); } else { setCidadeOutra(false); setF((s) => ({ ...s, cidade: e.target.value })); } }}>
+                  <option value="" disabled>{tr("auth_select_city")}</option>
+                  {BM.countryCities(f.pais).map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="__other__">{tr("auth_other_city")}</option>
+                </select>
+                {cidadeOutra && <input className="input" style={{ marginTop: 8 }} value={f.cidade} onChange={set("cidade")} placeholder={tr("auth_other_city_ph")} />}
+              </Field>
+              <Field label={tr("auth_situation")}><select className="select" value={f.perfil} onChange={set("perfil")}>{[["Estudante", tr("auth_opt_student")], ["Trabalhador", tr("auth_opt_worker")], ["Estudante e Trabalhador", tr("auth_opt_both")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
               <Field label={tr("auth_currency")} hint={tr("auth_currency_hint")}>
                 <select className="select" value={f.moeda} onChange={set("moeda")}>
                   {Object.values(BM.currencies).map((c) => <option key={c.code} value={c.code}>{c.sym} ({c.code})</option>)}
@@ -180,9 +194,12 @@ function Auth({ initialMode, onBack }) {
           )}
 
           {(mode === "signup" || mode === "login") && (
-            <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} /></Field>
+            <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} disabled={!f.email.trim()} /></Field>
           )}
           {mode === "signup" && <Strength value={f.password} />}
+          {mode === "signup" && (
+            <Field label={tr("auth_confirm_password")}><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(f.password)} /></Field>
+          )}
 
           {mode === "login" && (
             <div style={{ textAlign: "right", marginTop: -6, marginBottom: 8 }}>
@@ -210,7 +227,6 @@ function Auth({ initialMode, onBack }) {
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
             {busy ? loadingLabel : primaryLabel}
           </button>
-          {busy && (mode === "login" || mode === "signup") && <p className="muted tiny" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>{tr("auth_connecting")}</p>}
 
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
             {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}

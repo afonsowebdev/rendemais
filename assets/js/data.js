@@ -77,7 +77,34 @@ window.BM = (function () {
     },
   };
 
-  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, bancos };
+  // ---- Países suportados (8 moedas): cidades + moeda + deteção por região do navegador ----
+  const countries = [
+    { code: "PT", moeda: "EUR", locales: ["PT"], cities: ["Lisboa", "Porto", "Vila Nova de Gaia", "Amadora", "Braga", "Coimbra", "Funchal", "Almada", "Aveiro", "Faro", "Setúbal", "Guimarães", "Viseu", "Leiria", "Évora", "Ponta Delgada", "Queluz", "Cascais", "Loures", "Matosinhos", "Sintra", "Barreiro", "Viana do Castelo", "Vila Real", "Bragança", "Castelo Branco", "Portimão", "Santarém", "Tomar", "Beja"] },
+    { code: "AO", moeda: "AOA", locales: ["AO"], cities: ["Luanda", "Huambo", "Lobito", "Benguela", "Lubango", "Malanje", "Namibe", "Cabinda", "Soyo", "Uíge", "Kuito", "Saurimo", "Menongue", "Sumbe", "Caxito", "N'dalatando", "Ondjiva", "Dundo", "Luena", "Mbanza-Kongo", "Caála", "Catumbela", "Gabela", "Lucapa"] },
+    { code: "BR", moeda: "BRL", locales: ["BR"], cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre", "Belém", "Goiânia", "Guarulhos", "Campinas", "São Luís", "Maceió", "Natal", "Teresina", "Campo Grande", "João Pessoa", "Florianópolis", "Cuiabá", "Aracaju", "Vitória", "Santos", "Ribeirão Preto", "Uberlândia", "Sorocaba", "Niterói", "Joinville"] },
+    { code: "CV", moeda: "CVE", locales: ["CV"], cities: ["Praia", "Mindelo", "Santa Maria", "Assomada", "Espargos", "Pedra Badejo", "Tarrafal", "São Filipe", "Sal Rei", "Ribeira Grande", "Porto Novo", "Vila do Maio", "Calheta de São Miguel", "São Domingos", "Nova Sintra", "Ponta do Sol"] },
+    { code: "MZ", moeda: "MZN", locales: ["MZ"], cities: ["Maputo", "Matola", "Beira", "Nampula", "Chimoio", "Quelimane", "Tete", "Nacala", "Xai-Xai", "Pemba", "Inhambane", "Lichinga", "Maxixe", "Cuamba", "Montepuez", "Dondo", "Angoche", "Gurúè", "Chókwè", "Mocímboa da Praia"] },
+    { code: "US", moeda: "USD", locales: ["US"], cities: ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "Miami", "Boston", "San Francisco", "Seattle", "Atlanta", "Washington", "Newark", "Orlando", "Las Vegas", "Denver", "Houston", "Austin", "San Jose", "Charlotte", "Detroit", "Minneapolis", "Portland", "Tampa", "Sacramento", "Pittsburgh", "Providence"] },
+    { code: "CA", moeda: "CAD", locales: ["CA"], cities: ["Toronto", "Montréal", "Vancouver", "Calgary", "Ottawa", "Edmonton", "Québec", "Winnipeg", "Hamilton", "Mississauga", "Brampton", "London (ON)", "Halifax", "Victoria", "Windsor", "Saskatoon", "Regina", "Kitchener", "Gatineau", "St. John's", "Laval", "Surrey", "Burnaby"] },
+    { code: "GB", moeda: "GBP", locales: ["GB", "UK"], cities: ["London", "Manchester", "Birmingham", "Liverpool", "Leeds", "Sheffield", "Glasgow", "Edinburgh", "Bristol", "Cardiff", "Leicester", "Nottingham", "Newcastle", "Belfast", "Brighton", "Coventry", "Reading", "Southampton", "Portsmouth", "Aberdeen", "Oxford", "Cambridge", "York", "Plymouth"] },
+  ];
+  const countryByCode = (code) => countries.find((c) => c.code === code) || null;
+  const countryCities = (code) => { const c = countryByCode(code); return c ? c.cities : []; };
+  const currencyForCountry = (code) => { const c = countryByCode(code); return c ? c.moeda : "EUR"; };
+  const detectCountry = () => {
+    try {
+      const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""]);
+      for (const l of langs) {
+        const region = (l.split("-")[1] || "").toUpperCase();
+        if (!region) continue;
+        const hit = countries.find((c) => c.locales.indexOf(region) >= 0);
+        if (hit) return hit.code;
+      }
+    } catch (e) {}
+    return "PT";
+  };
+
+  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, bancos, countries, countryByCode, countryCities, currencyForCountry, detectCountry };
 })();
 
 /* ===== i18n integrado no data.js (para não depender de um ficheiro separado) ===== */
@@ -98,7 +125,7 @@ window.I18N = (function () {
       theme_title: "Tema",
       lang_title: "Idioma",
       hero_eyebrow: "Finanças pessoais, sem complicações",
-      hero_h1_a: "Controla o teu dinheiro ",
+      hero_h1_a: "Gere o teu dinheiro ",
       hero_h1_b: "de forma simples.",
       hero_sub: "Regista a tua receita, subtrai as despesas e define quanto queres poupar. O Rende+ mostra-te, num instante, quanto tens disponível até ao fim do mês.",
       hero_cta_create: "Criar conta gratuita",
@@ -225,6 +252,19 @@ window.I18N = (function () {
       auth_name_ph: "O teu nome",
       auth_age: "Idade",
       auth_city: "Cidade",
+      auth_country: "País",
+      auth_select_country: "Seleciona o país",
+      auth_select_city: "Seleciona a cidade",
+      auth_other_city: "Outra cidade…",
+      auth_other_city_ph: "A tua cidade",
+      country_PT: "Portugal",
+      country_AO: "Angola",
+      country_BR: "Brasil",
+      country_CV: "Cabo Verde",
+      country_MZ: "Moçambique",
+      country_US: "Estados Unidos",
+      country_CA: "Canadá",
+      country_GB: "Reino Unido",
       auth_situation: "Situação",
       auth_opt_student: "Estudante",
       auth_opt_worker: "Trabalhador",
@@ -267,7 +307,7 @@ window.I18N = (function () {
       pw_special: "Símbolo",
       pw_hide: "Ocultar palavra-passe",
       pw_show: "Mostrar palavra-passe",
-      lbl_dashboard: "Dashboard",
+      lbl_dashboard: "Painel",
       lbl_expenses: "Despesas",
       lbl_income: "Rendimentos",
       lbl_savings: "Poupança",
@@ -282,6 +322,8 @@ window.I18N = (function () {
       lbl_analysis: "Análise",
       lbl_more: "Mais",
       lbl_my_account: "A minha conta",
+      sb_collapse: "Recolher menu",
+      sb_expand: "Expandir menu",
       go_dashboard: "Ir para o Dashboard",
       month_current: "Mês atual",
       month_at_current: "Já estás no mês atual",
@@ -365,7 +407,7 @@ window.I18N = (function () {
       theme_title: "Theme",
       lang_title: "Language",
       hero_eyebrow: "Personal finance, made simple",
-      hero_h1_a: "Take control of your money ",
+      hero_h1_a: "Manage your money ",
       hero_h1_b: "the simple way.",
       hero_sub: "Log your income, subtract your expenses and set how much you want to save. Rende+ shows you, in an instant, how much you have left until the end of the month.",
       hero_cta_create: "Create a free account",
@@ -492,6 +534,19 @@ window.I18N = (function () {
       auth_name_ph: "Your name",
       auth_age: "Age",
       auth_city: "City",
+      auth_country: "Country",
+      auth_select_country: "Select your country",
+      auth_select_city: "Select your city",
+      auth_other_city: "Other city…",
+      auth_other_city_ph: "Your city",
+      country_PT: "Portugal",
+      country_AO: "Angola",
+      country_BR: "Brazil",
+      country_CV: "Cape Verde",
+      country_MZ: "Mozambique",
+      country_US: "United States",
+      country_CA: "Canada",
+      country_GB: "United Kingdom",
       auth_situation: "Situation",
       auth_opt_student: "Student",
       auth_opt_worker: "Worker",
@@ -534,7 +589,7 @@ window.I18N = (function () {
       pw_special: "Symbol",
       pw_hide: "Hide password",
       pw_show: "Show password",
-      lbl_dashboard: "Dashboard",
+      lbl_dashboard: "Overview",
       lbl_expenses: "Expenses",
       lbl_income: "Income",
       lbl_savings: "Savings",
@@ -549,6 +604,8 @@ window.I18N = (function () {
       lbl_analysis: "Analysis",
       lbl_more: "More",
       lbl_my_account: "My account",
+      sb_collapse: "Collapse menu",
+      sb_expand: "Expand menu",
       go_dashboard: "Go to Dashboard",
       month_current: "Current month",
       month_at_current: "You're already on the current month",
@@ -759,6 +816,19 @@ window.I18N = (function () {
       auth_name_ph: "Ton nom",
       auth_age: "Âge",
       auth_city: "Ville",
+      auth_country: "Pays",
+      auth_select_country: "Sélectionne ton pays",
+      auth_select_city: "Sélectionne ta ville",
+      auth_other_city: "Autre ville…",
+      auth_other_city_ph: "Ta ville",
+      country_PT: "Portugal",
+      country_AO: "Angola",
+      country_BR: "Brésil",
+      country_CV: "Cap-Vert",
+      country_MZ: "Mozambique",
+      country_US: "États-Unis",
+      country_CA: "Canada",
+      country_GB: "Royaume-Uni",
       auth_situation: "Situation",
       auth_opt_student: "Étudiant",
       auth_opt_worker: "Travailleur",
@@ -801,7 +871,7 @@ window.I18N = (function () {
       pw_special: "Symbole",
       pw_hide: "Masquer le mot de passe",
       pw_show: "Afficher le mot de passe",
-      lbl_dashboard: "Tableau de bord",
+      lbl_dashboard: "Aperçu",
       lbl_expenses: "Dépenses",
       lbl_income: "Revenus",
       lbl_savings: "Épargne",
@@ -816,6 +886,8 @@ window.I18N = (function () {
       lbl_analysis: "Analyse",
       lbl_more: "Plus",
       lbl_my_account: "Mon compte",
+      sb_collapse: "Réduire le menu",
+      sb_expand: "Agrandir le menu",
       go_dashboard: "Aller au tableau de bord",
       month_current: "Mois actuel",
       month_at_current: "Tu es déjà sur le mois actuel",
