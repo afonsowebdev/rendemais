@@ -293,6 +293,11 @@ function Definicoes({ theme, setTheme, open }) {
   const a = fin.account || {};
   const [notif, setNotif] = React.useState(true);
   const [alertas, setAlertas] = React.useState(true);
+  const PAIS_NOME = { PT: "Portugal", AO: "Angola", BR: "Brasil", CV: "Cabo Verde", MZ: "Moçambique", US: "Estados Unidos", CA: "Canadá", GB: "Reino Unido" };
+  const [selCidade, setSelCidade] = React.useState(a.cidade || "");
+  const [confirmLoc, setConfirmLoc] = React.useState(null); // país pendente de confirmação
+  React.useEffect(() => { setSelCidade(a.cidade || ""); }, [a.cidade]);
+  const moedaInfo = BM.currencies[a.moeda] || BM.currencies.EUR;
 
   const Section = ({ title, icon, children }) => (
     <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -323,14 +328,45 @@ function Definicoes({ theme, setTheme, open }) {
         <Rowi label="Orçamento mensal" sub={fin.data.orcamento ? `Limite atual: ${BM.eur0(fin.data.orcamento)}` : "Ainda não definido"}>
           <button className="btn btn-ghost" onClick={() => open("orcamento")}><Icon name="edit" size={14} /> Definir</button>
         </Rowi>
-        <Rowi label="Moeda" sub="Usada em toda a aplicação">
-          <select className="select" style={{ width: "auto" }} value={a.moeda || "EUR"} onChange={(e) => fin.setCurrency(e.target.value)}>
-            {Object.values(BM.currencies).map((c) => <option key={c.code} value={c.code}>{c.sym} ({c.code})</option>)}
-          </select>
-        </Rowi>
         <Rowi label="Notificações" sub="Resumos semanais por email"><Toggle on={notif} onClick={() => setNotif(!notif)} /></Rowi>
         <Rowi label="Alertas inteligentes" sub="Avisos de orçamento e poupança" last><Toggle on={alertas} onClick={() => setAlertas(!alertas)} /></Rowi>
       </Section>
+
+      <Section title="Localização" icon="flag">
+        <Rowi label="País" sub="Define automaticamente a tua moeda">
+          <select className="select" style={{ width: "auto" }} value={a.pais || "PT"}
+            onChange={(e) => { const np = e.target.value; if (np !== (a.pais || "")) setConfirmLoc(np); }}>
+            {BM.countries.map((c) => <option key={c.code} value={c.code}>{PAIS_NOME[c.code] || c.code}</option>)}
+          </select>
+        </Rowi>
+        <Rowi label="Cidade" sub="A tua cidade no país atual">
+          <select className="select" style={{ width: "auto", maxWidth: 210 }} value={selCidade}
+            onChange={(e) => { const c = e.target.value; setSelCidade(c); fin.mudarLocalizacao({ pais: a.pais, cidade: c }); }}>
+            <option value="" disabled>Seleciona…</option>
+            {BM.countryCities(a.pais || "PT").map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </Rowi>
+        <Rowi label="Moeda" sub="Definida pelo teu país — não editável" last>
+          <span className="chip" style={{ fontWeight: 700, gap: 7 }}><Icon name="coins" size={14} color="var(--accent)" />{moedaInfo.nome} · {moedaInfo.sym}</span>
+        </Rowi>
+      </Section>
+
+      {(fin.arquivos || []).length > 0 && (
+        <Section title="Organizações anteriores" icon="history">
+          <div className="tiny muted" style={{ fontWeight: 600, marginTop: -4 }}>Dados guardados de cada vez que mudaste de país. Só de leitura.</div>
+          {(fin.arquivos || []).map((q) => (
+            <div key={q.id} className="row" style={{ justifyContent: "space-between", paddingBottom: 14, borderBottom: "1px solid var(--border)" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{PAIS_NOME[q.pais] || q.pais || "—"} · {(BM.currencies[q.moeda] || BM.currencies.EUR).sym}</div>
+                <div className="tiny muted" style={{ marginTop: 3, fontWeight: 600 }}>
+                  Arquivado em {BM.fmtData(q.dataArquivo)} · {q.totais.nDespesas} despesas · {q.totais.nRendimentos} rendimentos · {q.totais.nMetas} metas
+                </div>
+              </div>
+              <button className="icon-btn" style={{ width: 32, height: 32 }} title="Remover do arquivo" onClick={() => fin.apagarArquivo(q.id)}><Icon name="trash" size={14} /></button>
+            </div>
+          ))}
+        </Section>
+      )}
 
       <Section title="Categorias de despesa" icon="grid">
         <Rowi label="Categorias personalizadas" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) criada(s)` : "Cria categorias próprias ao registar uma despesa"} last={!(fin.data.customCats || []).length}>
@@ -347,6 +383,38 @@ function Definicoes({ theme, setTheme, open }) {
           </div>
         )}
       </Section>
+
+      {confirmLoc && (() => {
+        const novaMoeda = BM.currencyForCountry(confirmLoc);
+        const nm = BM.currencies[novaMoeda] || BM.currencies.EUR;
+        const atualM = BM.currencies[a.moeda] || BM.currencies.EUR;
+        const temDados = ((fin.data.despesas || []).length + (fin.data.rendimentos || []).length + (fin.data.metas || []).length) > 0;
+        return (
+          <div className="modal-bg" onClick={() => setConfirmLoc(null)}>
+            <div className="modal" style={{ maxWidth: 430 }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ padding: "30px 26px", textAlign: "center" }}>
+                <div style={{ width: 62, height: 62, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 16px", background: "var(--accent-soft)" }}>
+                  <Icon name="flag" size={26} color="var(--accent)" />
+                </div>
+                <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>Mudar para {PAIS_NOME[confirmLoc]}?</div>
+                <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.65, marginTop: 10 }}>
+                  {temDados ? (
+                    <>A tua organização atual (<strong style={{ color: "var(--ink)" }}>{PAIS_NOME[a.pais] || "—"} · {atualM.sym}</strong>) vai ser <strong style={{ color: "var(--ink)" }}>arquivada</strong> e recomeças do zero em <strong style={{ color: "var(--ink)" }}>{nm.nome} ({nm.sym})</strong> a partir deste mês. Os dados atuais ficam guardados em "Organizações anteriores". Não há conversão de câmbio.</>
+                  ) : (
+                    <>A tua moeda passa a <strong style={{ color: "var(--ink)" }}>{nm.nome} ({nm.sym})</strong>.</>
+                  )}
+                </div>
+                <div className="row" style={{ gap: 10, marginTop: 24 }}>
+                  <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmLoc(null)}>Cancelar</button>
+                  <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={async () => { const p = confirmLoc; setConfirmLoc(null); setSelCidade(""); await fin.mudarLocalizacao({ pais: p, cidade: "" }); }}>
+                    <Icon name="check" size={15} color="#fff" /> {temDados ? "Arquivar e recomeçar" : "Mudar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

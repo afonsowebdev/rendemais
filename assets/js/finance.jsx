@@ -13,6 +13,10 @@ const PALETA = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)
 const FECH_KEY = "rende_metas_fechadas";
 const lerFechadas = () => { try { return JSON.parse(localStorage.getItem(FECH_KEY) || "{}"); } catch (e) { return {}; } };
 const gravarFechadas = (map) => { try { localStorage.setItem(FECH_KEY, JSON.stringify(map)); } catch (e) {} };
+// arquivos de organizações anteriores (ao mudar de país/moeda), guardados localmente
+const ARQ_KEY = "rende_arquivos";
+const lerArquivos = () => { try { return JSON.parse(localStorage.getItem(ARQ_KEY) || "[]"); } catch (e) { return []; } };
+const gravarArquivos = (arr) => { try { localStorage.setItem(ARQ_KEY, JSON.stringify(arr)); } catch (e) {} };
 const mkeyLocal = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0");
 
 // mostra um erro de forma simples (pode-se trocar por algo mais bonito no futuro)
@@ -106,6 +110,42 @@ function FinanceProvider({ children }) {
       setData({ ...EMPTY_DATA });
     } catch (e) { erroAlerta(e); }
   };
+
+  // ---- mudar de localização: muda só a cidade, OU (ao mudar de país) arquiva tudo e recomeça do zero na nova moeda ----
+  const [arquivos, setArquivos] = React.useState(() => lerArquivos());
+  const mudarLocalizacao = async ({ pais, cidade }) => {
+    const a = account || {};
+    const mudouPais = pais && pais !== a.pais;
+    if (!mudouPais) {
+      setAccount((x) => ({ ...(x || {}), cidade: cidade != null ? cidade : (x && x.cidade) || "" }));
+      return { reset: false };
+    }
+    const novaMoeda = BM.currencyForCountry(pais);
+    const soma = (arr) => (arr || []).reduce((s, x) => s + (+x.valor || 0), 0);
+    const temDados = ((data.despesas || []).length + (data.rendimentos || []).length + (data.metas || []).length) > 0;
+    if (temDados) {
+      const snap = {
+        id: String(Date.now()),
+        pais: a.pais || null, moeda: a.moeda || "EUR", cidade: a.cidade || null,
+        dataArquivo: BM.todayISO(),
+        totais: {
+          rendimentos: soma(data.rendimentos), despesas: soma(data.despesas),
+          poupado: (data.metas || []).reduce((s, m) => s + (+m.atual || 0), 0),
+          nDespesas: (data.despesas || []).length, nRendimentos: (data.rendimentos || []).length, nMetas: (data.metas || []).length,
+        },
+        dados: { despesas: data.despesas || [], rendimentos: data.rendimentos || [], metas: data.metas || [], aforros: data.aforros || [], orcamento: data.orcamento || null },
+      };
+      const novos = [snap, ...lerArquivos()];
+      gravarArquivos(novos); setArquivos(novos);
+      const apaga = (rec, arr) => Promise.all((arr || []).map((x) => API.apagar(rec, x.id).catch(() => {})));
+      await Promise.all([apaga("despesas", data.despesas), apaga("rendimentos", data.rendimentos), apaga("metas", data.metas)]);
+      setData((d) => ({ ...EMPTY_DATA, customCats: d.customCats, poupancaPct: d.poupancaPct }));
+      setMonth(BM.todayISO().slice(0, 7));
+    }
+    updateAccount({ pais, cidade: cidade || "", moeda: novaMoeda });
+    return { reset: temDados, moeda: novaMoeda };
+  };
+  const apagarArquivo = (id) => { const novos = lerArquivos().filter((x) => x.id !== id); gravarArquivos(novos); setArquivos(novos); };
 
   // ---- recuperação de senha (demo; ainda não ligada ao backend) ----
   const emailExists = () => true;
@@ -348,7 +388,7 @@ function FinanceProvider({ children }) {
 
   const value = {
     account, session, data, month, monthLabel, realMonth, isCurrentMonth,
-    signup, login, logout, updateAccount, resetData,
+    signup, login, logout, updateAccount, resetData, mudarLocalizacao, arquivos, apagarArquivo,
     emailExists, genResetCode, resetPassword,
     cur: BM.curInfo(), curSym: BM.curInfo().sym, setCurrency: (code) => updateAccount({ moeda: code }),
     despesa, rendimento, meta, conta, deposit, setOrcamento, setPoupancaPct, addCategory, removeCategory,
