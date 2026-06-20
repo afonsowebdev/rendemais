@@ -1,5 +1,22 @@
-/* ===== Icon set (stroke, 1.7) ===== */
-function Icon({ name, size = 18, color = "currentColor", sw = 1.7 }) {
+/* ===== Icon set: BoxIcons (com fallback para SVG próprio) ===== */
+// mapa nome-interno -> classe BoxIcons. Nomes sem entrada caem no SVG original (P).
+const BX = {
+  user: "bx-user", eye: "bx-show", eyeOff: "bx-hide", grid: "bx-grid-alt", wallet: "bx-wallet",
+  arrowsDown: "bx-down-arrow-alt", target: "bx-target-lock", chart: "bx-line-chart", history: "bx-history",
+  report: "bx-file", gear: "bx-cog", plus: "bx-plus", search: "bx-search", bell: "bx-bell", bolt: "bx-bolt-circle",
+  home: "bx-home-alt", cart: "bx-cart-alt", bus: "bx-bus", cap: "bxs-graduation", wifi: "bx-wifi", heart: "bx-heart",
+  spark: "bx-star", dots: "bx-dots-horizontal-rounded", logout: "bx-log-out", check: "bx-check", edit: "bx-pencil",
+  trash: "bx-trash", sun: "bx-sun", moon: "bx-moon", filter: "bx-filter", cal: "bx-calendar", flag: "bx-flag",
+  arrowUp: "bx-up-arrow-alt", arrowDown: "bx-down-arrow-alt", chevR: "bx-chevron-right", info: "bx-info-circle",
+  bank: "bx-bank", link: "bx-link", camera: "bx-camera", sync: "bx-sync", coins: "bx-coin-stack", coffee: "bx-coffee",
+  food: "bx-restaurant", car: "bx-car", fuel: "bx-gas-pump", plane: "bx-plane", train: "bx-train", bike: "bx-cycling",
+  pill: "bx-capsule", cross: "bx-plus-medical", book: "bx-book", music: "bx-music", film: "bx-film", game: "bx-joystick",
+  tv: "bx-tv", dumbbell: "bx-dumbbell", gift: "bx-gift", phone: "bx-phone", bulb: "bx-bulb", droplet: "bx-droplet",
+  umbrella: "bx-umbrella", receipt: "bx-receipt", card: "bx-credit-card", briefcase: "bx-briefcase", leaf: "bx-leaf",
+  key: "bx-key", tools: "bx-wrench", bag: "bx-shopping-bag", tag: "bx-purchase-tag", scissors: "bx-cut",
+};
+
+function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
   const P = {
     user: "M12 8m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M5.5 20.5a6.5 6.5 0 0 1 13 0",
     eye: "M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12zM12 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0",
@@ -87,12 +104,18 @@ function Icon({ name, size = 18, color = "currentColor", sw = 1.7 }) {
       </svg>
     );
   }
+  // BoxIcons (visual profissional)
+  if (BX[name]) {
+    return <i className={"bx " + BX[name]} style={{ fontSize: size, color, lineHeight: 1, display: "inline-flex", flex: "none", ...style }} aria-hidden="true" />;
+  }
+  // emoji (categorias personalizadas) — qualquer caractere não-ASCII
   if (name && !P[name] && /[^\x00-\x7F]/.test(name)) {
     return <span style={{ fontSize: Math.round(size * 0.96), lineHeight: 1, width: size, height: size, display: "inline-grid", placeItems: "center", flex: "none" }}>{name}</span>;
   }
+  // fallback: SVG próprio (ícones sem equivalente em BoxIcons)
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none" }}>
+      stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none", ...style }}>
       <path d={P[name] || P.dots} />
     </svg>
   );
