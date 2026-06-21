@@ -1,0 +1,12 @@
+# dependências e saídas de build
+node_modules/
+dist/
+www/
+
+# Capacitor: as pastas nativas android/ e ios/ PODEM ser versionadas
+# (contêm config de assinatura/lojas). Se preferires regenerá-las, descomenta:
+# android/
+# ios/
+
+# sistema
+.DS_Store

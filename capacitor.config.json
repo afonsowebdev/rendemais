@@ -1,0 +1,10 @@
+{
+  "appId": "pt.rendemais.app",
+  "appName": "Rende+",
+  "webDir": "dist",
+  "backgroundColor": "#ffffff",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https"
+  }
+}
