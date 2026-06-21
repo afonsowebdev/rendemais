@@ -10,8 +10,9 @@
     "ios": "npm run sync && npx cap open ios"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0",
-    "@capacitor/cli": "^8.0.0"
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.0.0",
+    "esbuild": "^0.24.0"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
