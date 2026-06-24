@@ -53,6 +53,7 @@ const API = (function () {
     login: (corpo) => req("POST", "/api/auth/login", corpo),
     perfil: () => req("GET", "/api/auth/eu"),
     atualizarPerfil: (corpo) => req("PATCH", "/api/auth/eu", corpo),
+    eliminarConta: () => req("DELETE", "/api/auth/eu"),
     // CRUD genérico (recurso = "despesas", "rendimentos", ...)
     listar: (recurso) => req("GET", "/api/" + recurso),
     criar: (recurso, corpo) => req("POST", "/api/" + recurso, corpo),

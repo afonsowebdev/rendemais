@@ -117,6 +117,8 @@ function FinanceProvider({ children }) {
     await carregarTudo();
   };
   const logout = () => { API.setToken(null); setSession(null); setData({ ...EMPTY_DATA }); };
+  // elimina a conta no servidor (cascade apaga tudo) e repõe o estado local a zero
+  const eliminarConta = async () => { await API.eliminarConta(); API.setToken(null); setSession(null); setData({ ...EMPTY_DATA }); };
 
   // campos do perfil que o servidor guarda
   const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento"];
@@ -419,7 +421,7 @@ function FinanceProvider({ children }) {
 
   const value = {
     account, session, data, month, monthLabel, realMonth, isCurrentMonth,
-    signup, iniciarRegisto, verificarEmail, definirPassword, reenviarCodigo, login, logout, updateAccount, resetData, mudarLocalizacao, arquivos, apagarArquivo,
+    signup, iniciarRegisto, verificarEmail, definirPassword, reenviarCodigo, login, logout, eliminarConta, updateAccount, resetData, mudarLocalizacao, arquivos, apagarArquivo,
     emailExists, genResetCode, resetPassword,
     cur: BM.curInfo(), curSym: BM.curInfo().sym, setCurrency: (code) => updateAccount({ moeda: code }),
     despesa, rendimento, meta, conta, deposit, setOrcamento, setPoupancaPct, addCategory, removeCategory,

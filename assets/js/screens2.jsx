@@ -208,6 +208,9 @@ function Perfil({ open }) {
   const a = fin.account || {};
   const metas = fin.data.metas || [];
   const [confirmClear, setConfirmClear] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [busyDel, setBusyDel] = React.useState(false);
+  const [delErr, setDelErr] = React.useState("");
   const stats = [
     { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
     { ico: "spark", v: BM.eur0(fin.poupado || 0), l: "Poupado", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
@@ -256,8 +259,14 @@ function Perfil({ open }) {
             <Icon name="trash" size={15} /> Limpar dados
           </button>
         </Rowi>
-        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão" last>
+        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão">
           <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={15} /> Sair</button>
+        </Rowi>
+        <Rowi label="Eliminar conta" sub="Apaga a conta e todos os dados de forma permanente" last>
+          <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
+            onClick={() => { setDelErr(""); setConfirmDelete(true); }}>
+            <Icon name="trash" size={15} /> Eliminar conta
+          </button>
         </Rowi>
       </div>
 
@@ -277,6 +286,30 @@ function Perfil({ open }) {
                 <button className="btn" style={{ flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none" }}
                   onClick={() => { setConfirmClear(false); fin.resetData(); }}>
                   <Icon name="trash" size={15} color="#fff" /> Limpar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="modal-bg" onClick={() => !busyDel && setConfirmDelete(false)}>
+          <div className="modal" style={{ maxWidth: 410 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: "30px 26px", textAlign: "center" }}>
+              <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
+                <Icon name="trash" size={28} color="var(--neg)" />
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>Eliminar a tua conta?</div>
+              <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
+                Vais apagar a conta <strong style={{ color: "var(--ink)" }}>{a.email}</strong> e <strong style={{ color: "var(--ink)" }}>todos</strong> os dados — despesas, rendimentos, metas, contas e categorias. Esta ação <strong style={{ color: "var(--ink)" }}>não pode ser revertida</strong>. Se voltares a criar conta com este email, começa tudo do zero.
+              </div>
+              {delErr && <div className="alert bad" style={{ marginTop: 14, padding: "9px 12px", textAlign: "left" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{delErr}</span></div>}
+              <div className="row" style={{ gap: 10, marginTop: 24 }}>
+                <button className="btn btn-soft" disabled={busyDel} style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmDelete(false)}>Cancelar</button>
+                <button className="btn" disabled={busyDel} style={{ flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none", opacity: busyDel ? .8 : 1, cursor: busyDel ? "wait" : "pointer" }}
+                  onClick={async () => { setBusyDel(true); setDelErr(""); try { await fin.eliminarConta(); } catch (e) { setDelErr(e.message || "Não foi possível eliminar a conta."); setBusyDel(false); } }}>
+                  <Icon name="trash" size={15} color="#fff" /> {busyDel ? "A eliminar…" : "Eliminar conta"}
                 </button>
               </div>
             </div>
