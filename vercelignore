@@ -1,0 +1,7 @@
+# Ficheiros que NÃO precisam de ir para o Vercel (só servem para a app Android / desenvolvimento).
+# Isto torna o deploy mais leve e rápido. Não afeta o build do site.
+android/
+*.apk
+*.aab
+.vscode/
+CAPACITOR.md
