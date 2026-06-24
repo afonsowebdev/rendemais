@@ -74,7 +74,7 @@ function FinanceProvider({ children }) {
   // ---- auth ----
   const signup = async (info) => {
     const idade = parseInt(info.idade, 10);
-    if (isNaN(idade) || idade < 15) throw new Error("Tens de ter pelo menos 15 anos para criar conta.");
+    if (isNaN(idade) || idade < 16) throw new Error("Tens de ter pelo menos 16 anos para criar conta.");
     const nome = (info.nome || "").trim().replace(/\s{2,}/g, " ");
     if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(nome)) throw new Error("O nome só pode conter letras.");
     const moedas = Array.isArray(info.moedas) && info.moedas.length ? Array.from(new Set([info.moeda, ...info.moedas])) : [info.moeda];
@@ -89,7 +89,7 @@ function FinanceProvider({ children }) {
   // 1) inicia o registo: o servidor envia um código de 6 dígitos para o email
   const iniciarRegisto = async (info) => {
     const idade = parseInt(info.idade, 10);
-    if (isNaN(idade) || idade < 15) throw new Error("Tens de ter pelo menos 15 anos para criar conta.");
+    if (isNaN(idade) || idade < 16) throw new Error("Tens de ter pelo menos 16 anos para criar conta.");
     const nome = (info.nome || "").trim().replace(/\s{2,}/g, " ");
     if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(nome)) throw new Error("O nome só pode conter letras.");
     await API.registar({ email: (info.email || "").trim(), nome, moeda: info.moeda });
@@ -105,7 +105,7 @@ function FinanceProvider({ children }) {
     const moedas = Array.isArray(info?.moedas) && info.moedas.length ? Array.from(new Set([info.moeda, ...info.moedas])) : [info?.moeda].filter(Boolean);
     const resp = await API.definirPassword({ setupToken, password });
     API.setToken(resp.token);
-    const extra = info ? { idade: info.idade, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
+    const extra = info ? { idade: info.idade, nascimento: info.nascimento, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
     setAccount((a) => ({ ...(a || {}), ...(resp.user || {}), ...extra }));
     await carregarTudo();
   };

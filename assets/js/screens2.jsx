@@ -226,7 +226,7 @@ function Perfil({ open }) {
           <Avatar account={a} size={64} fontSize={22} />
           <div style={{ minWidth: 0, flex: "1 1 160px" }}>
             <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
-            <div className="muted" style={{ fontWeight: 600, fontSize: 13, marginTop: 3, wordBreak: "break-word" }}>{[a.idade && `${a.idade} anos`, a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
+            <div className="muted" style={{ fontWeight: 600, fontSize: 13, marginTop: 3, wordBreak: "break-word" }}>{[a.idade && `${a.idade} anos`, a.nascimento && BM.fmtData(a.nascimento), a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
           </div>
           <button className="btn btn-ghost" onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
         </div>

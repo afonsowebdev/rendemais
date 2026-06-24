@@ -93,12 +93,24 @@ function Cambio({ base }) {
   );
 }
 
+/* calcula a idade (em anos completos) a partir da data de nascimento (YYYY-MM-DD) */
+function calcIdade(iso) {
+  if (!iso) return null;
+  const n = new Date(iso + "T00:00:00");
+  if (isNaN(n.getTime())) return null;
+  const h = new Date();
+  let idade = h.getFullYear() - n.getFullYear();
+  const m = h.getMonth() - n.getMonth();
+  if (m < 0 || (m === 0 && h.getDate() < n.getDate())) idade--;
+  return idade;
+}
+
 /* ---------- AUTH: criar conta / iniciar sessão ---------- */
 function Auth({ initialMode, onBack }) {
   const fin = useFinance();
   const tr = useT();
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
-  const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); const m = BM.currencyForCountry(pais); return { nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: m, multi: false, moedas: [m] }; });
+  const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); const m = BM.currencyForCountry(pais); return { nome: "", email: "", password: "", password2: "", code: "", nascimento: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: m, multi: false, moedas: [m] }; });
   const [cidadeOutra, setCidadeOutra] = React.useState(false);
   const setCountry = (code) => { const m = BM.currencyForCountry(code); setCidadeOutra(false); setF((s) => ({ ...s, pais: code, cidade: "", moeda: m, moedas: [m] })); };
   const [err, setErr] = React.useState("");
@@ -111,22 +123,20 @@ function Auth({ initialMode, onBack }) {
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
   // nome: só letras (com acentos) e espaços; primeira letra de cada palavra em maiúscula
   const onNome = (e) => { let v = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "").replace(/\s{2,}/g, " ").replace(/(^|\s)([a-zà-öø-ÿ])/g, (m, sp, ch) => sp + ch.toUpperCase()); setF((s) => ({ ...s, nome: v })); };
-  // idade: só dígitos (no máx. 3); evita o comportamento estranho do type="number" em alguns WebViews
-  const onIdade = (e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 3); setF((s) => ({ ...s, idade: v })); };
   const toggleMoeda = (code) => setF((s) => { if (code === s.moeda) return s; const has = (s.moedas || []).includes(code); const next = has ? (s.moedas || []).filter((x) => x !== code) : [...(s.moedas || []), code]; return { ...s, moedas: Array.from(new Set([s.moeda, ...next])) }; });
   const goMode = (m) => { setErr(""); setOkMsg(""); setMode(m); };
 
   const doRegister = async () => {
     if (!f.nome.trim() || !f.email.trim()) { setErr(tr("auth_err_fill")); return; }
     if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(f.nome.trim())) { setErr("O nome só pode conter letras."); return; }
-    const idade = parseInt(f.idade, 10);
-    if (isNaN(idade) || idade < 15) { setErr("A idade mínima para criar conta é 15 anos."); return; }
-    if (idade > 120) { setErr("Indica uma idade válida."); return; }
+    const idade = calcIdade(f.nascimento);
+    if (idade == null) { setErr("Indica a tua data de nascimento."); return; }
+    if (idade < 16) { setErr("Tens de ter pelo menos 16 anos para criar conta."); return; }
     if (!f.cidade) { setErr("Seleciona a tua província ou região."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) { setErr("Indica um email válido."); return; }
     setErr("");
     try {
-      await fin.iniciarRegisto({ email: f.email, nome: f.nome, moeda: f.moeda });
+      await fin.iniciarRegisto({ email: f.email, nome: f.nome, moeda: f.moeda, idade });
       setF((s) => ({ ...s, code: "" })); setOkMsg(""); setMode("verify");
     } catch (e) { setErr(e.message || tr("auth_err_signup")); }
   };
@@ -148,7 +158,7 @@ function Auth({ initialMode, onBack }) {
     if (f.password !== f.password2) { setErr(tr("auth_err_mismatch")); return; }
     setErr("");
     try {
-      await fin.definirPassword(setupToken, f.password, { idade: f.idade, cidade: f.cidade, pais: f.pais, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda, moedas: f.moedas });
+      await fin.definirPassword(setupToken, f.password, { idade: calcIdade(f.nascimento), nascimento: f.nascimento, cidade: f.cidade, pais: f.pais, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda, moedas: f.moedas });
     } catch (e) { setErr(e.message || "Não foi possível definir a palavra-passe."); }
   };
   const doLogin = async () => {
@@ -243,14 +253,19 @@ function Auth({ initialMode, onBack }) {
           {mode === "signup" && (
             <>
               <Field label={tr("auth_name")}><input className="input" value={f.nome} onChange={onNome} placeholder={tr("auth_name_ph")} autoComplete="name" /></Field>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label={tr("auth_country")}>
-                  <select className="select" value={f.pais} onChange={(e) => setCountry(e.target.value)}>
-                    {BM.countries.map((c) => <option key={c.code} value={c.code}>{tr("country_" + c.code)}</option>)}
-                  </select>
-                </Field>
-                <Field label={tr("auth_age")}><input className="input" inputMode="numeric" value={f.idade} onChange={onIdade} placeholder="Ex: 18" /></Field>
-              </div>
+              <Field label={tr("auth_country")}>
+                <select className="select" value={f.pais} onChange={(e) => setCountry(e.target.value)}>
+                  {BM.countries.map((c) => <option key={c.code} value={c.code}>{tr("country_" + c.code)}</option>)}
+                </select>
+              </Field>
+              <Field label="Data de nascimento" hint="Calculamos a tua idade a partir desta data.">
+                <input className="input" type="date" value={f.nascimento} max={BM.todayISO()} onChange={(e) => setF((s) => ({ ...s, nascimento: e.target.value }))} />
+                {calcIdade(f.nascimento) != null && (
+                  <div className="tiny" style={{ marginTop: 7, fontWeight: 700, color: calcIdade(f.nascimento) < 16 ? "var(--neg)" : "var(--accent)" }}>
+                    {calcIdade(f.nascimento) < 16 ? `Tens ${calcIdade(f.nascimento)} anos — a idade mínima é 16.` : `Tens ${calcIdade(f.nascimento)} anos.`}
+                  </div>
+                )}
+              </Field>
               <Field label="Província / Região">
                 <select className="select" value={cidadeOutra ? "__other__" : f.cidade}
                   onChange={(e) => { if (e.target.value === "__other__") { setCidadeOutra(true); setF((s) => ({ ...s, cidade: "" })); } else { setCidadeOutra(false); setF((s) => ({ ...s, cidade: e.target.value })); } }}>
@@ -351,14 +366,13 @@ function Auth({ initialMode, onBack }) {
           </p>
 
           {(mode === "login" || mode === "signup") && (
-            <a href="https://rendemais.pt/premium" target="_blank" rel="noopener noreferrer" className="prem-cta">
+            <div className="prem-cta prem-cta-static" aria-hidden="true">
               <span className="prem-cta-ico"><Icon name="spark" size={17} color="#fff" /></span>
               <span className="prem-cta-txt">
-                <span className="prem-cta-t">Rende+ Premium <span className="prem-cta-tag">Novo</span></span>
+                <span className="prem-cta-t">Rende+ Premium <span className="prem-cta-tag">Em breve</span></span>
                 <span className="prem-cta-d">Lembretes, partilha de casa, previsão de saldo e exportar dados.</span>
               </span>
-              <Icon name="chevR" size={18} color="var(--accent)" />
-            </a>
+            </div>
           )}
         </div>
       </div>

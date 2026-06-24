@@ -640,3 +640,7 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 .prem-cta-t { font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
 .prem-cta-tag { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: 999px; }
 .prem-cta-d { font-size: 12px; font-weight: 500; color: var(--ink-3); line-height: 1.4; }
+
+/* CTA Premium em modo estático (decorativo, sem link) */
+.prem-cta-static { cursor: default; }
+.prem-cta-static:hover { transform: none; border-color: var(--border-strong); box-shadow: none; }
