@@ -47,6 +47,9 @@ const API = (function () {
     setToken,
     // autenticação
     registar: (corpo) => req("POST", "/api/auth/registar", corpo),
+    verificarEmail: (corpo) => req("POST", "/api/auth/verificar-email", corpo),
+    definirPassword: (corpo) => req("POST", "/api/auth/definir-password", corpo),
+    reenviarCodigo: (corpo) => req("POST", "/api/auth/reenviar-codigo", corpo),
     login: (corpo) => req("POST", "/api/auth/login", corpo),
     perfil: () => req("GET", "/api/auth/eu"),
     atualizarPerfil: (corpo) => req("PATCH", "/api/auth/eu", corpo),

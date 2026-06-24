@@ -47,31 +47,109 @@ function Strength({ value }) {
   );
 }
 
+/* ---------- Câmbio ao vivo (taxas reais via open.er-api.com, sem chave) ---------- */
+function Cambio({ base }) {
+  const codes = Object.keys(BM.currencies);
+  const [de, setDe] = React.useState(base || "EUR");
+  const [para, setPara] = React.useState(base === "AOA" ? "EUR" : "AOA");
+  const [valor, setValor] = React.useState("100");
+  const [rate, setRate] = React.useState(null);
+  const [estado, setEstado] = React.useState("load");
+  const [updated, setUpdated] = React.useState("");
+  React.useEffect(() => { setDe(base || "EUR"); }, [base]);
+  React.useEffect(() => {
+    if (de === para) { setRate(1); setEstado("ok"); return; }
+    let alive = true; setEstado("load"); setRate(null);
+    fetch("https://open.er-api.com/v6/latest/" + de)
+      .then((r) => r.json())
+      .then((d) => { if (!alive) return; if (d && d.result === "success" && d.rates && d.rates[para] != null) { setRate(d.rates[para]); setUpdated((d.time_last_update_utc || "").slice(0, 16)); setEstado("ok"); } else setEstado("err"); })
+      .catch(() => { if (alive) setEstado("err"); });
+    return () => { alive = false; };
+  }, [de, para]);
+  const n = parseFloat(String(valor).replace(",", ".")) || 0;
+  const conv = rate != null ? n * rate : null;
+  const fmt = (v, code) => { const c = BM.currencies[code]; const dec = c && c.dec != null ? c.dec : 2; return v.toLocaleString((c && c.locale) || "pt-PT", { minimumFractionDigits: dec, maximumFractionDigits: dec }); };
+  const swap = () => { const a = de, b = para; setDe(b); setPara(a); };
+  return (
+    <div className="card card-pad" style={{ marginTop: 4 }}>
+      <div className="row" style={{ gap: 8, alignItems: "center", marginBottom: 10 }}>
+        <Icon name="coins" size={16} color="var(--accent)" /><b style={{ fontSize: 14 }}>Câmbio ao vivo</b>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "end" }}>
+        <div>
+          <input className="input" inputMode="decimal" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="100" />
+          <select className="select" style={{ marginTop: 6 }} value={de} onChange={(e) => setDe(e.target.value)}>{codes.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+        </div>
+        <button type="button" className="icon-btn" title="Trocar" onClick={swap} style={{ marginBottom: 1 }}><Icon name="sync" size={16} /></button>
+        <div>
+          <div className="input tnum" style={{ display: "flex", alignItems: "center", fontWeight: 800, background: "var(--surface-2)" }}>{estado === "load" ? "…" : estado === "err" ? "—" : conv != null ? fmt(conv, para) : "—"}</div>
+          <select className="select" style={{ marginTop: 6 }} value={para} onChange={(e) => setPara(e.target.value)}>{codes.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+        </div>
+      </div>
+      <div className="muted tiny" style={{ marginTop: 9, fontWeight: 600 }}>
+        {estado === "err" ? "Sem ligação às taxas. Verifica a internet." : estado === "ok" && rate != null ? `1 ${de} = ${fmt(rate, para)} ${para}${updated ? " · " + updated : ""}` : "A obter taxas…"}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- AUTH: criar conta / iniciar sessão ---------- */
 function Auth({ initialMode, onBack }) {
   const fin = useFinance();
   const tr = useT();
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
-  const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); return { nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: BM.currencyForCountry(pais) }; });
+  const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); const m = BM.currencyForCountry(pais); return { nome: "", email: "", password: "", password2: "", code: "", idade: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: m, multi: false, moedas: [m] }; });
   const [cidadeOutra, setCidadeOutra] = React.useState(false);
-  const setCountry = (code) => { setCidadeOutra(false); setF((s) => ({ ...s, pais: code, cidade: "", moeda: BM.currencyForCountry(code) })); };
+  const setCountry = (code) => { const m = BM.currencyForCountry(code); setCidadeOutra(false); setF((s) => ({ ...s, pais: code, cidade: "", moeda: m, moedas: [m] })); };
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
   const [sentCode, setSentCode] = React.useState("");
+  const [setupToken, setSetupToken] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [showPw, setShowPw] = React.useState(false);
   const [showPw2, setShowPw2] = React.useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
+  // nome: só letras (com acentos) e espaços; primeira letra de cada palavra em maiúscula
+  const onNome = (e) => { let v = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "").replace(/\s{2,}/g, " ").replace(/(^|\s)([a-zà-öø-ÿ])/g, (m, sp, ch) => sp + ch.toUpperCase()); setF((s) => ({ ...s, nome: v })); };
+  // idade: só dígitos (no máx. 3); evita o comportamento estranho do type="number" em alguns WebViews
+  const onIdade = (e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 3); setF((s) => ({ ...s, idade: v })); };
+  const toggleMoeda = (code) => setF((s) => { if (code === s.moeda) return s; const has = (s.moedas || []).includes(code); const next = has ? (s.moedas || []).filter((x) => x !== code) : [...(s.moedas || []), code]; return { ...s, moedas: Array.from(new Set([s.moeda, ...next])) }; });
   const goMode = (m) => { setErr(""); setOkMsg(""); setMode(m); };
 
-  const doSignup = async () => {
+  const doRegister = async () => {
     if (!f.nome.trim() || !f.email.trim()) { setErr(tr("auth_err_fill")); return; }
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(f.nome.trim())) { setErr("O nome só pode conter letras."); return; }
+    const idade = parseInt(f.idade, 10);
+    if (isNaN(idade) || idade < 15) { setErr("A idade mínima para criar conta é 15 anos."); return; }
+    if (idade > 120) { setErr("Indica uma idade válida."); return; }
+    if (!f.cidade) { setErr("Seleciona a tua província ou região."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) { setErr("Indica um email válido."); return; }
+    setErr("");
+    try {
+      await fin.iniciarRegisto({ email: f.email, nome: f.nome, moeda: f.moeda });
+      setF((s) => ({ ...s, code: "" })); setOkMsg(""); setMode("verify");
+    } catch (e) { setErr(e.message || tr("auth_err_signup")); }
+  };
+  const doVerify = async () => {
+    if (!/^\d{6}$/.test((f.code || "").trim())) { setErr("Introduz o código de 6 dígitos."); return; }
+    setErr("");
+    try {
+      const tok = await fin.verificarEmail(f.email, f.code);
+      setSetupToken(tok); setF((s) => ({ ...s, password: "", password2: "" })); setOkMsg(""); setMode("setpw");
+    } catch (e) { setErr(e.message || "Não foi possível confirmar o código."); }
+  };
+  const doResend = async () => {
+    setErr("");
+    try { await fin.reenviarCodigo(f.email); setOkMsg("Enviámos um novo código para o teu email."); }
+    catch (e) { setErr(e.message || "Não foi possível reenviar o código."); }
+  };
+  const doSetPw = async () => {
     if (!pwStrong(f.password)) { setErr(tr("auth_err_weak")); return; }
     if (f.password !== f.password2) { setErr(tr("auth_err_mismatch")); return; }
     setErr("");
     try {
-      await fin.signup({ nome: f.nome, email: f.email, password: f.password, idade: f.idade, cidade: f.cidade, pais: f.pais, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda });
-    } catch (e) { setErr(e.message || tr("auth_err_signup")); }
+      await fin.definirPassword(setupToken, f.password, { idade: f.idade, cidade: f.cidade, pais: f.pais, perfil: f.perfil, estado: f.estado, habitacao: f.habitacao, moeda: f.moeda, moedas: f.moedas });
+    } catch (e) { setErr(e.message || "Não foi possível definir a palavra-passe."); }
   };
   const doLogin = async () => {
     if (!f.email.trim() || !f.password) { setErr(tr("auth_err_fill")); return; }
@@ -93,15 +171,17 @@ function Auth({ initialMode, onBack }) {
     setF((s) => ({ ...s, password: "", password2: "", code: "" }));
     setErr(""); setOkMsg(tr("auth_ok_reset")); setMode("login");
   };
-  const primaryAction = mode === "signup" ? doSignup : mode === "login" ? doLogin : mode === "forgot" ? doForgot : doReset;
+  const primaryAction = mode === "signup" ? doRegister : mode === "verify" ? doVerify : mode === "setpw" ? doSetPw : mode === "login" ? doLogin : mode === "forgot" ? doForgot : doReset;
   const titles = {
     signup: [tr("auth_title_signup"), tr("auth_sub_signup")],
+    verify: ["Confirma o teu email", "Enviámos um código de 6 dígitos para " + (f.email || "o teu email") + "."],
+    setpw: ["Define a tua palavra-passe", "Quase lá. Escolhe uma palavra-passe segura para entrar."],
     login: [tr("auth_title_login"), tr("auth_sub_login")],
     forgot: [tr("auth_title_forgot"), tr("auth_sub_forgot")],
     reset: [tr("auth_title_reset"), tr("auth_sub_reset").split("{email}").join(f.email || tr("auth_your_email"))],
   };
-  const primaryLabel = { signup: tr("auth_btn_signup"), login: tr("auth_btn_login"), forgot: tr("auth_btn_forgot"), reset: tr("auth_btn_reset") }[mode];
-  const loadingLabel = { signup: tr("auth_load_signup"), login: tr("auth_load_login"), forgot: tr("auth_load_forgot"), reset: tr("auth_load_reset") }[mode];
+  const primaryLabel = { signup: "Continuar", verify: "Confirmar email", setpw: "Definir e entrar", login: tr("auth_btn_login"), forgot: tr("auth_btn_forgot"), reset: tr("auth_btn_reset") }[mode];
+  const loadingLabel = { signup: "A enviar código…", verify: "A confirmar…", setpw: "A criar conta…", login: tr("auth_load_login"), forgot: tr("auth_load_forgot"), reset: tr("auth_load_reset") }[mode];
   const runPrimary = async () => {
     if (busy) return;
     setBusy(true);
@@ -162,30 +242,50 @@ function Auth({ initialMode, onBack }) {
 
           {mode === "signup" && (
             <>
-              <Field label={tr("auth_name")}><input className="input" value={f.nome} onChange={set("nome")} placeholder={tr("auth_name_ph")} /></Field>
+              <Field label={tr("auth_name")}><input className="input" value={f.nome} onChange={onNome} placeholder={tr("auth_name_ph")} autoComplete="name" /></Field>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Field label={tr("auth_country")}>
                   <select className="select" value={f.pais} onChange={(e) => setCountry(e.target.value)}>
                     {BM.countries.map((c) => <option key={c.code} value={c.code}>{tr("country_" + c.code)}</option>)}
                   </select>
                 </Field>
-                <Field label={tr("auth_age")}><input className="input" type="number" value={f.idade} onChange={set("idade")} placeholder="21" /></Field>
+                <Field label={tr("auth_age")}><input className="input" inputMode="numeric" value={f.idade} onChange={onIdade} placeholder="Ex: 18" /></Field>
               </div>
-              <Field label={tr("auth_city")}>
+              <Field label="Província / Região">
                 <select className="select" value={cidadeOutra ? "__other__" : f.cidade}
                   onChange={(e) => { if (e.target.value === "__other__") { setCidadeOutra(true); setF((s) => ({ ...s, cidade: "" })); } else { setCidadeOutra(false); setF((s) => ({ ...s, cidade: e.target.value })); } }}>
-                  <option value="" disabled>{tr("auth_select_city")}</option>
-                  {BM.countryCities(f.pais).map((c) => <option key={c} value={c}>{c}</option>)}
-                  <option value="__other__">{tr("auth_other_city")}</option>
+                  <option value="" disabled>Seleciona a tua província</option>
+                  {BM.countryProvinces(f.pais).map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="__other__">Outra…</option>
                 </select>
-                {cidadeOutra && <input className="input" style={{ marginTop: 8 }} value={f.cidade} onChange={set("cidade")} placeholder={tr("auth_other_city_ph")} />}
+                {cidadeOutra && <input className="input" style={{ marginTop: 8 }} value={f.cidade} onChange={set("cidade")} placeholder="A tua região" />}
               </Field>
-              <Field label={tr("auth_situation")}><select className="select" value={f.perfil} onChange={set("perfil")}>{[["Estudante", tr("auth_opt_student")], ["Trabalhador", tr("auth_opt_worker")], ["Estudante e Trabalhador", tr("auth_opt_both")]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
-              <Field label={tr("auth_currency")} hint={tr("auth_currency_hint")}>
-                <select className="select" value={f.moeda} onChange={set("moeda")}>
-                  {Object.values(BM.currencies).map((c) => <option key={c.code} value={c.code}>{c.sym} ({c.code})</option>)}
-                </select>
+              <Field label={tr("auth_situation")}><select className="select" value={f.perfil} onChange={set("perfil")}>{[["Estudante", tr("auth_opt_student")], ["Trabalhador", tr("auth_opt_worker")], ["Estudante e Trabalhador", tr("auth_opt_both")], ["Autonomo", "Autónomo/a (apoio familiar)"]].map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}</select></Field>
+              <Field label={tr("auth_currency")} hint="Definida pelo teu país. Não pode ser alterada.">
+                <div className="input" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface-2)", cursor: "not-allowed", fontWeight: 700 }}>
+                  <span>{(BM.currencies[f.moeda] || {}).sym} ({f.moeda})</span>
+                  <Icon name="check" size={15} color="var(--accent)" />
+                </div>
               </Field>
+              <Field label="Queres gerir mais do que uma moeda?">
+                <div className="row" style={{ gap: 8 }}>
+                  <button type="button" className={"chip" + (!f.multi ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, multi: false, moedas: [s.moeda] }))}>Não</button>
+                  <button type="button" className={"chip" + (f.multi ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, multi: true }))}>Sim</button>
+                </div>
+              </Field>
+              {f.multi && (
+                <>
+                  <Field label="Moedas que queres gerir" hint="A do teu país está sempre incluída.">
+                    <div className="row" style={{ flexWrap: "wrap", gap: 7 }}>
+                      {Object.values(BM.currencies).map((c) => {
+                        const on = c.code === f.moeda || (f.moedas || []).includes(c.code);
+                        return <button type="button" key={c.code} className={"chip" + (on ? " sel" : "")} disabled={c.code === f.moeda} style={{ cursor: c.code === f.moeda ? "default" : "pointer", opacity: c.code === f.moeda ? .7 : 1 }} onClick={() => toggleMoeda(c.code)}>{c.sym} {c.code}</button>;
+                      })}
+                    </div>
+                  </Field>
+                  <Cambio base={f.moeda} />
+                </>
+              )}
             </>
           )}
 
@@ -193,12 +293,27 @@ function Auth({ initialMode, onBack }) {
             <Field label={tr("email")}><input className="input" value={f.email} onChange={set("email")} placeholder={tr("auth_email_ph")} /></Field>
           )}
 
-          {(mode === "signup" || mode === "login") && (
-            <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete={mode === "login" ? "current-password" : "new-password"} disabled={!f.email.trim()} /></Field>
+          {mode === "login" && (
+            <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="current-password" disabled={!f.email.trim()} /></Field>
           )}
-          {mode === "signup" && <Strength value={f.password} />}
-          {mode === "signup" && (
-            <Field label={tr("auth_confirm_password")}><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(f.password)} /></Field>
+
+          {mode === "verify" && (
+            <>
+              <Field label="Código de verificação">
+                <input className="input tnum" value={f.code} onChange={(e) => setF((s) => ({ ...s, code: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="000000" inputMode="numeric" maxLength={6} autoFocus style={{ letterSpacing: ".3em", fontSize: 18, textAlign: "center" }} />
+              </Field>
+              <div style={{ textAlign: "center", marginTop: -4, marginBottom: 8 }}>
+                <button type="button" onClick={doResend} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>Não recebeste? Reenviar código</button>
+              </div>
+            </>
+          )}
+
+          {mode === "setpw" && (
+            <>
+              <Field label={tr("auth_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
+              <Strength value={f.password} />
+              <Field label={tr("auth_confirm_password")}><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(f.password)} /></Field>
+            </>
           )}
 
           {mode === "login" && (
@@ -231,8 +346,20 @@ function Auth({ initialMode, onBack }) {
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
             {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
             {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("signup")}</button></>}
+            {mode === "verify" && <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
             {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
           </p>
+
+          {(mode === "login" || mode === "signup") && (
+            <a href="https://rendemais.pt/premium" target="_blank" rel="noopener noreferrer" className="prem-cta">
+              <span className="prem-cta-ico"><Icon name="spark" size={17} color="#fff" /></span>
+              <span className="prem-cta-txt">
+                <span className="prem-cta-t">Rende+ Premium <span className="prem-cta-tag">Novo</span></span>
+                <span className="prem-cta-d">Lembretes, partilha de casa, previsão de saldo e exportar dados.</span>
+              </span>
+              <Icon name="chevR" size={18} color="var(--accent)" />
+            </a>
+          )}
         </div>
       </div>
     </div>

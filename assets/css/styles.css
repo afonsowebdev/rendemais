@@ -630,3 +630,13 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 /* Barras horizontais do gráfico de despesas */
 .bb-fill { transform-origin: left center; animation: bbGrow .6s cubic-bezier(.4,0,.2,1); }
 @keyframes bbGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* ===== CTA Premium (ecrã de entrada) ===== */
+.prem-cta { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px 16px; text-decoration: none; color: inherit;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  border: 1px solid var(--border-strong); border-radius: 14px; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.prem-cta:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 14px 30px -20px rgba(10,90,60,.5); }
+.prem-cta-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; flex: none; }
+.prem-cta-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.prem-cta-t { font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.prem-cta-tag { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: 999px; }
+.prem-cta-d { font-size: 12px; font-weight: 500; color: var(--ink-3); line-height: 1.4; }
