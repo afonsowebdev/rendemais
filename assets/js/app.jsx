@@ -115,7 +115,7 @@ function EntryModal({ type, item, onClose }) {
     if (type === "orcamento") return { valor: fin.data.orcamento ?? "" };
     if (type === "sync") { const movs = (BM.bancos[item?.banco] || {}).importar || []; return { sel: movs.map(() => true) }; }
     if (type === "reservar") return { modo: fin.data.metas.length ? "existente" : "nova", metaId: fin.data.metas[0]?.id || "", nome: "" };
-    if (type === "perfil") { const a = fin.account || {}; return { nome: a.nome || "", idade: a.idade || "", cidade: a.cidade || "", perfil: a.perfil || "Estudante", estado: a.estado || "Solteiro(a)", habitacao: a.habitacao || "Vive com colegas", foto: a.foto || null }; }
+    if (type === "perfil") { const a = fin.account || {}; return { nome: a.nome || "", nascimento: a.dataNascimento || a.nascimento || "", cidade: a.cidade || "", perfil: a.perfil || "Estudante", estado: a.estado || "Solteiro(a)", habitacao: a.habitacao || "Vive com colegas", foto: a.foto || null }; }
     return {};
   };
   const [f, setF] = useState(seed);
@@ -123,6 +123,10 @@ function EntryModal({ type, item, onClose }) {
   const [addingCat, setAddingCat] = useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
   const num = (v) => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; };
+  // idade em anos completos a partir de AAAA-MM-DD (ou null)
+  const calcIdade = (iso) => { if (!iso) return null; const n = new Date(iso + "T00:00:00"); if (isNaN(n.getTime())) return null; const h = new Date(); let i = h.getFullYear() - n.getFullYear(); const m = h.getMonth() - n.getMonth(); if (m < 0 || (m === 0 && h.getDate() < n.getDate())) i--; return i; };
+  // data de nascimento bloqueada (o servidor é a fonte de verdade)
+  const nascBloqueado = !!(fin.account && fin.account.nascimentoBloqueado);
   const onFoto = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -165,7 +169,16 @@ function EntryModal({ type, item, onClose }) {
       }
     } else if (type === "perfil") {
       if (!f.nome.trim()) return setErr("O nome não pode ficar vazio.");
-      fin.updateAccount({ ...f });
+      if (!nascBloqueado && f.nascimento) {
+        const idade = calcIdade(f.nascimento);
+        if (idade == null) return setErr("Data de nascimento inválida.");
+        if (idade < 16) return setErr("Tens de ter pelo menos 16 anos.");
+      }
+      const payload = { ...f };
+      delete payload.nascimento;
+      // só enviamos a data de nascimento se NÃO estiver bloqueada e tiver valor
+      if (!nascBloqueado && f.nascimento) payload.dataNascimento = f.nascimento;
+      fin.updateAccount(payload);
     }
     onClose();
   };
@@ -330,7 +343,23 @@ function EntryModal({ type, item, onClose }) {
         </div>
         <Field label="Nome"><input className="input" value={f.nome} onChange={set("nome")} /></Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Idade"><input className="input" type="number" value={f.idade} onChange={set("idade")} /></Field>
+          <Field label="Data de nascimento" hint={nascBloqueado ? "Já não pode ser alterada." : "Podes corrigi-la até 7 dias depois de a definires."}>
+            {nascBloqueado ? (
+              <div className="input" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface-2)", cursor: "not-allowed", fontWeight: 700 }}>
+                <span>{f.nascimento ? BM.fmtData(f.nascimento) : "—"}</span>
+                <Icon name="lock" size={15} color="var(--muted)" />
+              </div>
+            ) : (
+              <>
+                <input className="input" type="date" value={f.nascimento} max={BM.todayISO()} onChange={(e) => setF((s) => ({ ...s, nascimento: e.target.value }))} />
+                {calcIdade(f.nascimento) != null && (
+                  <div className="tiny" style={{ marginTop: 7, fontWeight: 700, color: calcIdade(f.nascimento) < 16 ? "var(--neg)" : "var(--accent)" }}>
+                    {calcIdade(f.nascimento) < 16 ? `Tens ${calcIdade(f.nascimento)} anos — a idade mínima é 16.` : `Tens ${calcIdade(f.nascimento)} anos.`}
+                  </div>
+                )}
+              </>
+            )}
+          </Field>
           <Field label="Cidade"><input className="input" value={f.cidade} onChange={set("cidade")} /></Field>
         </div>
         <Field label="Situação"><select className="select" value={f.perfil} onChange={set("perfil")}>{["Estudante", "Trabalhador", "Estudante e Trabalhador"].map((o) => <option key={o}>{o}</option>)}</select></Field>

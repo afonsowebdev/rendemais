@@ -60,7 +60,7 @@ function FinanceProvider({ children }) {
 
     setData({ ...EMPTY_DATA, despesas, rendimentos, metas, aforros, contas, customCats,
       orcamento: perfil.orcamento || null, poupancaPct: perfil.poupancaPct ?? 20 });
-    setAccount((a) => ({ ...(a || {}), email: perfil.email, nome: perfil.nome, moeda: perfil.moeda, poupancaPct: perfil.poupancaPct, orcamento: perfil.orcamento }));
+    setAccount((a) => ({ ...(a || {}), email: perfil.email, nome: perfil.nome, moeda: perfil.moeda, poupancaPct: perfil.poupancaPct, orcamento: perfil.orcamento, dataNascimento: perfil.dataNascimento || null, nascimentoBloqueado: !!perfil.nascimentoBloqueado }));
     setSession(perfil.email || true);
   };
 
@@ -103,7 +103,7 @@ function FinanceProvider({ children }) {
   // 3) define a password, cria a sessão e guarda o perfil
   const definirPassword = async (setupToken, password, info) => {
     const moedas = Array.isArray(info?.moedas) && info.moedas.length ? Array.from(new Set([info.moeda, ...info.moedas])) : [info?.moeda].filter(Boolean);
-    const resp = await API.definirPassword({ setupToken, password });
+    const resp = await API.definirPassword({ setupToken, password, dataNascimento: info?.nascimento || null });
     API.setToken(resp.token);
     const extra = info ? { idade: info.idade, nascimento: info.nascimento, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
     setAccount((a) => ({ ...(a || {}), ...(resp.user || {}), ...extra }));
@@ -121,7 +121,7 @@ function FinanceProvider({ children }) {
   const eliminarConta = async () => { await API.eliminarConta(); API.setToken(null); setSession(null); setData({ ...EMPTY_DATA }); };
 
   // campos do perfil que o servidor guarda
-  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento"];
+  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento"];
   const updateAccount = (patch) => {
     setAccount((a) => ({ ...(a || {}), ...patch }));
     const servidor = {};
@@ -180,10 +180,20 @@ function FinanceProvider({ children }) {
   };
   const apagarArquivo = (id) => { const novos = lerArquivos().filter((x) => x.id !== id); gravarArquivos(novos); setArquivos(novos); };
 
-  // ---- recuperação de senha (demo; ainda não ligada ao backend) ----
-  const emailExists = () => true;
-  const genResetCode = () => String(Math.floor(100000 + Math.random() * 900000));
-  const resetPassword = () => {};
+  // ---- recuperação de palavra-passe (real, via backend + Resend) ----
+  // 1) pede o código: o servidor envia um email com 6 dígitos
+  const esqueciPassword = async (email) => {
+    await API.esqueciPassword({ email: (email || "").trim() });
+    return true;
+  };
+  // 2) confirma o código + nova password; o servidor troca-a e inicia a sessão
+  const redefinirPassword = async (email, codigo, password) => {
+    const resp = await API.redefinirPassword({ email: (email || "").trim(), codigo: (codigo || "").trim(), password });
+    API.setToken(resp.token);
+    setAccount((a) => ({ ...(a || {}), ...(resp.user || {}) }));
+    await carregarTudo();
+    return true;
+  };
 
   // ---- CRUD genérico (cria/edita/apaga no servidor e atualiza o estado local) ----
   const crud = (key, recurso, paraApi, daApi) => ({
@@ -422,7 +432,7 @@ function FinanceProvider({ children }) {
   const value = {
     account, session, data, month, monthLabel, realMonth, isCurrentMonth,
     signup, iniciarRegisto, verificarEmail, definirPassword, reenviarCodigo, login, logout, eliminarConta, updateAccount, resetData, mudarLocalizacao, arquivos, apagarArquivo,
-    emailExists, genResetCode, resetPassword,
+    esqueciPassword, redefinirPassword,
     cur: BM.curInfo(), curSym: BM.curInfo().sym, setCurrency: (code) => updateAccount({ moeda: code }),
     despesa, rendimento, meta, conta, deposit, setOrcamento, setPoupancaPct, addCategory, removeCategory,
     connectBank, disconnectBank, importMovs, bancosTotal,

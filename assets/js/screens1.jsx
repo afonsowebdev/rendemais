@@ -115,7 +115,6 @@ function Auth({ initialMode, onBack }) {
   const setCountry = (code) => { const m = BM.currencyForCountry(code); setCidadeOutra(false); setF((s) => ({ ...s, pais: code, cidade: "", moeda: m, moedas: [m] })); };
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
-  const [sentCode, setSentCode] = React.useState("");
   const [setupToken, setSetupToken] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [showPw, setShowPw] = React.useState(false);
@@ -167,19 +166,25 @@ function Auth({ initialMode, onBack }) {
     try { await fin.login(f.email, f.password); }
     catch (e) { setErr(e.message || tr("auth_err_login")); }
   };
-  const doForgot = () => {
-    if (!f.email.trim()) return setErr(tr("auth_err_email"));
-    if (!fin.emailExists(f.email)) return setErr(tr("auth_err_noaccount"));
-    setSentCode(fin.genResetCode());
-    setErr(""); setOkMsg(""); setMode("reset");
+  const doForgot = async () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr("Indica um email válido.");
+    setErr("");
+    try {
+      await fin.esqueciPassword(f.email);
+      setF((s) => ({ ...s, code: "", password: "", password2: "" }));
+      setOkMsg("Se existir uma conta com esse email, enviámos um código de 6 dígitos. Verifica o teu email.");
+      setMode("reset");
+    } catch (e) { setErr(e.message || "Não foi possível enviar o código."); }
   };
-  const doReset = () => {
-    if (f.code.trim() !== sentCode) return setErr(tr("auth_err_code"));
+  const doReset = async () => {
+    if (!/^\d{6}$/.test((f.code || "").trim())) return setErr("Introduz o código de 6 dígitos.");
     if (!pwStrong(f.password)) return setErr(tr("auth_err_weak2"));
     if (f.password !== f.password2) return setErr(tr("auth_err_mismatch"));
-    fin.resetPassword(f.password);
-    setF((s) => ({ ...s, password: "", password2: "", code: "" }));
-    setErr(""); setOkMsg(tr("auth_ok_reset")); setMode("login");
+    setErr("");
+    try {
+      await fin.redefinirPassword(f.email, f.code, f.password);
+      // sucesso: a sessão já fica iniciada e a app navega sozinha para o painel
+    } catch (e) { setErr(e.message || "Não foi possível alterar a palavra-passe."); }
   };
   const primaryAction = mode === "signup" ? doRegister : mode === "verify" ? doVerify : mode === "setpw" ? doSetPw : mode === "login" ? doLogin : mode === "forgot" ? doForgot : doReset;
   const titles = {
@@ -341,9 +346,9 @@ function Auth({ initialMode, onBack }) {
             <>
               <div className="alert ok" style={{ marginBottom: 14, padding: "10px 12px" }}>
                 <Icon name="info" size={16} color="var(--accent)" />
-                <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>{tr("auth_reset_code_demo")} <span className="tnum" style={{ letterSpacing: ".12em", fontSize: 14 }}>{sentCode}</span></span>
+                <span style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>Enviámos um código de 6 dígitos para <strong>{f.email || "o teu email"}</strong>. Escreve-o aqui em baixo com a nova palavra-passe. Válido durante 15 minutos.</span>
               </div>
-              <Field label={tr("auth_reset_code_label")}><input className="input tnum" value={f.code} onChange={set("code")} placeholder="123456" inputMode="numeric" maxLength={6} /></Field>
+              <Field label={tr("auth_reset_code_label")}><input className="input tnum" value={f.code} onChange={(e) => setF((s) => ({ ...s, code: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="123456" inputMode="numeric" maxLength={6} /></Field>
               <Field label={tr("auth_new_password")}><PwInput value={f.password} onChange={set("password")} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
               <Strength value={f.password} />
               <Field label={tr("auth_confirm_password")}><PwInput value={f.password2} onChange={set("password2")} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" /></Field>
