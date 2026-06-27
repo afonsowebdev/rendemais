@@ -98,7 +98,7 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
   );
 }
 
-function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav }) {
+function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar }) {
   const tr = useT();
   return (
     <div className="topbar">
@@ -114,6 +114,11 @@ function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthN
         {onAdd && (
           <button className="btn btn-primary" onClick={onAdd}>
             <Icon name="plus" size={16} color="#fff" /> <span className="hide-mobile">{addLabel || tr("add_generic")}</span>
+          </button>
+        )}
+        {onToggleOcultar && (
+          <button className="icon-btn" onClick={onToggleOcultar} title={ocultar ? "Mostrar valores" : "Ocultar valores"} aria-pressed={ocultar}>
+            <Icon name={ocultar ? "eyeOff" : "eye"} size={18} />
           </button>
         )}
         <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={tr("theme_title")}>
@@ -195,7 +200,7 @@ function Kpi({ label, value, sub, delta, deltaDir, icon, color, spark }) {
       </div>
       <div>
         <div className="kpi-label">{label}</div>
-        <div className="kpi-val tnum" style={{ marginTop: 6 }}>{value}</div>
+        <div className="kpi-val tnum valor-sensivel" style={{ marginTop: 6 }}>{value}</div>
         {sub && <div className="tiny muted" style={{ marginTop: 7, fontWeight: 600 }}>{sub}</div>}
       </div>
     </div>

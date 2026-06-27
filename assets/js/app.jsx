@@ -395,18 +395,21 @@ function Shell() {
 
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
+  const ocultar = !!t.ocultar;
+  const toggleOcultar = () => setTweak("ocultar", !ocultar);
 
   useEffect(() => {
     const r = document.documentElement;
     r.setAttribute("data-theme", theme);
     r.setAttribute("data-density", t.density);
+    r.setAttribute("data-ocultar", ocultar ? "true" : "false");
     r.style.setProperty("--accent", t.accent);
     const stack = `"${t.font}", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     r.style.setProperty("--font-ui", stack);
     document.body.style.fontFamily = stack;
     r.style.setProperty("--radius", t.radius + "px");
     r.style.setProperty("--radius-sm", Math.max(6, t.radius - 6) + "px");
-  }, [theme, t.accent, t.font, t.radius, t.density]);
+  }, [theme, t.accent, t.font, t.radius, t.density, ocultar]);
 
   // Chegada com uma âncora de secção (ex.: /#funcionalidades, /#sobre):
   // faz scroll suave até à secção e limpa o "#" do endereço (URL fica limpo).
@@ -467,6 +470,7 @@ function Shell() {
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
         <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
+          ocultar={ocultar} onToggleOcultar={toggleOcultar}
           onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? tr("add_" + P.add) : null}
           monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
             canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />

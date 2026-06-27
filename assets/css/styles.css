@@ -644,3 +644,10 @@ input.range::-moz-range-thumb { width: 19px; height: 19px; border-radius: 50%; b
 /* CTA Premium em modo estático (decorativo, sem link) */
 .prem-cta-static { cursor: default; }
 .prem-cta-static:hover { transform: none; border-color: var(--border-strong); box-shadow: none; }
+
+/* ===== Ocultar saldo (valores sensíveis) ===== */
+.valor-sensivel { transition: filter .22s ease; }
+[data-ocultar="true"] .valor-sensivel {
+  filter: blur(10px);
+  -webkit-user-select: none; user-select: none; pointer-events: none;
+}
