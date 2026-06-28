@@ -231,7 +231,7 @@ function EmptyState({ icon, title, msg, action }) {
       <div className="li-ico" style={{ width: 60, height: 60, marginBottom: 18, background: "var(--accent-soft)" }}>
         <Icon name={icon} size={26} color="var(--accent)" sw={1.8} />
       </div>
-      <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-.01em" }}>{title}</div>
+      <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-.01em" }}>{title}</div>
       <div className="muted" style={{ marginTop: 7, fontSize: 14, fontWeight: 500, maxWidth: 380, lineHeight: 1.55 }}>{msg}</div>
       {action && <div className="empty-action" style={{ marginTop: 20, width: "100%" }}>{action}</div>}
     </div>
@@ -248,7 +248,7 @@ function Modal({ title, sub, onClose, children, footer, wide }) {
       <div className="modal" style={wide ? { maxWidth: 560 } : null} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>{title}</div>
             {sub && <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{sub}</div>}
           </div>
           <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={onClose}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span></button>

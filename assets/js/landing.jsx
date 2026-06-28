@@ -50,7 +50,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     <div role="group" aria-label={tr("lang_title")} style={{ display: "inline-flex", gap: 2, padding: 3, background: "var(--surface-2)", borderRadius: 999, border: "1px solid var(--border)" }}>
       {I18N.SUP.map((l) => (
         <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} title={tr("lang_title")}
-          style={{ border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800, lineHeight: 1, padding: "6px 9px", borderRadius: 999, transition: "background .15s, color .15s", background: lang === l ? "var(--accent)" : "transparent", color: lang === l ? "#fff" : "var(--ink-3)" }}>
+          style={{ border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, lineHeight: 1, padding: "6px 9px", borderRadius: 999, transition: "background .15s, color .15s", background: lang === l ? "var(--accent)" : "transparent", color: lang === l ? "#fff" : "var(--ink-3)" }}>
           {I18N.LABELS[l]}
         </button>
       ))}
@@ -99,7 +99,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
                 <div>
                   <div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_balance")}</div>
-                  <div key={pcur} className="tnum cur-fade" style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-.03em", marginTop: 2 }}>{fmtP(317)}</div>
+                  <div key={pcur} className="tnum cur-fade" style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-.03em", marginTop: 2 }}>{fmtP(317)}</div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
                   <span key={pcur} className="cur-pill cur-fade">{pcur}</span>
@@ -107,7 +107,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
                 </div>
               </div>
               <div className="row" style={{ gap: 18, alignItems: "center" }}>
-                <DonutChart data={donut} size={132} thickness={20} center={<div key={pcur} className="cur-fade"><div className="tnum" style={{ fontSize: 16, fontWeight: 800 }}>{fmtP(563)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("prev_spent")}</div></div>} />
+                <DonutChart data={donut} size={132} thickness={20} center={<div key={pcur} className="cur-fade"><div className="tnum" style={{ fontSize: 16, fontWeight: 700 }}>{fmtP(563)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("prev_spent")}</div></div>} />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
                   {donut.map((c) => (
                     <div key={c.nome} className="row" style={{ justifyContent: "space-between" }}>
@@ -121,7 +121,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <div className="lp-float" style={{ top: -18, right: 6 }}>
               <div className="row" style={{ gap: 10 }}>
                 <span className="li-ico" style={{ width: 34, height: 34, background: "var(--accent-soft)" }}><Icon name="target" size={16} color="var(--accent)" sw={2} /></span>
-                <div><div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_savings")}</div><div key={pcur} className="tnum cur-fade" style={{ fontWeight: 800, fontSize: 15 }}>{fmtP(95)}</div></div>
+                <div><div className="tiny muted" style={{ fontWeight: 700 }}>{tr("prev_savings")}</div><div key={pcur} className="tnum cur-fade" style={{ fontWeight: 700, fontSize: 15 }}>{fmtP(95)}</div></div>
               </div>
             </div>
             <div className="lp-float" style={{ bottom: -20, left: -10 }}>

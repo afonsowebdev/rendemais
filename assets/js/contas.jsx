@@ -3,7 +3,7 @@ function BankBadge({ bancoKey, size = 46 }) {
   const b = BM.bancos[bancoKey];
   return (
     <div style={{ width: size, height: size, borderRadius: size * 0.28, flex: "none", display: "grid", placeItems: "center",
-      background: b.cor, color: "#fff", fontWeight: 800, fontSize: size * 0.42, letterSpacing: "-.02em" }}>{b.mono}</div>
+      background: b.cor, color: "#fff", fontWeight: 700, fontSize: size * 0.42, letterSpacing: "-.02em" }}>{b.mono}</div>
   );
 }
 
@@ -27,9 +27,9 @@ function Contas({ open }) {
             <div><div className="section-title">Separar o teu dinheiro</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Saldo das contas menos os gastos de {fin.monthLabel}</div></div>
           </div>
           <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Saldo nas contas</div><div className="tnum" style={{ fontWeight: 800, fontSize: 22, marginTop: 4 }}>{BM.eur(fin.bancosTotal)}</div></div>
-            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Gastos do mês</div><div className="tnum" style={{ fontWeight: 800, fontSize: 22, marginTop: 4, color: "var(--neg)" }}>−{BM.eur(fin.totalGasto)}</div></div>
-            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Disponível para gastar</div><div className="tnum" style={{ fontWeight: 800, fontSize: 22, marginTop: 4, color: disponivel < 0 ? "var(--neg)" : "var(--accent)" }}>{BM.eur(disponivel)}</div></div>
+            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Saldo nas contas</div><div className="tnum" style={{ fontWeight: 700, fontSize: 22, marginTop: 4 }}>{BM.eur(fin.bancosTotal)}</div></div>
+            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Gastos do mês</div><div className="tnum" style={{ fontWeight: 700, fontSize: 22, marginTop: 4, color: "var(--neg)" }}>−{BM.eur(fin.totalGasto)}</div></div>
+            <div><div className="tiny muted" style={{ fontWeight: 700 }}>Disponível para gastar</div><div className="tnum" style={{ fontWeight: 700, fontSize: 22, marginTop: 4, color: disponivel < 0 ? "var(--neg)" : "var(--accent)" }}>{BM.eur(disponivel)}</div></div>
           </div>
           <Progress value={Math.min(fin.totalGasto, fin.bancosTotal)} max={fin.bancosTotal || 1} color={disponivel < 0 ? "var(--neg)" : "var(--accent)"} />
           <div className="tiny muted" style={{ fontWeight: 600 }}>
@@ -60,7 +60,7 @@ function Contas({ open }) {
                   <div className="li-sub">{c.sincronizadoEm ? `Sincronizado a ${BM.fmtData(c.sincronizadoEm)}` : `Ligado a ${BM.fmtData(c.ligadoEm)} · ainda sem sincronização`}</div>
                 </div>
                 <div style={{ textAlign: "right", marginRight: 6 }}>
-                  <div className="tnum" style={{ fontWeight: 800, fontSize: 16 }}>{BM.eur(c.saldo)}</div>
+                  <div className="tnum" style={{ fontWeight: 700, fontSize: 16 }}>{BM.eur(c.saldo)}</div>
                   <div className="tiny muted" style={{ fontWeight: 600 }}>{c.moeda}</div>
                 </div>
                 <button className="btn btn-soft" style={{ padding: "8px 12px" }} onClick={() => open("sync", c)}><Icon name="sync" size={15} /> Sincronizar</button>
@@ -82,7 +82,7 @@ function Contas({ open }) {
                   <div className="row" style={{ gap: 14 }}>
                     <BankBadge bancoKey={k} />
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 15 }}>{b.nome}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{b.nome}</div>
                       <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{b.desc}</div>
                     </div>
                   </div>

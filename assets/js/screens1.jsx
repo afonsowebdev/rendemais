@@ -82,7 +82,7 @@ function Cambio({ base }) {
         </div>
         <button type="button" className="icon-btn" title="Trocar" onClick={swap} style={{ marginBottom: 1 }}><Icon name="sync" size={16} /></button>
         <div>
-          <div className="input tnum" style={{ display: "flex", alignItems: "center", fontWeight: 800, background: "var(--surface-2)" }}>{estado === "load" ? "…" : estado === "err" ? "—" : conv != null ? fmt(conv, para) : "—"}</div>
+          <div className="input tnum" style={{ display: "flex", alignItems: "center", fontWeight: 700, background: "var(--surface-2)" }}>{estado === "load" ? "…" : estado === "err" ? "—" : conv != null ? fmt(conv, para) : "—"}</div>
           <select className="select" style={{ marginTop: 6 }} value={para} onChange={(e) => setPara(e.target.value)}>{codes.map((c) => <option key={c} value={c}>{c}</option>)}</select>
         </div>
       </div>
@@ -212,7 +212,7 @@ function Auth({ initialMode, onBack }) {
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start", padding: "6px 13px", borderRadius: 999, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.16)", fontSize: 12.5, fontWeight: 700, marginBottom: 22 }}>
             <Icon name="spark" size={14} color="var(--accent)" /> {tr("hero_eyebrow")}
           </span>
-          <h2 style={{ fontSize: 40, lineHeight: 1.07, fontWeight: 800, letterSpacing: "-.035em", margin: "0 0 16px", textWrap: "balance" }}>
+          <h2 style={{ fontSize: 40, lineHeight: 1.07, fontWeight: 700, letterSpacing: "-.035em", margin: "0 0 16px", textWrap: "balance" }}>
             {tr("hero_h1_a")}<span style={{ color: "var(--accent)" }}>{tr("hero_h1_b")}</span>
           </h2>
           <p style={{ fontSize: 16, lineHeight: 1.6, opacity: .82, fontWeight: 500, margin: "0 0 28px", maxWidth: "33em" }}>
@@ -222,7 +222,7 @@ function Auth({ initialMode, onBack }) {
             <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
               <div>
                 <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .6 }}>{tr("prev_balance")}</div>
-                <div className="tnum" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.03em", marginTop: 3 }}>{BM.eur0(1525)}</div>
+                <div className="tnum" style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-.03em", marginTop: 3 }}>{BM.eur0(1525)}</div>
               </div>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12.5, fontWeight: 700, color: "var(--accent)" }}><Icon name="arrowUp" size={13} color="var(--accent)" /> +12%</span>
             </div>
@@ -250,7 +250,7 @@ function Auth({ initialMode, onBack }) {
         <div className="login-card">
           <div className="login-form-brand"><Brand /></div>
           {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6 }}>{tr("auth_back_home")}</button>}
-          <h2 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-.02em", margin: "0 0 6px" }}>{titles[mode][0]}</h2>
+          <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-.02em", margin: "0 0 6px" }}>{titles[mode][0]}</h2>
           <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500 }}>{titles[mode][1]}</p>
 
           {okMsg && <div className="alert ok" style={{ marginBottom: 16, padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{okMsg}</span></div>}
@@ -364,10 +364,10 @@ function Auth({ initialMode, onBack }) {
           </button>
 
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
-            {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
-            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("signup")}</button></>}
-            {mode === "verify" && <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
-            {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
+            {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
+            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("signup")}</button></>}
+            {mode === "verify" && <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
+            {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
           </p>
 
           {(mode === "login" || mode === "signup") && (
@@ -420,7 +420,7 @@ function Dashboard({ go, open }) {
             ["chart", tr("dash_step3_t"), tr("dash_step3_d")]].map(([ic, ti, d]) => (
             <div className="card card-pad" key={ti}>
               <div className="kpi-ico" style={{ background: "var(--accent-soft)", marginBottom: 12 }}><Icon name={ic} size={19} color="var(--accent)" /></div>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>{ti}</div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{ti}</div>
               <div className="tiny muted" style={{ marginTop: 5, fontWeight: 600, lineHeight: 1.5 }}>{d}</div>
             </div>
           ))}
@@ -465,7 +465,7 @@ function Dashboard({ go, open }) {
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 16 }}>
             <div className="section-title">{tr("dash_by_category")}</div>
-            <span className="tnum" style={{ fontWeight: 800, fontSize: 15 }}>{BM.eur0(fin.totalGasto)}</span>
+            <span className="tnum" style={{ fontWeight: 700, fontSize: 15 }}>{BM.eur0(fin.totalGasto)}</span>
           </div>
           {fin.catBreak.length === 0 ? (
             <div style={{ display: "grid", placeItems: "center", height: 200, textAlign: "center" }} className="muted tiny">
@@ -481,7 +481,7 @@ function Dashboard({ go, open }) {
         <div className="section-head" style={{ marginBottom: 10 }}>
           <div><div className="section-title">{tr("dash_savings_evo")}</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tr("dash_savings_evo_sub")}</div></div>
           <div style={{ textAlign: "right" }}>
-            <div className="tnum" style={{ fontWeight: 800, fontSize: 18, color: "var(--c-educacao)" }}>{BM.eur0(fin.poupado)}</div>
+            <div className="tnum" style={{ fontWeight: 700, fontSize: 18, color: "var(--c-educacao)" }}>{BM.eur0(fin.poupado)}</div>
             <div className="tiny muted" style={{ fontWeight: 700 }}>{tr("kpi_saved")}</div>
           </div>
         </div>
@@ -522,7 +522,7 @@ function Dashboard({ go, open }) {
           {orc ? (
             <div>
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 9 }}>
-                <span className="tnum" style={{ fontWeight: 800, fontSize: 18 }}>{BM.eur0(fin.totalGasto)}</span>
+                <span className="tnum" style={{ fontWeight: 700, fontSize: 18 }}>{BM.eur0(fin.totalGasto)}</span>
                 <span className="muted tiny" style={{ fontWeight: 700 }}>{tt("of_amount", { x: BM.eur0(orc) })}</span>
               </div>
               <Progress value={fin.totalGasto} max={orc} color={pctGasto > 80 ? "var(--warn)" : "var(--accent)"} />
@@ -530,8 +530,8 @@ function Dashboard({ go, open }) {
             </div>
           ) : <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("budget_empty")}</div>}
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 13 }}>
-            <div className="tiny" style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>{tr("goals_label")}</div>
-            {fin.data.metas.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("goals_empty")} <button onClick={() => go("poupanca")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 800, cursor: "pointer", padding: 0, font: "inherit" }}>{tr("goals_create_first")}</button></div> :
+            <div className="tiny" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>{tr("goals_label")}</div>
+            {fin.data.metas.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("goals_empty")} <button onClick={() => go("poupanca")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, font: "inherit" }}>{tr("goals_create_first")}</button></div> :
               fin.data.metas.map((m) => (
                 <div key={m.id}>
                   <div className="row" style={{ justifyContent: "space-between", marginBottom: 7 }}>
@@ -604,7 +604,7 @@ function Despesas({ open }) {
                     <td><span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="dot" style={{ background: (BM.cats[d.cat] || BM.cats.outros).color }} />{tcat(d.cat)}</span></td>
                     <td><span className="chip" style={{ padding: "3px 9px" }}>{d.tipo === "fixa" ? tr("fixed") : tr("variable")}</span></td>
                     <td className="muted">{BM.fmtData(d.data)}</td>
-                    <td className="tnum" style={{ textAlign: "right", fontWeight: 800, color: "var(--neg)" }}>−{BM.eur(d.valor)}</td>
+                    <td className="tnum" style={{ textAlign: "right", fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</td>
                     <td><div className="row" style={{ gap: 4, justifyContent: "flex-end" }}>
                       <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => open("despesa", d)}><Icon name="edit" size={15} /></button>
                       <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={15} /></button>
@@ -616,7 +616,7 @@ function Despesas({ open }) {
           </div>
           <div className="card-pad row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border)" }}>
             <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{tt(rows.length === 1 ? "results_one" : "results_many", { n: rows.length })}</span>
-            <span style={{ fontWeight: 800 }}>{tr("total_label")}: <span className="tnum">{BM.eur(total)}</span></span>
+            <span style={{ fontWeight: 700 }}>{tr("total_label")}: <span className="tnum">{BM.eur(total)}</span></span>
           </div>
         </div>
       )}
@@ -642,7 +642,7 @@ function SavingsPlanner({ open }) {
   const Linha = ({ label, valor, sinal, cor, forte, big }) => (
     <div className="row" style={{ justifyContent: "space-between", padding: forte ? "12px 0 0" : "7px 0", borderTop: forte ? "1px solid var(--border)" : "none" }}>
       <span style={{ fontSize: forte ? 14 : 13.5, fontWeight: forte ? 800 : 600, color: forte ? "var(--ink)" : "var(--ink-2)" }}>{label}</span>
-      <span className="tnum" style={{ fontWeight: 800, fontSize: big ? 22 : forte ? 16 : 14.5, color: cor || "var(--ink)" }}>{sinal}{BM.eur(Math.abs(valor))}</span>
+      <span className="tnum" style={{ fontWeight: 700, fontSize: big ? 22 : forte ? 16 : 14.5, color: cor || "var(--ink)" }}>{sinal}{BM.eur(Math.abs(valor))}</span>
     </div>
   );
 
@@ -673,7 +673,7 @@ function SavingsPlanner({ open }) {
             <>
               <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-2)" }}>{tr("sp_pct_label")}</span>
-                <span className="tnum" style={{ fontSize: 26, fontWeight: 800, color: "var(--accent)" }}>{pct}%</span>
+                <span className="tnum" style={{ fontSize: 26, fontWeight: 700, color: "var(--accent)" }}>{pct}%</span>
               </div>
               <input type="range" min="10" max="50" step="5" value={pct} onChange={(e) => fin.setPoupancaPct(+e.target.value)} className="range" />
               <div className="row" style={{ justifyContent: "space-between" }}>
@@ -684,10 +684,10 @@ function SavingsPlanner({ open }) {
               {jaGuardado > 0 && <Linha label={tr("sp_saved_month")} valor={jaGuardado} sinal="✓ " cor="var(--accent)" />}
               <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginTop: 2, padding: "12px 14px", background: "var(--accent-soft)", borderRadius: "var(--radius-sm)" }}>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>{tr("sp_available")}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{tr("sp_available")}</div>
                   <div className="tiny muted" style={{ fontWeight: 600 }}>{tr("sp_available_sub")}</div>
                 </div>
-                <span className="tnum" style={{ fontWeight: 800, fontSize: 24, color: "var(--accent-ink)" }}>{BM.eur(disponivel)}</span>
+                <span className="tnum" style={{ fontWeight: 700, fontSize: 24, color: "var(--accent-ink)" }}>{BM.eur(disponivel)}</span>
               </div>
             </>
           )}
@@ -754,7 +754,7 @@ function Rendimentos({ open }) {
           <div className="card card-pad">
             <div className="section-title" style={{ marginBottom: 14 }}>{tr("inc_origin")}</div>
             <div className="row" style={{ gap: 20 }}>
-              <DonutChart data={fin.incBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 800 }}>{BM.eur0(fin.totalRec)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
+              <DonutChart data={fin.incBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 700 }}>{BM.eur0(fin.totalRec)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                 {fin.incBreak.map((c) => (
                   <div key={c.key} className="row" style={{ justifyContent: "space-between" }}>

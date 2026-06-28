@@ -19,7 +19,7 @@ const { useState, useEffect } = React;
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "accent": "#14a06b",
   "dark": false,
-  "font": "Plus Jakarta Sans",
+  "font": "Inter",
   "radius": 16,
   "density": "regular"
 }/*EDITMODE-END*/;
@@ -56,7 +56,7 @@ function NewCategoryInline({ onCreate, onCancel }) {
   return (
     <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 14, background: "var(--surface-2)", display: "flex", flexDirection: "column", gap: 12, marginBottom: 14 }}>
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <span className="row" style={{ gap: 8, fontWeight: 800, fontSize: 13.5 }}>
+        <span className="row" style={{ gap: 8, fontWeight: 700, fontSize: 13.5 }}>
           <span style={{ width: 28, height: 28, borderRadius: 8, display: "grid", placeItems: "center", background: `color-mix(in srgb, ${color} 16%, transparent)` }}><Icon name={icon} size={15} color={color} sw={1.9} /></span>
           Nova categoria
         </span>
@@ -437,7 +437,7 @@ function Shell() {
       <TweakToggle label="Modo escuro" value={t.dark} onChange={(v) => setTweak("dark", v)} />
       <TweakColor label="Cor de acento" value={t.accent} options={["#14a06b", "#0f6fff", "#7a5ae0", "#0f2540", "#e0792b"]} onChange={(v) => setTweak("accent", v)} />
       <TweakSection label="Tipografia" />
-      <TweakSelect label="Tipo de letra" value={t.font} options={["Comfortaa", "Manrope", "Poppins", "Montserrat", "Plus Jakarta Sans", "Quicksand"]} onChange={(v) => setTweak("font", v)} />
+      <TweakSelect label="Tipo de letra" value={t.font} options={["Inter", "Manrope", "Poppins", "Plus Jakarta Sans", "Montserrat", "Comfortaa", "Quicksand"]} onChange={(v) => setTweak("font", v)} />
       <TweakSection label="Layout" />
       <TweakRadio label="Densidade" value={t.density} options={["compact", "regular", "comfy"]} onChange={(v) => setTweak("density", v)} />
       <TweakSlider label="Cantos" value={t.radius} min={4} max={24} step={2} unit="px" onChange={(v) => setTweak("radius", v)} />

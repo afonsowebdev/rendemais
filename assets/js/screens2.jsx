@@ -36,8 +36,8 @@ function Poupanca({ open }) {
                 </div>
               </div>
               <div>
-                <div style={{ fontWeight: 800, fontSize: 16 }}>{m.nome}</div>
-                <div className="tnum" style={{ marginTop: 8, fontSize: 24, fontWeight: 800 }}>{BM.eur0(m.atual)} {isOpen ? <span style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 700 }}>acumulado</span> : <span style={{ fontSize: 15, color: "var(--ink-3)", fontWeight: 700 }}>/ {BM.eur0(m.alvo)}</span>}</div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{m.nome}</div>
+                <div className="tnum" style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>{BM.eur0(m.atual)} {isOpen ? <span style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 700 }}>acumulado</span> : <span style={{ fontSize: 15, color: "var(--ink-3)", fontWeight: 700 }}>/ {BM.eur0(m.alvo)}</span>}</div>
               </div>
               {isOpen
                 ? <div className="bar" style={{ opacity: .5 }}><i style={{ width: "100%", background: m.cor }} /></div>
@@ -57,7 +57,7 @@ function Poupanca({ open }) {
         <button className="card card-pad" onClick={() => open("meta")} style={{ display: "grid", placeItems: "center", border: "1.5px dashed var(--border-strong)", background: "transparent", minHeight: 220, cursor: "pointer", textAlign: "center" }}>
           <div>
             <div className="li-ico" style={{ width: 48, height: 48, margin: "0 auto 12px", background: "var(--accent-soft)" }}><Icon name="plus" size={22} color="var(--accent)" sw={2.2} /></div>
-            <div style={{ fontWeight: 800, fontSize: 15 }}>Nova meta de poupança</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Nova meta de poupança</div>
             <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, maxWidth: 180, marginInline: "auto" }}>Define um objetivo e acompanha o progresso.</div>
           </div>
         </button>
@@ -189,7 +189,7 @@ function Historico() {
                     <td><span className="row" style={{ gap: 9, fontWeight: 700 }}><Icon name="cal" size={16} color="var(--ink-3)" />{h.label}{h.atual && <span className="chip sel" style={{ padding: "2px 8px" }}>Atual</span>}</span></td>
                     <td className="tnum" style={{ textAlign: "right", color: "var(--accent)", fontWeight: 700 }}>+{BM.eur0(h.rec)}</td>
                     <td className="tnum" style={{ textAlign: "right", color: "var(--neg)", fontWeight: 700 }}>−{BM.eur0(h.gasto)}</td>
-                    <td className="tnum" style={{ textAlign: "right", fontWeight: 800, color: saldo < 0 ? "var(--neg)" : "var(--ink)" }}>{BM.eur0(saldo)}</td>
+                    <td className="tnum" style={{ textAlign: "right", fontWeight: 700, color: saldo < 0 ? "var(--neg)" : "var(--ink)" }}>{BM.eur0(saldo)}</td>
                     <td><Sparkline data={trend.length > 1 ? trend : [0, saldo]} w={80} h={26} color={saldo < 0 ? "var(--neg)" : "var(--accent)"} /></td>
                   </tr>
                 );
@@ -228,7 +228,7 @@ function Perfil({ open }) {
         <div className="row" style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
           <Avatar account={a} size={64} fontSize={22} />
           <div style={{ minWidth: 0, flex: "1 1 160px" }}>
-            <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
+            <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" }}>{a.nome || "—"}</div>
             <div className="muted" style={{ fontWeight: 600, fontSize: 13, marginTop: 3, wordBreak: "break-word" }}>{[a.idade && `${a.idade} anos`, a.nascimento && BM.fmtData(a.nascimento), a.cidade, a.email].filter(Boolean).join(" · ") || "Sem dados"}</div>
           </div>
           <button className="btn btn-ghost" onClick={() => open("perfil")}><Icon name="edit" size={15} /> Editar</button>
@@ -242,7 +242,7 @@ function Perfil({ open }) {
           {stats.map((s, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, background: "var(--surface-2)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
               <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flex: "none", background: s.bg }}><Icon name={s.ico} size={16} color={s.c} /></span>
-              <div style={{ minWidth: 0 }}><div className="tnum" style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>{s.v}</div><div style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginTop: 1 }}>{s.l}</div></div>
+              <div style={{ minWidth: 0 }}><div className="tnum" style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-.01em" }}>{s.v}</div><div style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginTop: 1 }}>{s.l}</div></div>
             </div>
           ))}
         </div>
@@ -277,7 +277,7 @@ function Perfil({ open }) {
               <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
                 <Icon name="trash" size={28} color="var(--neg)" />
               </div>
-              <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>Limpar todos os dados?</div>
+              <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" }}>Limpar todos os dados?</div>
               <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
                 Vais remover todas as despesas, rendimentos e metas. A tua conta mantém-se, mas <strong style={{ color: "var(--ink)" }}>esta ação não pode ser revertida</strong>.
               </div>
@@ -300,7 +300,7 @@ function Perfil({ open }) {
               <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
                 <Icon name="trash" size={28} color="var(--neg)" />
               </div>
-              <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>Eliminar a tua conta?</div>
+              <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" }}>Eliminar a tua conta?</div>
               <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
                 Vais apagar a conta <strong style={{ color: "var(--ink)" }}>{a.email}</strong> e <strong style={{ color: "var(--ink)" }}>todos</strong> os dados — despesas, rendimentos, metas, contas e categorias. Esta ação <strong style={{ color: "var(--ink)" }}>não pode ser revertida</strong>. Se voltares a criar conta com este email, começa tudo do zero.
               </div>
