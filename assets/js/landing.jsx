@@ -373,7 +373,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
         <div className="lp2-footer-base lp2-footer-base-center">
           <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={26} /></a>
-          <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+ · Feito em Portugal</span>
+          <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+ · O seu dinheiro. Os seus objetivos. O seu futuro.</span>
         </div>
       </footer>
     </div>
