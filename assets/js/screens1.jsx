@@ -106,9 +106,11 @@ function calcIdade(iso) {
 }
 
 /* ---------- AUTH: criar conta / iniciar sessão ---------- */
-function Auth({ initialMode, onBack }) {
+function Auth({ initialMode, onBack, onSignup }) {
   const fin = useFinance();
   const tr = useT();
+  const [lang, setLang] = useLang();
+  const [remember, setRemember] = React.useState(true);
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
   const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); const m = BM.currencyForCountry(pais); return { nome: "", email: "", password: "", password2: "", code: "", nascimento: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: m, multi: false, moedas: [m] }; });
   const [cidadeOutra, setCidadeOutra] = React.useState(false);
@@ -204,54 +206,20 @@ function Auth({ initialMode, onBack }) {
     finally { setBusy(false); }
   };
 
-  return (
-    <div className="login-wrap">
-      <div className="login-hero">
-        <Brand nameColor="#fff" onClick={onBack} />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 470, position: "relative", zIndex: 1 }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start", padding: "6px 13px", borderRadius: 999, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.16)", fontSize: 12.5, fontWeight: 700, marginBottom: 22 }}>
-            <Icon name="spark" size={14} color="var(--accent)" /> {tr("hero_eyebrow")}
-          </span>
-          <h2 style={{ fontSize: 40, lineHeight: 1.07, fontWeight: 700, letterSpacing: "-.035em", margin: "0 0 16px", textWrap: "balance" }}>
-            {tr("hero_h1_a")}<span style={{ color: "var(--accent)" }}>{tr("hero_h1_b")}</span>
-          </h2>
-          <p style={{ fontSize: 16, lineHeight: 1.6, opacity: .82, fontWeight: 500, margin: "0 0 28px", maxWidth: "33em" }}>
-            {tr("auth_hero_sub")}
-          </p>
-          <div style={{ background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.13)", borderRadius: 18, padding: 18, display: "flex", flexDirection: "column", gap: 13 }}>
-            <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
-              <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .6 }}>{tr("prev_balance")}</div>
-                <div className="tnum" style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-.03em", marginTop: 3 }}>{BM.eur0(1525)}</div>
-              </div>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12.5, fontWeight: 700, color: "var(--accent)" }}><Icon name="arrowUp" size={13} color="var(--accent)" /> +12%</span>
-            </div>
-            <div className="bar" style={{ background: "rgba(255,255,255,.12)" }}><i style={{ width: "67%", background: "var(--accent)" }} /></div>
-            <div className="row" style={{ gap: 18 }}>
-              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")} {BM.eur0(960)}</span>
-              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, opacity: .85 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")} {BM.eur0(643)}</span>
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 11, marginTop: 24 }}>
-            {[["wallet", tr("auth_feat1")], ["target", tr("auth_feat2")], ["coins", tr("auth_feat3").split("{n}").join(Object.keys(BM.currencies).length)]].map(([ic, t]) => (
-              <div key={t} className="row" style={{ gap: 12 }}>
-                <span style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,.1)", display: "grid", placeItems: "center", flex: "none" }}><Icon name={ic} size={16} color="var(--accent)" /></span>
-                <span style={{ fontSize: 14, fontWeight: 600, opacity: .9 }}>{t}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 9, fontSize: 12.5, fontWeight: 600, opacity: .72, marginTop: 8 }}>
-          <Icon name="check" size={15} color="var(--accent)" /> {tr("auth_hero_trust")}
-        </div>
-      </div>
+  const LANG_NOME = { pt: "Português", en: "English", fr: "Français" };
+  const cycleLang = () => { const order = ["pt", "en", "fr"]; setLang(order[(order.indexOf(lang) + 1) % order.length]); };
+  const loginTitle = mode === "login" ? "Bem-vindo de volta! 👋" : titles[mode][0];
+  const loginSub = mode === "login" ? "Faça login para continuar a organizar e alcançar os seus objetivos financeiros." : titles[mode][1];
 
+  return (
+    <div className="login-wrap login-wrap-v2">
       <div className="login-form">
         <div className="login-card">
           <div className="login-form-brand"><Brand /></div>
-          {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6 }}>{tr("auth_back_home")}</button>}
-          <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-.02em", margin: "0 0 6px" }}>{titles[mode][0]}</h2>
-          <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500 }}>{titles[mode][1]}</p>
+          <div className="login-brand-top"><Brand /></div>
+          {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", margin: "6px 0 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>{tr("auth_back_home")}</button>}
+          <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-.02em", margin: "0 0 6px" }}>{loginTitle}</h2>
+          <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500, lineHeight: 1.55 }}>{loginSub}</p>
 
           {okMsg && <div className="alert ok" style={{ marginBottom: 16, padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{okMsg}</span></div>}
 
@@ -337,7 +305,11 @@ function Auth({ initialMode, onBack }) {
           )}
 
           {mode === "login" && (
-            <div style={{ textAlign: "right", marginTop: -6, marginBottom: 8 }}>
+            <div className="login-row-remember">
+              <button type="button" className={"login-remember" + (remember ? " on" : "")} onClick={() => setRemember((v) => !v)}>
+                <span className="login-remember-box" aria-hidden="true">{remember && <Icon name="check" size={13} color="#fff" />}</span>
+                <span>Lembrar-me</span>
+              </button>
               <button onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>{tr("auth_forgot_link")}</button>
             </div>
           )}
@@ -358,29 +330,66 @@ function Auth({ initialMode, onBack }) {
           {err && <div className="alert bad" style={{ marginBottom: 12, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
           <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
-          <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4, opacity: busy ? 0.8 : 1, cursor: busy ? "wait" : "pointer" }} onClick={runPrimary}>
+          <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4, border: "none", opacity: busy ? 0.8 : 1, cursor: busy ? "wait" : "pointer" }} onClick={runPrimary}>
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
             {busy ? loadingLabel : primaryLabel}
           </button>
 
-          <p className="muted tiny" style={{ textAlign: "center", marginTop: 18, fontWeight: 600 }}>
+          {mode === "login" && (
+            <>
+              <div className="login-sep"><span>ou continue com</span></div>
+              <div className="login-social">
+                <button type="button" className="login-social-btn" onClick={() => setErr("O início de sessão com Google chega em breve. Por agora, entra com o teu email.")}>
+                  <Icon name="google" size={18} /> Continuar com Google
+                </button>
+                <button type="button" className="login-social-btn" onClick={() => setErr("O início de sessão com Apple chega em breve. Por agora, entra com o teu email.")}>
+                  <i className="bx bxl-apple" style={{ fontSize: 20 }}></i> Continuar com Apple
+                </button>
+              </div>
+            </>
+          )}
+
+          <p className="muted tiny" style={{ textAlign: "center", marginTop: 20, fontWeight: 600 }}>
             {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
-            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("signup")}</button></>}
+            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => (onSignup ? onSignup() : goMode("signup"))} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Criar conta gratuita</button></>}
             {mode === "verify" && <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
             {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
           </p>
-
-          {(mode === "login" || mode === "signup") && (
-            <div className="prem-cta prem-cta-static" aria-hidden="true">
-              <span className="prem-cta-ico"><Icon name="spark" size={17} color="#fff" /></span>
-              <span className="prem-cta-txt">
-                <span className="prem-cta-t">Rende+ Premium <span className="prem-cta-tag">Em breve</span></span>
-                <span className="prem-cta-d">Lembretes, partilha de casa, previsão de saldo e exportar dados.</span>
-              </span>
-            </div>
-          )}
         </div>
       </div>
+
+      <aside className="login-aside">
+        <div className="login-aside-lang">
+          <button type="button" className="login-lang-pill" onClick={cycleLang} aria-label="Mudar idioma">
+            <i className="bx bx-globe"></i> {LANG_NOME[lang] || "Português"} <i className="bx bx-chevron-down"></i>
+          </button>
+        </div>
+        <div className="login-aside-body">
+          <h2 className="login-aside-h1">O seu dinheiro. Os seus objetivos. O seu futuro.<br /><span>Rende+</span></h2>
+          <p className="login-aside-sub">Uma forma simples e inteligente de gerir as suas finanças, controlar os seus gastos e alcançar os seus sonhos.</p>
+          <img className="login-aside-img" src="assets/img/login-devices.png" alt="Rende+ no computador e no telemóvel" />
+          <div className="login-aside-feats">
+            {[["shield", "Seguro e privado", "Os seus dados estão sempre protegidos com encriptação avançada."],
+              ["chart", "Relatórios inteligentes", "Visualize os seus gastos e receitas com gráficos intuitivos."],
+              ["target", "Objetivos reais", "Defina metas, acompanhe o progresso e conquiste os seus sonhos."],
+              ["wallet", "Acesso em todo o lado", "Use no computador ou no telemóvel. A sua conta, sempre consigo."]].map(([ic, t, d]) => (
+              <div className="login-aside-feat" key={t}>
+                <span className="login-aside-feat-ico"><Icon name={ic} size={17} color="var(--accent)" /></span>
+                <div><b>{t}</b><span>{d}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="login-aside-foot">
+          <span>© {new Date().getFullYear()} Rende+. Todos os direitos reservados.</span>
+          <nav>
+            <a href="termos.html" target="_blank" rel="noopener">Termos de Serviço</a>
+            <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Contactos</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Ajuda</a>
+          </nav>
+        </div>
+      </aside>
     </div>
   );
 }
