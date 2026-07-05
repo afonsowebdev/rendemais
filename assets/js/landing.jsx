@@ -22,7 +22,17 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const LangPicker = null;
+  // Menu suspenso do cabeçalho mobile (aberto pelo botão junto ao logótipo).
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  React.useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  const cycleLang = () => {
+    const order = I18N.SUP;
+    setLang(order[(order.indexOf(lang) + 1) % order.length]);
+  };
 
   /* Badges oficiais das lojas — atualizar os href quando a app for publicada */
   const StoreBadges = ({ compact }) => (
@@ -116,15 +126,51 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
   return (
     <div className="lp">
       <header className={"lp-header" + (scrolled ? " scrolled" : "")}>
-        <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
+        <div className="lp-header-brand">
+          <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
+          <button type="button" className="lp-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}>
+            <Icon name={menuOpen ? "close" : "menu"} size={19} />
+          </button>
+        </div>
         <nav className="lp-nav">
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
         </nav>
         <div className="lp-header-actions">
-          <button className="btn btn-ghost lp-header-login" onClick={onLogin}>Iniciar sessão</button>
-          <button className="btn btn-primary lp-header-cta" onClick={onCreate}>Criar conta<span className="lp-cta-extra"> gratuita</span></button>
+          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Iniciar sessão</button>
+          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta<span className="lp-cta-extra"> gratuita</span></button>
+          <button type="button" className="icon-btn lp-mobile-only" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+          </button>
+          <button type="button" className="icon-btn lp-lang-btn lp-mobile-only" onClick={cycleLang} title="Mudar idioma" aria-label="Mudar idioma">
+            <Icon name="globe" size={17} /><span>{I18N.LABELS[lang]}</span>
+          </button>
         </div>
       </header>
+
+      {menuOpen && (
+        <div className="lp-menu-bg" onClick={() => setMenuOpen(false)}>
+          <div className="lp-menu" onClick={(e) => e.stopPropagation()}>
+            <nav className="lp-menu-nav">
+              {NAV.map(([id, label]) => (
+                <a key={id} href={"#" + id} onClick={(e) => { goSection(e, id); setMenuOpen(false); }}>{label}</a>
+              ))}
+            </nav>
+            <div className="lp-menu-sep" />
+            <div className="lp-menu-auth">
+              <button className="btn btn-ghost" onClick={() => { setMenuOpen(false); onLogin(); }}>Iniciar sessão</button>
+              <button className="btn btn-primary" onClick={() => { setMenuOpen(false); onCreate(); }}>Criar conta gratuita</button>
+            </div>
+            <a className="lp-menu-upgrade" href="#precos" onClick={(e) => { goSection(e, "precos"); setMenuOpen(false); }}>
+              <span className="lp-menu-upgrade-ico"><Icon name="spark" size={17} color="var(--accent)" /></span>
+              <span>
+                <b>Conheça o Rende+ Premium</b>
+                <small>Recorrentes, partilha em grupo e relatórios avançados a partir de 4,99 €/mês.</small>
+              </span>
+              <Icon name="chevR" size={16} color="var(--ink-3)" />
+            </a>
+          </div>
+        </div>
+      )}
 
       <div className="lp-main">
         {/* ============ HERO ============ */}

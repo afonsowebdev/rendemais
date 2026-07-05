@@ -8,6 +8,24 @@
    não tem OAuth). Campos extra (telefone, objetivo, etc.) ficam guardados no
    perfil local — quando criares colunas no backend, é só ligá-los. */
 
+/* Ícones dos blocos de confiança (criar conta): SVG próprio em vez de BoxIcons —
+   glifos de fontes de ícones têm caixas óticas inconsistentes entre si (o bx-cloud
+   por ex. fica maior/desalinhado ao lado do bx-lock-alt no mesmo tamanho), o que
+   partia o alinhamento vertical destes cartões. */
+function TrustIcon({ name, size = 17, color = "var(--accent)" }) {
+  if (name === "shield") return <Icon name="shield" size={size} color={color} />;
+  const PATHS = {
+    lock: "M6 10V8a6 6 0 1 1 12 0v2M5 10h14a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a1 1 0 0 1 1-1z",
+    sync: "M21 12a9 9 0 1 1-3-6.7M21 4v4h-4",
+    cloud: "M7 18a4.5 4.5 0 0 1-.4-9 6 6 0 0 1 11.4.5A4.5 4.5 0 0 1 17 18H7z",
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={PATHS[name]} />
+    </svg>
+  );
+}
+
 function ObOptionCard({ icon, label, sel, onClick, sub }) {
   return (
     <button type="button" className={"ob-opt" + (sel ? " sel" : "")} onClick={onClick}>
@@ -226,8 +244,8 @@ function Onboarding({ onBack, onLogin }) {
             <p className="ob1-have">Já tem conta? <button onClick={onLogin}>Iniciar sessão</button></p>
 
             <div className="ob1-trust">
-              {[["bx-lock-alt", "100% Seguro", "Os seus dados estão sempre protegidos"], ["bx-sync", "Sincronização", "Aceda às suas finanças em qualquer dispositivo"], ["bx-cloud", "Backup automático", "Os seus dados são sempre guardados"], ["bx-shield", "Privacidade garantida", "Nunca partilhamos as suas informações"]].map(([ic, t, d]) => (
-                <div className="ob1-trust-item" key={t}><span><i className={"bx " + ic}></i></span><div><b>{t}</b><small>{d}</small></div></div>
+              {[["lock", "100% Seguro", "Os seus dados estão sempre protegidos"], ["sync", "Sincronização", "Aceda às suas finanças em qualquer dispositivo"], ["cloud", "Backup automático", "Os seus dados são sempre guardados"], ["shield", "Privacidade garantida", "Nunca partilhamos as suas informações"]].map(([ic, t, d]) => (
+                <div className="ob1-trust-item" key={t}><span><TrustIcon name={ic} /></span><div><b>{t}</b><small>{d}</small></div></div>
               ))}
             </div>
           </div>
@@ -480,8 +498,8 @@ function Onboarding({ onBack, onLogin }) {
       {err && <div className="alert bad" style={{ margin: "16px 0 0", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
       <div className="ob-trust-strip">
-        {[["bx-lock-alt", "Os seus dados estão protegidos", "Utilizamos encriptação de ponta a ponta."], ["bx-shield", "Privacidade garantida", "Nunca partilhamos os seus dados."], ["bx-check-shield", "100% Seguro", "Os seus dados estão sempre protegidos."], ["bx-sync", "Pode alterar depois", "Todas as configurações podem ser alteradas."]].map(([ic, t, d]) => (
-          <div className="ob-trust-strip-item" key={t}><span><i className={"bx " + ic}></i></span><div><b>{t}</b><small>{d}</small></div></div>
+        {[["lock", "Os seus dados estão protegidos", "Utilizamos encriptação de ponta a ponta."], ["shield", "Privacidade garantida", "Nunca partilhamos os seus dados."], ["shield", "100% Seguro", "Os seus dados estão sempre protegidos."], ["sync", "Pode alterar depois", "Todas as configurações podem ser alteradas."]].map(([ic, t, d]) => (
+          <div className="ob-trust-strip-item" key={t}><span><TrustIcon name={ic} size={18} /></span><div><b>{t}</b><small>{d}</small></div></div>
         ))}
       </div>
     </>
