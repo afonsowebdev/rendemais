@@ -445,6 +445,7 @@ function Shell() {
   );
 
   if (!fin.session) {
+    if (authView === "signup") return (<><Onboarding onBack={() => setAuthView(null)} onLogin={() => setAuthView("login")} />{panel}</>);
     if (authView) return (<><Auth initialMode={authView} onBack={() => setAuthView(null)} />{panel}</>);
     return (<><Landing onCreate={() => setAuthView("signup")} onLogin={() => setAuthView("login")} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tr={tr} />{panel}</>);
   }
