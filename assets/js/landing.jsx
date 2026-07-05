@@ -144,7 +144,10 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             </div>
           </div>
           <div className="lp2-hero-img">
-            <img className="lp2-hero-single" src="assets/img/hero.png" alt="Rende+ no computador e no telemóvel" />
+            <picture>
+              <source srcSet="assets/img/hero.webp" type="image/webp" />
+              <img className="lp2-hero-single" src="assets/img/hero.png" alt="Rende+ no computador e no telemóvel" width="1536" height="1024" loading="eager" />
+            </picture>
           </div>
         </section>
 

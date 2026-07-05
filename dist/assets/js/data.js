@@ -89,6 +89,18 @@ window.BM = (function () {
     { code: "CA", moeda: "CAD", locales: ["CA"], cities: ["Toronto", "Montréal", "Vancouver", "Calgary", "Ottawa", "Edmonton", "Québec", "Winnipeg", "Hamilton", "Mississauga", "Brampton", "London (ON)", "Halifax", "Victoria", "Windsor", "Saskatoon", "Regina", "Kitchener", "Gatineau", "St. John's", "Laval", "Surrey", "Burnaby"] },
     { code: "GB", moeda: "GBP", locales: ["GB", "UK"], cities: ["London", "Manchester", "Birmingham", "Liverpool", "Leeds", "Sheffield", "Glasgow", "Edinburgh", "Bristol", "Cardiff", "Leicester", "Nottingham", "Newcastle", "Belfast", "Brighton", "Coventry", "Reading", "Southampton", "Portsmouth", "Aberdeen", "Oxford", "Cambridge", "York", "Plymouth"] },
   ];
+  // ---- províncias / regiões por país (sugeridas ao criar conta) ----
+  const provinces = {
+    PT: ["Aveiro", "Beja", "Braga", "Bragança", "Castelo Branco", "Coimbra", "Évora", "Faro", "Guarda", "Leiria", "Lisboa", "Portalegre", "Porto", "Santarém", "Setúbal", "Viana do Castelo", "Vila Real", "Viseu", "Açores", "Madeira"],
+    AO: ["Bengo", "Benguela", "Bié", "Cabinda", "Cuando Cubango", "Cuanza Norte", "Cuanza Sul", "Cunene", "Huambo", "Huíla", "Luanda", "Lunda Norte", "Lunda Sul", "Malanje", "Moxico", "Namibe", "Uíge", "Zaire"],
+    BR: ["Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará", "Distrito Federal", "Espírito Santo", "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul", "Minas Gerais", "Pará", "Paraíba", "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro", "Rio Grande do Norte", "Rio Grande do Sul", "Rondônia", "Roraima", "Santa Catarina", "São Paulo", "Sergipe", "Tocantins"],
+    CV: ["Santiago", "São Vicente", "Santo Antão", "Fogo", "Sal", "Boa Vista", "Maio", "São Nicolau", "Brava"],
+    MZ: ["Cabo Delgado", "Gaza", "Inhambane", "Manica", "Maputo", "Maputo Cidade", "Nampula", "Niassa", "Sofala", "Tete", "Zambézia"],
+    US: ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"],
+    CA: ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon"],
+    GB: ["England", "Scotland", "Wales", "Northern Ireland"],
+  };
+  const countryProvinces = (code) => provinces[code] || [];
   const countryByCode = (code) => countries.find((c) => c.code === code) || null;
   const countryCities = (code) => { const c = countryByCode(code); return c ? c.cities : []; };
   const currencyForCountry = (code) => { const c = countryByCode(code); return c ? c.moeda : "EUR"; };
@@ -105,7 +117,7 @@ window.BM = (function () {
     return "PT";
   };
 
-  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, bancos, countries, countryByCode, countryCities, currencyForCountry, detectCountry };
+  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, bancos, countries, countryByCode, countryCities, countryProvinces, currencyForCountry, detectCountry };
 })();
 
 /* ===== i18n integrado no data.js (para não depender de um ficheiro separado) ===== */

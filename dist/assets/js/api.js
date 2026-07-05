@@ -47,9 +47,15 @@ const API = (function () {
     setToken,
     // autenticação
     registar: (corpo) => req("POST", "/api/auth/registar", corpo),
+    verificarEmail: (corpo) => req("POST", "/api/auth/verificar-email", corpo),
+    definirPassword: (corpo) => req("POST", "/api/auth/definir-password", corpo),
+    reenviarCodigo: (corpo) => req("POST", "/api/auth/reenviar-codigo", corpo),
+    esqueciPassword: (corpo) => req("POST", "/api/auth/esqueci-password", corpo),
+    redefinirPassword: (corpo) => req("POST", "/api/auth/redefinir-password", corpo),
     login: (corpo) => req("POST", "/api/auth/login", corpo),
     perfil: () => req("GET", "/api/auth/eu"),
     atualizarPerfil: (corpo) => req("PATCH", "/api/auth/eu", corpo),
+    eliminarConta: () => req("DELETE", "/api/auth/eu"),
     // CRUD genérico (recurso = "despesas", "rendimentos", ...)
     listar: (recurso) => req("GET", "/api/" + recurso),
     criar: (recurso, corpo) => req("POST", "/api/" + recurso, corpo),

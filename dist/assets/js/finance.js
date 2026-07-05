@@ -99,7 +99,7 @@ function FinanceProvider({ children }) {
       orcamento: perfil.orcamento || null,
       poupancaPct: (_a = perfil.poupancaPct) != null ? _a : 20
     });
-    setAccount((a) => ({ ...a || {}, email: perfil.email, nome: perfil.nome, moeda: perfil.moeda, poupancaPct: perfil.poupancaPct, orcamento: perfil.orcamento }));
+    setAccount((a) => ({ ...a || {}, email: perfil.email, nome: perfil.nome, moeda: perfil.moeda, poupancaPct: perfil.poupancaPct, orcamento: perfil.orcamento, dataNascimento: perfil.dataNascimento || null, nascimentoBloqueado: !!perfil.nascimentoBloqueado }));
     setSession(perfil.email || true);
   };
   React.useEffect(() => {
@@ -112,11 +112,40 @@ function FinanceProvider({ children }) {
     }
   }, []);
   const signup = async (info) => {
-    const resp = await API.registar({ email: info.email, password: info.password, nome: info.nome, moeda: info.moeda });
+    const idade = parseInt(info.idade, 10);
+    if (isNaN(idade) || idade < 16) throw new Error("Tens de ter pelo menos 16 anos para criar conta.");
+    const nome = (info.nome || "").trim().replace(/\s{2,}/g, " ");
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(nome)) throw new Error("O nome s\xF3 pode conter letras.");
+    const moedas = Array.isArray(info.moedas) && info.moedas.length ? Array.from(/* @__PURE__ */ new Set([info.moeda, ...info.moedas])) : [info.moeda];
+    const resp = await API.registar({ email: info.email, password: info.password, nome, moeda: info.moeda });
     API.setToken(resp.token);
-    const extra = { idade: info.idade, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao };
+    const extra = { idade: info.idade, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas };
     setAccount((a) => ({ ...a || {}, ...resp.user || {}, ...extra }));
     await carregarTudo();
+  };
+  const iniciarRegisto = async (info) => {
+    const idade = parseInt(info.idade, 10);
+    if (isNaN(idade) || idade < 16) throw new Error("Tens de ter pelo menos 16 anos para criar conta.");
+    const nome = (info.nome || "").trim().replace(/\s{2,}/g, " ");
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(nome)) throw new Error("O nome s\xF3 pode conter letras.");
+    await API.registar({ email: (info.email || "").trim(), nome, moeda: info.moeda });
+    return true;
+  };
+  const verificarEmail = async (email, codigo) => {
+    const r = await API.verificarEmail({ email: (email || "").trim(), codigo: (codigo || "").trim() });
+    return r.setupToken;
+  };
+  const definirPassword = async (setupToken, password, info) => {
+    const moedas = Array.isArray(info == null ? void 0 : info.moedas) && info.moedas.length ? Array.from(/* @__PURE__ */ new Set([info.moeda, ...info.moedas])) : [info == null ? void 0 : info.moeda].filter(Boolean);
+    const resp = await API.definirPassword({ setupToken, password, dataNascimento: (info == null ? void 0 : info.nascimento) || null });
+    API.setToken(resp.token);
+    const extra = info ? { idade: info.idade, nascimento: info.nascimento, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
+    setAccount((a) => ({ ...a || {}, ...resp.user || {}, ...extra }));
+    await carregarTudo();
+  };
+  const reenviarCodigo = async (email) => {
+    await API.reenviarCodigo({ email: (email || "").trim() });
+    return true;
   };
   const login = async (email, pass) => {
     const resp = await API.login({ email, password: pass });
@@ -129,7 +158,13 @@ function FinanceProvider({ children }) {
     setSession(null);
     setData({ ...EMPTY_DATA });
   };
-  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento"];
+  const eliminarConta = async () => {
+    await API.eliminarConta();
+    API.setToken(null);
+    setSession(null);
+    setData({ ...EMPTY_DATA });
+  };
+  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento"];
   const updateAccount = (patch) => {
     setAccount((a) => ({ ...a || {}, ...patch }));
     const servidor = {};
@@ -201,9 +236,16 @@ function FinanceProvider({ children }) {
     gravarArquivos(novos);
     setArquivos(novos);
   };
-  const emailExists = () => true;
-  const genResetCode = () => String(Math.floor(1e5 + Math.random() * 9e5));
-  const resetPassword = () => {
+  const esqueciPassword = async (email) => {
+    await API.esqueciPassword({ email: (email || "").trim() });
+    return true;
+  };
+  const redefinirPassword = async (email, codigo, password) => {
+    const resp = await API.redefinirPassword({ email: (email || "").trim(), codigo: (codigo || "").trim(), password });
+    API.setToken(resp.token);
+    setAccount((a) => ({ ...a || {}, ...resp.user || {} }));
+    await carregarTudo();
+    return true;
   };
   const crud = (key, recurso, paraApi, daApi) => ({
     add: async (item) => {
@@ -482,16 +524,20 @@ function FinanceProvider({ children }) {
     realMonth,
     isCurrentMonth,
     signup,
+    iniciarRegisto,
+    verificarEmail,
+    definirPassword,
+    reenviarCodigo,
     login,
     logout,
+    eliminarConta,
     updateAccount,
     resetData,
     mudarLocalizacao,
     arquivos,
     apagarArquivo,
-    emailExists,
-    genResetCode,
-    resetPassword,
+    esqueciPassword,
+    redefinirPassword,
     cur: BM.curInfo(),
     curSym: BM.curInfo().sym,
     setCurrency: (code) => updateAccount({ moeda: code }),

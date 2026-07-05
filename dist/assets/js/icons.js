@@ -68,7 +68,8 @@ const BX = {
   tools: "bx-wrench",
   bag: "bx-shopping-bag",
   tag: "bx-purchase-tag",
-  scissors: "bx-cut"
+  scissors: "bx-cut",
+  lock: "bx-lock-alt"
 };
 function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
   const P = {
@@ -76,6 +77,8 @@ function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
     eye: "M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12zM12 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0",
     eyeOff: "M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.4 5.2A9.5 9.5 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.6 3.3M6.1 6.3A16 16 0 0 0 2.5 12s3.6 6.5 9.5 6.5a9 9 0 0 0 3-.5",
     grid: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
+    shield: "M12 3l7 2.6v5.2c0 4.6-3 8.4-7 10.2-4-1.8-7-5.6-7-10.2V5.6L12 3z",
+    users: "M9 8.5m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M2.5 20a6.5 6.5 0 0 1 13 0M16.5 5.8a3 3 0 0 1 0 5.4M21.5 20a6.5 6.5 0 0 0-4.6-6.2",
     wallet: "M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v0M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3M3 7h16M17 12h4v4h-4a2 2 0 0 1 0-4z",
     arrowsDown: "M12 5v14M6 13l6 6 6-6",
     target: "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0",
