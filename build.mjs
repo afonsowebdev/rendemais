@@ -30,6 +30,7 @@ for (const name of JSX) {
 // 2) copia os JS simples (sem JSX) e o CSS tal como estão
 for (const f of ["data.js", "api.js"]) cpSync(`assets/js/${f}`, `${OUT}/assets/js/${f}`);
 cpSync("assets/css", `${OUT}/assets/css`, { recursive: true });
+if (existsSync("assets/img")) cpSync("assets/img", `${OUT}/assets/img`, { recursive: true });
 
 // 3) copia os estáticos da raiz (ícones, manifest, service worker, og-image…)
 const estaticos = [

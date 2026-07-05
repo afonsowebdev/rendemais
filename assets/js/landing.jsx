@@ -13,21 +13,65 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     history.replaceState(null, "", window.location.pathname + window.location.search);
   };
 
+  // Ativa a sombra por baixo do cabeçalho assim que se faz scroll.
+  const [scrolled, setScrolled] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const LangPicker = null;
 
-  /* Badges das lojas — atualizar os href quando a app for publicada */
+  /* Badges oficiais das lojas — atualizar os href quando a app for publicada */
   const StoreBadges = ({ compact }) => (
-    <div className={"lp2-stores" + (compact ? " compact" : "")}>
-      <a className="lp2-store" href="https://apps.apple.com/app/rende" target="_blank" rel="noopener noreferrer" aria-label="Descarregar na App Store" onClick={(e) => e.preventDefault()} title="Brevemente disponível">
-        <i className="bx bxl-apple" aria-hidden="true"></i>
-        <span><small>Descarregar na</small><b>App Store</b></span>
+    <div className={"lp2-stores lp2-stores-badges" + (compact ? " compact" : "")}>
+      <a className="lp2-store-badge" href="https://apps.apple.com/app/rende" target="_blank" rel="noopener noreferrer" aria-label="Descarregar na App Store" onClick={(e) => e.preventDefault()} title="Brevemente disponível">
+        <img src="assets/img/badges/apple-appstore-pt-preto.svg" alt="Descarregar na App Store" />
       </a>
-      <a className="lp2-store" href="https://play.google.com/store/apps/details?id=pt.rendemais.app" target="_blank" rel="noopener noreferrer" aria-label="Disponível no Google Play" onClick={(e) => e.preventDefault()} title="Brevemente disponível">
-        <i className="bx bxl-play-store" aria-hidden="true"></i>
-        <span><small>Disponível no</small><b>Google Play</b></span>
+      <a className="lp2-store-badge" href="https://play.google.com/store/apps/details?id=pt.rendemais.app" target="_blank" rel="noopener noreferrer" aria-label="Disponível no Google Play" onClick={(e) => e.preventDefault()} title="Brevemente disponível">
+        <img src="assets/img/badges/google-play-pt.png" alt="Disponível no Google Play" />
       </a>
     </div>
   );
+
+  /* Avatar de pessoa: usa a imagem real se existir; se não existir (ainda não foi carregada), mostra a inicial */
+  const PersonAvatar = ({ src, fallback, zIndex, solo }) => {
+    const [failed, setFailed] = React.useState(false);
+    const cls = "lp2-avatar" + (solo ? " solo" : "");
+    if (!src || failed) {
+      return <span className={cls} style={zIndex ? { zIndex } : undefined}>{fallback}</span>;
+    }
+    return <img className={cls + " lp2-avatar-img"} style={zIndex ? { zIndex } : undefined} src={src} alt="" onError={() => setFailed(true)} />;
+  };
+
+  /* Redes sociais do Rende+ — cole aqui os links quando os tiver */
+  const SOCIAL_LINKS = {
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+    x: "",
+    tiktok: "",
+  };
+
+  const SocialIcons = () => (
+    <div className="lp2-footer-social" aria-label="Redes sociais do Rende+">
+      <a className="lp2-social-link" href={SOCIAL_LINKS.facebook || "#"} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="bx bxl-facebook" aria-hidden="true"></i></a>
+      <a className="lp2-social-link" href={SOCIAL_LINKS.instagram || "#"} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="bx bxl-instagram" aria-hidden="true"></i></a>
+      <a className="lp2-social-link" href={SOCIAL_LINKS.linkedin || "#"} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i className="bx bxl-linkedin-square" aria-hidden="true"></i></a>
+      <a className="lp2-social-link" href={SOCIAL_LINKS.x || "#"} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)"><i className="bx bxl-twitter" aria-hidden="true"></i></a>
+      <a className="lp2-social-link" href={SOCIAL_LINKS.tiktok || "#"} target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i className="bx bxl-tiktok" aria-hidden="true"></i></a>
+    </div>
+  );
+
+  /* Pessoas da prova social — troque "img" pelo caminho real assim que carregar as fotos */
+  const SOCIAL_PROOF_PEOPLE = [
+    { initial: "F", img: "assets/img/social-proof/pessoa-1.jpg" },
+    { initial: "M", img: "assets/img/social-proof/pessoa-2.jpg" },
+    { initial: "J", img: "assets/img/social-proof/pessoa-3.jpg" },
+    { initial: "B", img: "assets/img/social-proof/pessoa-4.jpg" },
+  ];
 
   const NAV = [["funcionalidades", "Funcionalidades"], ["vantagens", "Vantagens"], ["como-funciona", "Como funciona"], ["precos", "Preços"], ["depoimentos", "Depoimentos"], ["faq", "FAQ"]];
 
@@ -56,9 +100,9 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
   ];
 
   const DEPOIMENTOS = [
-    ["M", "Mariana S.", "Lisboa", "Finalmente percebo para onde vai o meu dinheiro. Em dois meses consegui poupar para o fundo de emergência."],
-    ["J", "João P.", "Emigrante em França", "Uso em euros e envio dinheiro para casa — o suporte multi-moeda faz toda a diferença para quem vive fora."],
-    ["B", "Beatriz R.", "Porto", "A partilha de despesas acabou com as confusões da casa. Cada um sabe exatamente quanto deve."],
+    ["M", "Mariana S.", "Lisboa", "Finalmente percebo para onde vai o meu dinheiro. Em dois meses consegui poupar para o fundo de emergência.", "assets/img/depoimentos/mariana.jpg"],
+    ["J", "João P.", "Emigrante em França", "Uso em euros e envio dinheiro para casa — o suporte multi-moeda faz toda a diferença para quem vive fora.", "assets/img/depoimentos/joao.jpg"],
+    ["B", "Beatriz R.", "Porto", "A partilha de despesas acabou com as confusões da casa. Cada um sabe exatamente quanto deve.", "assets/img/depoimentos/beatriz.jpg"],
   ];
 
   const FAQS = [
@@ -71,14 +115,14 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
   return (
     <div className="lp">
-      <header className="lp-header">
+      <header className={"lp-header" + (scrolled ? " scrolled" : "")}>
         <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
         <nav className="lp-nav">
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
         </nav>
-        <div className="lp-header-actions" style={{ flexWrap: "wrap", justifyContent: "flex-end", gap: 8 }}>
-          <button className="btn btn-ghost" onClick={onLogin}>Iniciar sessão</button>
-          <button className="btn btn-primary" onClick={onCreate}>Criar conta gratuita</button>
+        <div className="lp-header-actions">
+          <button className="btn btn-ghost lp-header-login" onClick={onLogin}>Iniciar sessão</button>
+          <button className="btn btn-primary lp-header-cta" onClick={onCreate}>Criar conta<span className="lp-cta-extra"> gratuita</span></button>
         </div>
       </header>
 
@@ -107,7 +151,9 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
         {/* ============ PROVA SOCIAL ============ */}
         <section className="lp2-social card">
           <div className="lp2-social-item lp2-social-people">
-            <div className="lp2-avatars" aria-hidden="true">{["F", "M", "J", "B"].map((x, i) => <span key={i} className="lp2-avatar" style={{ zIndex: 4 - i }}>{x}</span>)}</div>
+            <div className="lp2-avatars" aria-hidden="true">
+              {SOCIAL_PROOF_PEOPLE.map((p, i) => <PersonAvatar key={i} src={p.img} fallback={p.initial} zIndex={4 - i} />)}
+            </div>
             <div><b>Junte-se a mais de 5.000 pessoas</b><span>que já transformaram a sua vida financeira.</span></div>
           </div>
           <div className="lp2-social-item"><i className="bx bxs-star" aria-hidden="true" style={{ color: "var(--accent)" }}></i><div><b>4,9/5</b><span>na App Store</span></div></div>
@@ -211,11 +257,11 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <h2 className="lp2-h2">Quem usa, <span className="accent">recomenda.</span></h2>
           </div>
           <div className="lp2-depo-grid">
-            {DEPOIMENTOS.map(([ini, nome, local, txt]) => (
+            {DEPOIMENTOS.map(([ini, nome, local, txt, img]) => (
               <figure className="lp2-depo card" key={nome}>
                 <div className="lp2-depo-stars" aria-label="5 estrelas">{[0, 1, 2, 3, 4].map((i) => <i key={i} className="bx bxs-star" aria-hidden="true"></i>)}</div>
                 <blockquote>“{txt}”</blockquote>
-                <figcaption><span className="lp2-avatar solo">{ini}</span><div><b>{nome}</b><span>{local}</span></div></figcaption>
+                <figcaption><PersonAvatar src={img} fallback={ini} solo /><div><b>{nome}</b><span>{local}</span></div></figcaption>
               </figure>
             ))}
           </div>
@@ -273,12 +319,12 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <StoreBadges compact />
           </div>
         </div>
-        <div className="lp2-footer-base">
+
+        <SocialIcons />
+
+        <div className="lp2-footer-base lp2-footer-base-center">
+          <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={26} /></a>
           <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+ · Feito em Portugal</span>
-          <div className="row" style={{ gap: 8 }}>
-            <button className="btn btn-ghost" onClick={onLogin}>Iniciar sessão</button>
-            <button className="btn btn-primary" onClick={onCreate}>Criar conta gratuita</button>
-          </div>
         </div>
       </footer>
     </div>
