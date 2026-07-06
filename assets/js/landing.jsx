@@ -136,8 +136,8 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
         </nav>
         <div className="lp-header-actions">
-          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Iniciar sessão</button>
-          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta<span className="lp-cta-extra"> gratuita</span></button>
+          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Entrar</button>
+          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta</button>
           <button type="button" className="icon-btn lp-mobile-only" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </button>
