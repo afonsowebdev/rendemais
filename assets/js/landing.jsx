@@ -136,7 +136,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
         </nav>
         <div className="lp-header-actions">
-          <button type="button" className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
+          <button type="button" className="icon-btn lp-theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </button>
           <button type="button" className="icon-btn lp-lang-btn" onClick={cycleLang} title="Mudar idioma" aria-label="Mudar idioma">
