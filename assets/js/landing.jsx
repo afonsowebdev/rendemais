@@ -136,14 +136,14 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
         </nav>
         <div className="lp-header-actions">
-          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Entrar</button>
-          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta</button>
-          <button type="button" className="icon-btn lp-mobile-only" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
+          <button type="button" className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </button>
-          <button type="button" className="icon-btn lp-lang-btn lp-mobile-only" onClick={cycleLang} title="Mudar idioma" aria-label="Mudar idioma">
+          <button type="button" className="icon-btn lp-lang-btn" onClick={cycleLang} title="Mudar idioma" aria-label="Mudar idioma">
             <Icon name="globe" size={17} /><span>{I18N.LABELS[lang]}</span>
           </button>
+          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Entrar</button>
+          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta</button>
         </div>
       </header>
 

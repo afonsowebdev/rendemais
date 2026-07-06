@@ -1466,10 +1466,6 @@ input.range::-moz-range-thumb {
   background: var(--surface-2);
 }
 
-.lp-mobile-only {
-  display: none;
-}
-
 .lp-lang-btn {
   width: auto;
   gap: 5px;
@@ -1834,10 +1830,6 @@ input.range::-moz-range-thumb {
 
   .lp-desktop-only {
     display: none;
-  }
-
-  .lp-mobile-only {
-    display: inline-flex;
   }
 
   .lp-menu-btn {
