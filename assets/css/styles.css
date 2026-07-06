@@ -808,7 +808,7 @@ table.t {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 720px;
+  max-width: 880px;
   width: 100%;
   margin: 0 auto;
   padding: 10px 0;
