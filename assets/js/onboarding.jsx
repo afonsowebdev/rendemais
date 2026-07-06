@@ -232,7 +232,7 @@ function Onboarding({ onBack, onLogin }) {
 
             <button type="button" className={"ob1-terms" + (f.termos ? " on" : "")} onClick={() => setF((s) => ({ ...s, termos: !s.termos }))}>
               <span className="ob-check-box" aria-hidden="true">{f.termos && <i className="bx bx-check"></i>}</span>
-              <span>Li e aceito os <a href="#" onClick={(e) => e.preventDefault()}>Termos de Serviço</a> e a <a href="#" onClick={(e) => e.preventDefault()}>Política de Privacidade</a></span>
+              <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Termos de Serviço</a> e a <a href="privacidade.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Política de Privacidade</a></span>
             </button>
 
             {err && <div className="alert bad" style={{ margin: "4px 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
