@@ -157,8 +157,8 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             </nav>
             <div className="lp-menu-sep" />
             <div className="lp-menu-auth">
-              <button className="btn btn-ghost" onClick={() => { setMenuOpen(false); onLogin(); }}>Iniciar sessão</button>
-              <button className="btn btn-primary" onClick={() => { setMenuOpen(false); onCreate(); }}>Criar conta gratuita</button>
+              <button className="btn btn-ghost" onClick={() => { setMenuOpen(false); onLogin(); }}>Entrar</button>
+              <button className="btn btn-primary" onClick={() => { setMenuOpen(false); onCreate(); }}>Criar conta</button>
             </div>
             <a className="lp-menu-upgrade" href="#precos" onClick={(e) => { goSection(e, "precos"); setMenuOpen(false); }}>
               <span className="lp-menu-upgrade-ico"><Icon name="spark" size={17} color="var(--accent)" /></span>
