@@ -864,13 +864,13 @@ table.t {
   place-items: center;
 }
 
-.login-aside-feat b {
+.login-aside-feat > div b {
   display: block;
   font-size: 13.5px;
   margin-bottom: 3px;
 }
 
-.login-aside-feat span {
+.login-aside-feat > div span {
   display: block;
   font-size: 12px;
   color: var(--ink-3);
