@@ -361,7 +361,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <b>Suporte</b>
             <a href="#faq" onClick={(e) => goSection(e, "faq")}>FAQ</a>
             <a href="#depoimentos" onClick={(e) => goSection(e, "depoimentos")}>Depoimentos</a>
-            <a href="mailto:suporte@rendemais.pt">suporte@rendemais.pt</a>
+            <a href="mailto:contacto@rendemais.pt">contacto@rendemais.pt</a>
           </div>
           <div className="lp2-footer-col">
             <b>Obter a app</b>
@@ -373,7 +373,8 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
         <div className="lp2-footer-base lp2-footer-base-center">
           <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={26} /></a>
-          <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+ · O seu dinheiro. Os seus objetivos. O seu futuro.</span>
+          <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+  Todos os direitos reservados.
+          </span>
         </div>
       </footer>
     </div>
