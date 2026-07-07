@@ -47,7 +47,7 @@ function Onboarding({ onBack, onLogin }) {
     ["poupar", "Poupan\xE7a e objetivos", "Defina metas e construa o seu futuro com planeamento.", "bx-target-lock"],
     ["investir", "Investir melhor", "Organize e analise para tomar melhores decis\xF5es de investimento.", "bx-line-chart"]
   ];
-  const PAIS_NOME = { PT: "Portugal", AO: "Angola", BR: "Brasil", CV: "Cabo Verde", MZ: "Mo\xE7ambique", US: "Estados Unidos", CA: "Canad\xE1", GB: "Reino Unido" };
+  const PAIS_NOME = { PT: "Portugal", ES: "Espanha", FR: "Fran\xE7a", DE: "Alemanha", LU: "Luxemburgo", CH: "Su\xED\xE7a", GB: "Reino Unido", US: "Estados Unidos", CA: "Canad\xE1", AO: "Angola" };
   const nomePais = (code) => PAIS_NOME[code] || code;
   const defPais = React.useMemo(() => BM.detectCountry(), []);
   const [step, setStep] = React.useState(1);

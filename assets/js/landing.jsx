@@ -189,12 +189,6 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
               <span className="lp-trust-item"><Icon name="heart" size={16} color="var(--accent)" /> Suporte dedicado</span>
             </div>
           </div>
-          <div className="lp2-hero-img">
-            <picture>
-              <source srcSet="assets/img/hero.webp" type="image/webp" />
-              <img className="lp2-hero-single" src="assets/img/hero.png" alt="Rende+ no computador e no telemóvel" width="1536" height="1024" loading="eager" />
-            </picture>
-          </div>
         </section>
 
         {/* ============ PROVA SOCIAL ============ */}

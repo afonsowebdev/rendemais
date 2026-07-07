@@ -4637,9 +4637,15 @@ input.range::-moz-range-thumb {
 .lp2-hero-bg {
   position: relative;
   isolation: isolate;
+  grid-template-columns: 1fr;
+  min-height: calc(100vh - 70px);
   padding-top: 96px;
   padding-bottom: 70px;
   color: #fff;
+}
+
+.lp2-hero-bg .lp2-hero-txt {
+  max-width: 640px;
 }
 
 /* camada de fundo: imagem fixa + overlay escuro, a ocupar todo o topo (inclui atrás do cabeçalho) */
