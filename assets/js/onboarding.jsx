@@ -95,7 +95,7 @@ function Onboarding({ onBack, onLogin }) {
     ["investir", "Investir melhor", "Organize e analise para tomar melhores decisões de investimento.", "bx-line-chart"],
   ];
   // nomes de país (o mesmo texto que o sistema usa no i18n: country_PT = "Portugal", etc.)
-  const PAIS_NOME = { PT: "Portugal", AO: "Angola", BR: "Brasil", CV: "Cabo Verde", MZ: "Moçambique", US: "Estados Unidos", CA: "Canadá", GB: "Reino Unido" };
+  const PAIS_NOME = { PT: "Portugal", ES: "Espanha", FR: "França", DE: "Alemanha", LU: "Luxemburgo", CH: "Suíça", GB: "Reino Unido", US: "Estados Unidos", CA: "Canadá", AO: "Angola" };
   const nomePais = (code) => PAIS_NOME[code] || code;
 
   const defPais = React.useMemo(() => BM.detectCountry(), []);

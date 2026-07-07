@@ -118,7 +118,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
   const FAQS = [
     ["O Rende+ é mesmo gratuito?", "Sim. A versão base é gratuita para sempre: transações, objetivos, orçamento, relatórios e multi-moeda. O plano Premium acrescenta funcionalidades avançadas, mas nunca precisa dele para gerir o essencial."],
     ["Os meus dados estão seguros?", "Sim. Os seus dados são seus: a conta é protegida por palavra-passe, pode ativar o bloqueio por PIN, e as ações sensíveis (como eliminar dados) exigem confirmação com as suas credenciais."],
-    ["Funciona fora de Portugal?", "Sim. O Rende+ suporta " + Object.keys(BM.currencies).length + " moedas (EUR, BRL, USD, AOA, GBP, CVE, MZN, CAD) e foi desenhado a pensar em quem vive, trabalha ou envia dinheiro entre países."],
+    ["Funciona fora de Portugal?", "Sim. O Rende+ suporta " + Object.keys(BM.currencies).length + " moedas (EUR, CHF, GBP, USD, CAD e AOA) com foco na Europa, e foi desenhado a pensar em quem vive, trabalha ou envia dinheiro entre países."],
     ["Posso usar no telemóvel?", "Sim. O Rende+ funciona em qualquer navegador, pode ser instalado como aplicação (PWA) e está a chegar à App Store e ao Google Play."],
     ["O que ganho com o Premium?", "Recorrentes e subscrições com pagamentos inteligentes, partilha de despesas em grupo, notificações automáticas, bloqueio por inatividade e relatórios avançados."],
   ];
@@ -174,16 +174,16 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
       <div className="lp-main">
         {/* ============ HERO ============ */}
-        <section className="lp2-hero">
+        <section className="lp2-hero lp2-hero-bg">
           <div className="lp2-hero-txt">
-            <span className="lp-eyebrow"><Icon name="spark" size={14} /> A sua vida financeira, organizada.</span>
-            <h1 className="lp2-h1">Tenha controlo total das suas <span className="accent">finanças</span> e conquiste os seus <span className="accent">objetivos.</span></h1>
-            <p className="lp-sub">O Rende+ ajuda-o a gerir o seu dinheiro de forma simples, inteligente e eficiente. Poupe mais, gaste melhor e viva com tranquilidade.</p>
+            <span className="lp-eyebrow lp-eyebrow-on-dark"><Icon name="spark" size={14} /> Controlo financeiro inteligente</span>
+            <h1 className="lp2-h1">O seu futuro financeiro <span className="accent">começa aqui.</span></h1>
+            <p className="lp-sub">O Rende+ ajuda-o a gerir o seu dinheiro de forma simples, inteligente e segura.</p>
             <div className="lp-cta">
-              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Começar gratuitamente <Icon name="chevR" size={16} color="#fff" /></button>
-              <button className="btn btn-ghost lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver demonstração</button>
+              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Criar conta gratuita <Icon name="chevR" size={16} color="#fff" /></button>
+              <button className="btn lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver como funciona</button>
             </div>
-            <div className="lp-trust">
+            <div className="lp-trust lp-trust-on-dark">
               <span className="lp-trust-item"><Icon name="shield" size={16} color="var(--accent)" /> 100% Seguro</span>
               <span className="lp-trust-item"><Icon name="sync" size={16} color="var(--accent)" /> Sincronização em tempo real</span>
               <span className="lp-trust-item"><Icon name="heart" size={16} color="var(--accent)" /> Suporte dedicado</span>

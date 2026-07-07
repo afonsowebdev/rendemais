@@ -859,13 +859,13 @@ table.t {
   place-items: center;
 }
 
-.login-aside-feat > div b {
+.login-aside-feat>div b {
   display: block;
   font-size: 13.5px;
   margin-bottom: 3px;
 }
 
-.login-aside-feat > div span {
+.login-aside-feat>div span {
   display: block;
   font-size: 12px;
   color: var(--ink-3);
@@ -1499,8 +1499,13 @@ input.range::-moz-range-thumb {
 }
 
 @keyframes lpMenuFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .lp-menu {
@@ -3498,6 +3503,7 @@ input.range::-moz-range-thumb {
 .lp2-vant-solo .lp2-stores {
   justify-content: center;
 }
+
 /* ============================================================
    ONBOARDING — 3 passos (Criar conta / Perfil / Finanças)
    ============================================================ */
@@ -4622,5 +4628,108 @@ input.range::-moz-range-thumb {
 
   .ob-trust-strip {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   HERO com imagem de fundo fixa (full-bleed) — landing
+   ============================================================ */
+.lp2-hero-bg {
+  position: relative;
+  isolation: isolate;
+  padding-top: 96px;
+  padding-bottom: 70px;
+  color: #fff;
+}
+
+/* camada de fundo: imagem fixa + overlay escuro, a ocupar todo o topo (inclui atrás do cabeçalho) */
+.lp2-hero-bg::before {
+  content: "";
+  position: absolute;
+  top: -70px;
+  /* sobe atrás do cabeçalho (lp tem padding-top:70px) */
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  /* full-bleed independente do container */
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(6, 22, 16, .82) 0%, rgba(6, 22, 16, .58) 42%, rgba(6, 22, 16, .74) 100%),
+    url("../img/hero-bg.jpg") center 30% / cover no-repeat fixed;
+}
+
+/* texto sobre fundo escuro */
+.lp2-hero-bg .lp2-h1 {
+  color: #fff;
+}
+
+.lp2-hero-bg .lp-sub {
+  color: rgba(255, 255, 255, .82);
+}
+
+.lp-eyebrow-on-dark {
+  color: #fff;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+
+.lp-trust-on-dark .lp-trust-item {
+  color: rgba(255, 255, 255, .9);
+}
+
+/* botão secundário "Ver como funciona" claro sobre o fundo */
+.lp2-hero-bg .lp2-demo {
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .28);
+  color: #fff;
+}
+
+.lp2-hero-bg .lp2-demo:hover {
+  background: rgba(255, 255, 255, .18);
+}
+
+/* ---- cabeçalho transparente enquanto está por cima do hero ---- */
+.lp .lp-header:not(.scrolled) {
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.lp .lp-header:not(.scrolled) .brand-name {
+  color: #fff;
+}
+
+.lp .lp-header:not(.scrolled) .lp-nav a {
+  color: rgba(255, 255, 255, .88);
+}
+
+.lp .lp-header:not(.scrolled) .lp-nav a:hover {
+  color: #fff;
+}
+
+.lp .lp-header:not(.scrolled) .lp-nav a::after {
+  background: #fff;
+}
+
+.lp .lp-header:not(.scrolled) .lp-header-login {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .5);
+  background: transparent;
+}
+
+.lp .lp-header:not(.scrolled) .lp-header-login:hover {
+  background: rgba(255, 255, 255, .12);
+}
+
+/* telemóvel: background-attachment:fixed é problemático — passa a scroll */
+@media (max-width: 860px) {
+  .lp2-hero-bg::before {
+    background-attachment: scroll;
+    background-position: center 30%;
+  }
+
+  .lp2-hero-bg {
+    padding-top: 40px;
   }
 }
