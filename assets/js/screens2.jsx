@@ -203,6 +203,123 @@ function Historico() {
 }
 
 /* ---------- PERFIL ---------- */
+/* ---------- Preferências financeiras (dados do passo 3, editáveis) ---------- */
+function PerfilPreferencias() {
+  const fin = useFinance();
+  const a = fin.account || {};
+  const [editar, setEditar] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const [msg, setMsg] = React.useState("");
+
+  const SITUACOES = [["estudante", "Estudante"], ["trabalhador", "Trabalhador"], ["freelancer", "Freelancer"], ["empresario", "Empresário"], ["casado", "Casado"], ["solteiro", "Solteiro"], ["outro", "Outro"]];
+  const OBJETIVOS = [["casa", "Comprar casa"], ["viajar", "Viajar"], ["carro", "Comprar carro"], ["computador", "Novo computador"], ["familia", "Família"], ["fundo", "Fundo de emergência"], ["investir", "Investir"], ["estudos", "Estudos"]];
+  const PREFERENCIAS = [["controlar", "Controlar gastos"], ["poupar", "Poupança e objetivos"], ["investir", "Investir melhor"]];
+  const PLANEAMENTO = [["sim", "Sim, todos os meses"], ["ainda-nao", "Ainda não"], ["comecar", "Quero começar"]];
+  const PARTILHA = [["nao", "Não"], ["parceiro", "Parceiro(a)"], ["casa", "Casa partilhada"], ["familia", "Família"]];
+  const RENDIMENTOS = ["Salário", "Apoio familiar", "Bolsa", "Investimentos", "Freelancer", "Rendimentos extras", "Negócio próprio", "Outro"];
+  const DESPESAS = ["Renda", "Alimentação", "Streaming", "Água", "Universidade", "Lazer", "Luz", "Ginásio", "Empréstimos", "Internet", "Saúde", "Animais", "Transportes", "Seguro", "Outro"];
+  const rotulo = (lista, val) => (lista.find((o) => o[0] === val) || [null, "—"])[1];
+
+  const [f, setF] = React.useState({});
+  const abrir = () => {
+    setF({
+      situacao: a.situacao || "estudante", objetivo: a.objetivo || "fundo", preferencia: a.preferencia || "controlar",
+      planeamento: a.planeamento || "ainda-nao", partilha: a.partilha || "nao", telefone: a.telefone || "", sobre: a.sobre || "",
+      fontesRendimento: Array.isArray(a.fontesRendimento) ? a.fontesRendimento : [], principaisDespesas: Array.isArray(a.principaisDespesas) ? a.principaisDespesas : [],
+      notificacoes: a.notificacoes !== false, resumoSemanal: a.resumoSemanal !== false,
+    });
+    setMsg(""); setEditar(true);
+  };
+  const toggleArr = (k, v) => setF((s) => { const arr = s[k] || []; return { ...s, [k]: arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v] }; });
+  const guardar = async () => {
+    setBusy(true); setMsg("");
+    try { await fin.updateAccount({ ...f }); setMsg("Guardado."); setEditar(false); }
+    catch (e) { setMsg(e.message || "Não foi possível guardar."); }
+    finally { setBusy(false); }
+  };
+
+  const Linha = ({ label, valor }) => (
+    <div className="row" style={{ justifyContent: "space-between", gap: 12, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
+      <span className="tiny muted" style={{ fontWeight: 700 }}>{label}</span>
+      <span style={{ fontWeight: 700, fontSize: 13, textAlign: "right" }}>{valor}</span>
+    </div>
+  );
+  const Chips = ({ label, valor }) => (
+    <div style={{ paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
+      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 7 }}>{label}</div>
+      {valor && valor.length ? <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>{valor.map((c) => <span className="chip" key={c}>{c}</span>)}</div> : <span style={{ fontWeight: 700, fontSize: 13 }}>—</span>}
+    </div>
+  );
+  const Seletor = ({ label, lista, k }) => (
+    <Field label={label}><select className="select" value={f[k]} onChange={(e) => setF((s) => ({ ...s, [k]: e.target.value }))}>{lista.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
+  );
+  const Multi = ({ label, opcoes, k }) => (
+    <div style={{ marginBottom: 12 }}>
+      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>{label}</div>
+      <div className="row" style={{ gap: 7, flexWrap: "wrap" }}>
+        {opcoes.map((o) => { const on = (f[k] || []).includes(o); return <button type="button" key={o} className={"chip" + (on ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => toggleArr(k, o)}>{o}</button>; })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10, margin: 0 }}>
+          <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name="target" size={16} color="var(--accent)" /></span>
+          Preferências financeiras
+        </div>
+        {!editar && <button className="btn btn-ghost" onClick={abrir}><Icon name="edit" size={15} /> Editar</button>}
+      </div>
+
+      {msg && <div className={"alert " + (msg === "Guardado." ? "ok" : "bad")} style={{ padding: "9px 12px" }}><Icon name={msg === "Guardado." ? "check" : "info"} size={16} color={msg === "Guardado." ? "var(--accent)" : "var(--neg)"} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{msg}</span></div>}
+
+      {!editar ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Linha label="Situação atual" valor={rotulo(SITUACOES, a.situacao)} />
+          <Linha label="Objetivo principal" valor={rotulo(OBJETIVOS, a.objetivo)} />
+          <Linha label="Preferência" valor={rotulo(PREFERENCIAS, a.preferencia)} />
+          <Chips label="Fontes de rendimento" valor={a.fontesRendimento} />
+          <Chips label="Principais despesas" valor={a.principaisDespesas} />
+          <Linha label="Planeamento" valor={rotulo(PLANEAMENTO, a.planeamento)} />
+          <Linha label="Partilha de despesas" valor={rotulo(PARTILHA, a.partilha)} />
+          <Linha label="Telefone" valor={a.telefone || "—"} />
+          <div className="row" style={{ justifyContent: "space-between", gap: 12, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
+            <span className="tiny muted" style={{ fontWeight: 700 }}>Notificações · Resumo semanal</span>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>{a.notificacoes !== false ? "On" : "Off"} · {a.resumoSemanal !== false ? "On" : "Off"}</span>
+          </div>
+          <div>
+            <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>Sobre os teus objetivos</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)", lineHeight: 1.5 }}>{a.sobre || "—"}</div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Seletor label="Situação atual" lista={SITUACOES} k="situacao" />
+            <Seletor label="Objetivo principal" lista={OBJETIVOS} k="objetivo" />
+            <Seletor label="Preferência" lista={PREFERENCIAS} k="preferencia" />
+            <Seletor label="Planeamento" lista={PLANEAMENTO} k="planeamento" />
+            <Seletor label="Partilha de despesas" lista={PARTILHA} k="partilha" />
+            <Field label="Telefone"><input className="input" value={f.telefone} onChange={(e) => setF((s) => ({ ...s, telefone: e.target.value }))} placeholder="+351 912 345 678" inputMode="tel" /></Field>
+          </div>
+          <Multi label="Fontes de rendimento" opcoes={RENDIMENTOS} k="fontesRendimento" />
+          <Multi label="Principais despesas" opcoes={DESPESAS} k="principaisDespesas" />
+          <Field label="Sobre os teus objetivos"><textarea className="input" rows={3} maxLength={250} value={f.sobre} onChange={(e) => setF((s) => ({ ...s, sobre: e.target.value }))} placeholder="Ex.: Quero juntar dinheiro para viajar…" style={{ resize: "vertical", minHeight: 80 }} /></Field>
+          <div className="row" style={{ gap: 16, flexWrap: "wrap", margin: "4px 0 10px" }}>
+            <button type="button" className={"chip" + (f.notificacoes ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, notificacoes: !s.notificacoes }))}>Notificações: {f.notificacoes ? "On" : "Off"}</button>
+            <button type="button" className={"chip" + (f.resumoSemanal ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, resumoSemanal: !s.resumoSemanal }))}>Resumo semanal: {f.resumoSemanal ? "On" : "Off"}</button>
+          </div>
+          <div className="row" style={{ gap: 10 }}>
+            <button className="btn btn-soft" disabled={busy} style={{ flex: 1, justifyContent: "center" }} onClick={() => { setEditar(false); setMsg(""); }}>Cancelar</button>
+            <button className="btn btn-primary" disabled={busy} style={{ flex: 1, justifyContent: "center", border: "none" }} onClick={guardar}>{busy ? "A guardar…" : "Guardar alterações"}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Perfil({ open }) {
   const fin = useFinance();
   const a = fin.account || {};
@@ -247,6 +364,8 @@ function Perfil({ open }) {
           ))}
         </div>
       </div>
+
+      <PerfilPreferencias />
 
       <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>

@@ -131,11 +131,9 @@ function Onboarding({ onBack, onLogin }) {
   const paisLabel = nomePais(f.pais);
 
   const validaPasso1 = () => {
-    if (!f.nome.trim() || !f.email.trim() || !f.password) return "Preenche o nome, o email e a palavra-passe.";
+    if (!f.nome.trim() || !f.email.trim()) return "Preenche o nome e o email.";
     if (!nomeOk) return "O nome só pode conter letras.";
     if (!emailOk) return "Indica um email válido.";
-    if (!pwStrong(f.password)) return "A palavra-passe ainda é fraca. Cumpre todos os requisitos.";
-    if (f.password !== f.password2) return "As palavras-passe não coincidem.";
     if (!f.termos) return "Tens de aceitar os Termos de Serviço e a Política de Privacidade.";
     return "";
   };
@@ -173,20 +171,32 @@ function Onboarding({ onBack, onLogin }) {
     try {
       const tok = await fin.verificarEmail(f.email, f.code);
       setSetupToken(tok);
-      // cria a conta + sessão e guarda o perfil (os campos extra ficam no perfil local)
-      await fin.definirPassword(tok, f.password, {
+      // Email confirmado. SÓ AGORA pedimos a palavra-passe (passo seguinte).
+      setOkMsg(""); setStep("password");
+    } catch (e) { setErr(e.message || "Não foi possível confirmar o código."); }
+    finally { setBusy(false); }
+  };
+  // Cria a palavra-passe (depois do email confirmado) e a conta em si.
+  const criarPassword = async () => {
+    if (busy) return;
+    if (!pwStrong(f.password)) { setErr("A palavra-passe ainda é fraca. Cumpre todos os requisitos."); return; }
+    if (f.password !== f.password2) { setErr("As palavras-passe não coincidem."); return; }
+    if (!setupToken) { setErr("A sessão de configuração expirou. Confirma o email de novo."); setStep("verify"); return; }
+    setBusy(true); setErr("");
+    try {
+      // cria a conta + sessão e guarda o perfil (o backend recebe tudo de uma vez)
+      await fin.definirPassword(setupToken, f.password, {
         idade, nascimento: f.nascimento, pais: f.pais, moeda: f.moeda, moedas: [f.moeda],
         perfil: situacaoLabel, telefone: f.telefone, preferencia: f.preferencia, sobre: f.sobre,
         situacao: f.situacao, fontesRendimento: f.rendimentos, principaisDespesas: f.despesas, objetivo: f.objetivo,
         planeamento: f.planeamento, partilha: f.partilha,
         notificacoes: f.notificacoes, resumoSemanal: f.resumoSemanal,
       });
-      // O perfil já foi gravado pelo definir-password (e veio na resposta para o
-      // estado local). Aqui só falta o orçamento inicial, que esse endpoint não trata.
+      // O perfil já foi gravado pelo definir-password. Só falta o orçamento inicial.
       const orc = parseFloat(String(f.orcamento).replace(",", "."));
       if (!isNaN(orc) && orc > 0) fin.updateAccount({ orcamento: orc });
       // a partir daqui fin.session passa a existir e a app abre o painel sozinha
-    } catch (e) { setErr(e.message || "Não foi possível confirmar o código."); }
+    } catch (e) { setErr(e.message || "Não foi possível criar a palavra-passe."); }
     finally { setBusy(false); }
   };
   const doResend = async () => {
@@ -219,9 +229,7 @@ function Onboarding({ onBack, onLogin }) {
 
             <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" autoComplete="name" /></Field>
             <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" autoComplete="email" /></Field>
-            <Field label="Senha"><PwInput value={f.password} onChange={set("password")} placeholder="Crie uma senha segura" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" /></Field>
-            <Strength value={f.password} />
-            <Field label="Confirmar senha"><PwInput value={f.password2} onChange={set("password2")} placeholder="Confirme a sua senha" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(f.password)} /></Field>
+            <div className="ob-note tiny" style={{ marginBottom: 14 }}><Icon name="lock" size={13} color="var(--ink-3)" /> Por segurança, a palavra-passe é criada no fim, só depois de confirmares o teu email.</div>
 
             <button type="button" className={"ob1-terms" + (f.termos ? " on" : "")} onClick={() => setF((s) => ({ ...s, termos: !s.termos }))}>
               <span className="ob-check-box" aria-hidden="true">{f.termos && <i className="bx bx-check"></i>}</span>
@@ -282,7 +290,7 @@ function Onboarding({ onBack, onLogin }) {
         <div className="ob-verify-card">
           <div className="ob1-brand" style={{ marginBottom: 18 }}><Brand /></div>
           <h1 className="ob1-h1" style={{ fontSize: 26 }}>Confirma o teu email</h1>
-          <p className="ob1-sub">Enviámos um código de 6 dígitos para <strong>{f.email}</strong>. Escreve-o aqui para concluir a criação da conta.</p>
+          <p className="ob1-sub">Enviámos um código de 6 dígitos para <strong>{f.email}</strong>. Escreve-o aqui para confirmares o teu email.</p>
           {okMsg && <div className="alert ok" style={{ margin: "0 0 14px", padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{okMsg}</span></div>}
           <Field label="Código de verificação">
             <input className="input tnum" value={f.code} onChange={(e) => setF((s) => ({ ...s, code: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="000000" inputMode="numeric" maxLength={6} autoFocus style={{ letterSpacing: ".3em", fontSize: 18, textAlign: "center" }} />
@@ -294,9 +302,32 @@ function Onboarding({ onBack, onLogin }) {
           <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
           <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 13, fontSize: 15 }} onClick={doVerify}>
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
-            {busy ? "A criar conta…" : "Confirmar e entrar"}
+            {busy ? "A confirmar…" : "Confirmar email"}
           </button>
           <p className="ob1-have"><button onClick={() => { setStep(3); setErr(""); }}>Voltar e rever os dados</button></p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------------- CRIAR PALAVRA-PASSE (só depois de confirmar o email) ---------------- */
+  if (step === "password") {
+    return (
+      <div className="ob-verify-wrap">
+        <div className="ob-verify-card">
+          <div className="ob1-brand" style={{ marginBottom: 18 }}><Brand /></div>
+          <div className="alert ok" style={{ margin: "0 0 14px", padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>Email confirmado! 🎉</span></div>
+          <h1 className="ob1-h1" style={{ fontSize: 26 }}>Cria a tua palavra-passe</h1>
+          <p className="ob1-sub">Último passo: define uma palavra-passe segura para proteger a tua conta.</p>
+          <Field label="Palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="Crie uma senha segura" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" autoFocus /></Field>
+          <Strength value={f.password} />
+          <Field label="Confirmar palavra-passe"><PwInput value={f.password2} onChange={set("password2")} placeholder="Repita a senha" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(f.password)} /></Field>
+          {err && <div className="alert bad" style={{ margin: "6px 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+          <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
+          <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 13, fontSize: 15, border: "none" }} onClick={criarPassword}>
+            {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
+            {busy ? "A criar conta…" : "Criar conta e entrar"}
+          </button>
         </div>
       </div>
     );
