@@ -177,21 +177,14 @@ function Onboarding({ onBack, onLogin }) {
       await fin.definirPassword(tok, f.password, {
         idade, nascimento: f.nascimento, pais: f.pais, moeda: f.moeda, moedas: [f.moeda],
         perfil: situacaoLabel, telefone: f.telefone, preferencia: f.preferencia, sobre: f.sobre,
-        situacao: f.situacao, rendimentos: f.rendimentos, despesas: f.despesas, objetivo: f.objetivo,
+        situacao: f.situacao, fontesRendimento: f.rendimentos, principaisDespesas: f.despesas, objetivo: f.objetivo,
         planeamento: f.planeamento, partilha: f.partilha,
         notificacoes: f.notificacoes, resumoSemanal: f.resumoSemanal,
       });
-      // orçamento inicial + campos ricos do perfil (guardados no estado local da sessão;
-      // updateAccount só envia ao servidor os campos que ele já conhece)
+      // O perfil já foi gravado pelo definir-password (e veio na resposta para o
+      // estado local). Aqui só falta o orçamento inicial, que esse endpoint não trata.
       const orc = parseFloat(String(f.orcamento).replace(",", "."));
-      const patch = {
-        telefone: f.telefone, preferencia: f.preferencia, sobre: f.sobre,
-        situacao: f.situacao, rendimentos: f.rendimentos, despesas: f.despesas, objetivo: f.objetivo,
-        planeamento: f.planeamento, partilha: f.partilha,
-        notificacoes: f.notificacoes, resumoSemanal: f.resumoSemanal,
-      };
-      if (!isNaN(orc) && orc > 0) patch.orcamento = orc;
-      fin.updateAccount(patch);
+      if (!isNaN(orc) && orc > 0) fin.updateAccount({ orcamento: orc });
       // a partir daqui fin.session passa a existir e a app abre o painel sozinha
     } catch (e) { setErr(e.message || "Não foi possível confirmar o código."); }
     finally { setBusy(false); }

@@ -101,9 +101,16 @@ function FinanceProvider({ children }) {
     return r.setupToken;
   };
   // 3) define a password, cria a sessão e guarda o perfil
+  // Campos do perfil (passo 3) que o servidor agora guarda — os nomes têm de ser
+  // exatamente os do backend (ex.: fontesRendimento, principaisDespesas).
+  const camposPerfil = ["pais", "telefone", "preferencia", "sobre", "situacao", "objetivo", "planeamento", "partilha", "fontesRendimento", "principaisDespesas", "notificacoes", "resumoSemanal"];
+
   const definirPassword = async (setupToken, password, info) => {
     const moedas = Array.isArray(info?.moedas) && info.moedas.length ? Array.from(new Set([info.moeda, ...info.moedas])) : [info?.moeda].filter(Boolean);
-    const resp = await API.definirPassword({ setupToken, password, dataNascimento: info?.nascimento || null });
+    // recolhe os campos do perfil que vieram, para os enviar ao servidor no registo
+    const perfil = {};
+    camposPerfil.forEach((k) => { if (info && info[k] !== undefined) perfil[k] = info[k]; });
+    const resp = await API.definirPassword({ setupToken, password, dataNascimento: info?.nascimento || null, ...perfil });
     API.setToken(resp.token);
     const extra = info ? { idade: info.idade, nascimento: info.nascimento, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
     setAccount((a) => ({ ...(a || {}), ...(resp.user || {}), ...extra }));
@@ -120,8 +127,8 @@ function FinanceProvider({ children }) {
   // elimina a conta no servidor (cascade apaga tudo) e repõe o estado local a zero
   const eliminarConta = async () => { await API.eliminarConta(); API.setToken(null); setSession(null); setData({ ...EMPTY_DATA }); };
 
-  // campos do perfil que o servidor guarda
-  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento"];
+  // campos do perfil que o servidor guarda (base + campos do passo 3)
+  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento", ...camposPerfil];
   const updateAccount = (patch) => {
     setAccount((a) => ({ ...(a || {}), ...patch }));
     const servidor = {};
