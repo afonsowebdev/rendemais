@@ -85,6 +85,7 @@ body {
 
 button {
   font-family: inherit;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -372,7 +373,11 @@ button {
 .btn-ghost {
   background: none;
   color: var(--ink);
-  border: none;
+  border: 1px solid var(--border-strong);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-2);
 }
 
 .btn-soft {
@@ -1840,11 +1845,16 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
-  /* Cabeçalho mobile: em vez do login + criar conta, mostra tema/idioma;
-     o acesso a login/criar conta e às secções passa para o menu suspenso
-     aberto pelo botão junto ao logótipo. */
+  /* Cabeçalho mobile: em vez do login + criar conta, mostra tema/idioma
+     e o botão de menu, todos agrupados à direita — a logo fica sozinha
+     à esquerda. O acesso a login/criar conta e às secções passa para o
+     menu suspenso aberto por este botão. */
   .lp-header-actions {
-    gap: 6px;
+    gap: 8px;
+  }
+
+  .lp-menu {
+    top: 78px;
   }
 
   .lp-desktop-only {
@@ -2798,8 +2808,118 @@ input.range::-moz-range-thumb {
   box-shadow: 0 24px 60px -18px rgba(10, 40, 28, .35);
 }
 
+.lp2-demo {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--ink);
+}
+
+.lp2-demo:hover {
+  background: var(--surface-2);
+}
+
 .lp2-demo i {
   line-height: 0;
+}
+
+/* Cartão flutuante com mini-gráfico de crescimento animado, no hero */
+.lp2-hero-growth {
+  position: absolute;
+  top: 8%;
+  right: 2%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg) 65%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+}
+
+.lp2-hero-growth-line {
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+  opacity: 0;
+  animation: lp2GrowthLine 4.5s ease-in-out infinite;
+}
+
+.lp2-hero-growth-dot {
+  opacity: 0;
+  transform-origin: 117px 4px;
+  animation: lp2GrowthDot 4.5s ease-in-out infinite;
+}
+
+.lp2-hero-growth-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+@keyframes lp2GrowthLine {
+  0% {
+    stroke-dashoffset: 150;
+    opacity: 0;
+  }
+
+  12% {
+    opacity: .85;
+  }
+
+  45% {
+    stroke-dashoffset: 0;
+    opacity: .85;
+  }
+
+  78% {
+    stroke-dashoffset: 0;
+    opacity: .85;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes lp2GrowthDot {
+  0%, 38% {
+    opacity: 0;
+    transform: scale(.5);
+  }
+
+  50% {
+    opacity: .9;
+    transform: scale(1);
+  }
+
+  78% {
+    opacity: .9;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .lp2-hero-growth-line,
+  .lp2-hero-growth-dot {
+    animation: none;
+    opacity: .85;
+    stroke-dashoffset: 0;
+    transform: scale(1);
+  }
 }
 
 /* PROVA SOCIAL */
@@ -3672,7 +3792,7 @@ input.range::-moz-range-thumb {
   margin: 18px 0 16px;
 }
 
-.ob1-secure-ico {
+.ob1-secure .ob1-secure-ico {
   width: 34px;
   height: 34px;
   flex: none;
@@ -3757,10 +3877,14 @@ input.range::-moz-range-thumb {
   background: var(--surface-2);
   border-left: 1px solid var(--border);
   padding: 40px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow-y: auto;
 }
 
 .ob1-aside-in {
+  width: 100%;
   max-width: 560px;
   margin: 0 auto;
 }
@@ -3998,6 +4122,42 @@ input.range::-moz-range-thumb {
   gap: 14px 18px;
 }
 
+.ob-locked-input {
+  position: relative;
+}
+
+.ob-locked-input .input {
+  padding-right: 38px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: not-allowed;
+}
+
+.ob-locked-input svg {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ob-date-input {
+  position: relative;
+}
+
+.ob-date-input svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ob-date-input .input {
+  padding-left: 38px;
+}
+
 .ob-note {
   display: flex;
   align-items: center;
@@ -4043,12 +4203,12 @@ input.range::-moz-range-thumb {
   background: var(--accent-soft);
 }
 
-.ob-pref-ico {
+.ob-pref .ob-pref-ico {
   display: inline-grid;
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent);
   font-size: 21px;
@@ -4145,11 +4305,11 @@ input.range::-moz-range-thumb {
   border-top: none;
 }
 
-.ob-pref-row-ico {
+.ob-pref-row .ob-pref-row-ico {
   width: 34px;
   height: 34px;
   flex: none;
-  border-radius: 9px;
+  border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent);
   display: grid;
@@ -4220,7 +4380,7 @@ input.range::-moz-range-thumb {
   width: 30px;
   height: 30px;
   flex: none;
-  border-radius: 8px;
+  border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent);
   display: grid;
@@ -4255,16 +4415,21 @@ input.range::-moz-range-thumb {
   border-color: rgba(224, 160, 40, .3);
 }
 
-.ob-tip-ico {
+.ob-tip .ob-tip-ico {
   width: 32px;
   height: 32px;
   flex: none;
-  border-radius: 9px;
+  border-radius: 50%;
   background: #ffe6b3;
   color: #b8860b;
   display: grid;
   place-items: center;
   font-size: 18px;
+}
+
+[data-theme="dark"] .ob-tip .ob-tip-ico {
+  background: rgba(224, 160, 40, .22);
+  color: #f0c674;
 }
 
 .ob-tip b {
@@ -4328,6 +4493,11 @@ input.range::-moz-range-thumb {
   margin: 0 0 14px;
 }
 
+.ob-sel-count {
+  font-weight: 700;
+  color: var(--accent);
+}
+
 .ob-opt-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
@@ -4355,6 +4525,17 @@ input.range::-moz-range-thumb {
 .ob-opt.sel {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.ob-opt.disabled,
+.ob-check.disabled,
+.ob-goal.disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.ob-opt.disabled:hover {
+  border-color: var(--border-strong);
 }
 
 .ob-opt-ico {
@@ -4631,111 +4812,3 @@ input.range::-moz-range-thumb {
   }
 }
 
-/* ============================================================
-   HERO com imagem de fundo fixa (full-bleed) — landing
-   ============================================================ */
-.lp2-hero-bg {
-  position: relative;
-  isolation: isolate;
-  grid-template-columns: 1fr;
-  min-height: calc(100vh - 70px);
-  padding-top: 96px;
-  padding-bottom: 70px;
-  color: #fff;
-}
-
-.lp2-hero-bg .lp2-hero-txt {
-  max-width: 640px;
-}
-
-/* camada de fundo: imagem fixa + overlay escuro, a ocupar todo o topo (inclui atrás do cabeçalho) */
-.lp2-hero-bg::before {
-  content: "";
-  position: absolute;
-  top: -70px;
-  /* sobe atrás do cabeçalho (lp tem padding-top:70px) */
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  margin-left: -50vw;
-  /* full-bleed independente do container */
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(6, 22, 16, .82) 0%, rgba(6, 22, 16, .58) 42%, rgba(6, 22, 16, .74) 100%),
-    url("../img/hero-bg.jpg") center 30% / cover no-repeat fixed;
-}
-
-/* texto sobre fundo escuro */
-.lp2-hero-bg .lp2-h1 {
-  color: #fff;
-}
-
-.lp2-hero-bg .lp-sub {
-  color: rgba(255, 255, 255, .82);
-}
-
-.lp-eyebrow-on-dark {
-  color: #fff;
-  background: rgba(255, 255, 255, .12);
-  border: 1px solid rgba(255, 255, 255, .18);
-}
-
-.lp-trust-on-dark .lp-trust-item {
-  color: rgba(255, 255, 255, .9);
-}
-
-/* botão secundário "Ver como funciona" claro sobre o fundo */
-.lp2-hero-bg .lp2-demo {
-  background: rgba(255, 255, 255, .1);
-  border: 1px solid rgba(255, 255, 255, .28);
-  color: #fff;
-}
-
-.lp2-hero-bg .lp2-demo:hover {
-  background: rgba(255, 255, 255, .18);
-}
-
-/* ---- cabeçalho transparente enquanto está por cima do hero ---- */
-.lp .lp-header:not(.scrolled) {
-  background: transparent;
-  backdrop-filter: none;
-  box-shadow: none;
-}
-
-.lp .lp-header:not(.scrolled) .brand-name {
-  color: #fff;
-}
-
-.lp .lp-header:not(.scrolled) .lp-nav a {
-  color: rgba(255, 255, 255, .88);
-}
-
-.lp .lp-header:not(.scrolled) .lp-nav a:hover {
-  color: #fff;
-}
-
-.lp .lp-header:not(.scrolled) .lp-nav a::after {
-  background: #fff;
-}
-
-.lp .lp-header:not(.scrolled) .lp-header-login {
-  color: #fff;
-  border-color: rgba(255, 255, 255, .5);
-  background: transparent;
-}
-
-.lp .lp-header:not(.scrolled) .lp-header-login:hover {
-  background: rgba(255, 255, 255, .12);
-}
-
-/* telemóvel: background-attachment:fixed é problemático — passa a scroll */
-@media (max-width: 860px) {
-  .lp2-hero-bg::before {
-    background-attachment: scroll;
-    background-position: center 30%;
-  }
-
-  .lp2-hero-bg {
-    padding-top: 40px;
-  }
-}

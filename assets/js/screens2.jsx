@@ -220,17 +220,24 @@ function PerfilPreferencias() {
   const DESPESAS = ["Renda", "Alimentação", "Streaming", "Água", "Universidade", "Lazer", "Luz", "Ginásio", "Empréstimos", "Internet", "Saúde", "Animais", "Transportes", "Seguro", "Outro"];
   const rotulo = (lista, val) => (lista.find((o) => o[0] === val) || [null, "—"])[1];
 
+  const SEL_MAX = 3;
+  const asArr = (v, fallback) => Array.isArray(v) ? v : (v ? [v] : fallback);
   const [f, setF] = React.useState({});
   const abrir = () => {
     setF({
-      situacao: a.situacao || "estudante", objetivo: a.objetivo || "fundo", preferencia: a.preferencia || "controlar",
+      situacao: asArr(a.situacao, ["estudante"]), objetivo: asArr(a.objetivo, ["fundo"]), preferencia: a.preferencia || "controlar",
       planeamento: a.planeamento || "ainda-nao", partilha: a.partilha || "nao", telefone: a.telefone || "", sobre: a.sobre || "",
       fontesRendimento: Array.isArray(a.fontesRendimento) ? a.fontesRendimento : [], principaisDespesas: Array.isArray(a.principaisDespesas) ? a.principaisDespesas : [],
       notificacoes: a.notificacoes !== false, resumoSemanal: a.resumoSemanal !== false,
     });
     setMsg(""); setEditar(true);
   };
-  const toggleArr = (k, v) => setF((s) => { const arr = s[k] || []; return { ...s, [k]: arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v] }; });
+  const toggleArr = (k, v, max) => setF((s) => {
+    const arr = s[k] || [];
+    if (arr.includes(v)) return { ...s, [k]: arr.filter((x) => x !== v) };
+    if (max && arr.length >= max) return s;
+    return { ...s, [k]: [...arr, v] };
+  });
   const guardar = async () => {
     setBusy(true); setMsg("");
     try { await fin.updateAccount({ ...f }); setMsg("Guardado."); setEditar(false); }
@@ -253,11 +260,27 @@ function PerfilPreferencias() {
   const Seletor = ({ label, lista, k }) => (
     <Field label={label}><select className="select" value={f[k]} onChange={(e) => setF((s) => ({ ...s, [k]: e.target.value }))}>{lista.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
   );
-  const Multi = ({ label, opcoes, k }) => (
+  const Multi = ({ label, opcoes, k, max }) => (
     <div style={{ marginBottom: 12 }}>
-      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>{label}</div>
+      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>{label}{max ? ` (${(f[k] || []).length}/${max})` : ""}</div>
       <div className="row" style={{ gap: 7, flexWrap: "wrap" }}>
-        {opcoes.map((o) => { const on = (f[k] || []).includes(o); return <button type="button" key={o} className={"chip" + (on ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => toggleArr(k, o)}>{o}</button>; })}
+        {opcoes.map((o) => {
+          const on = (f[k] || []).includes(o);
+          const disabled = !on && !!max && (f[k] || []).length >= max;
+          return <button type="button" key={o} className={"chip" + (on ? " sel" : "")} disabled={disabled} style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? .45 : 1 }} onClick={() => toggleArr(k, o, max)}>{o}</button>;
+        })}
+      </div>
+    </div>
+  );
+  const MultiLabeled = ({ label, lista, k, max }) => (
+    <div style={{ marginBottom: 12 }}>
+      <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>{label}{max ? ` (${(f[k] || []).length}/${max})` : ""}</div>
+      <div className="row" style={{ gap: 7, flexWrap: "wrap" }}>
+        {lista.map(([v, l]) => {
+          const on = (f[k] || []).includes(v);
+          const disabled = !on && !!max && (f[k] || []).length >= max;
+          return <button type="button" key={v} className={"chip" + (on ? " sel" : "")} disabled={disabled} style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? .45 : 1 }} onClick={() => toggleArr(k, v, max)}>{l}</button>;
+        })}
       </div>
     </div>
   );
@@ -276,8 +299,8 @@ function PerfilPreferencias() {
 
       {!editar ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Linha label="Situação atual" valor={rotulo(SITUACOES, a.situacao)} />
-          <Linha label="Objetivo principal" valor={rotulo(OBJETIVOS, a.objetivo)} />
+          <Chips label="Situação atual" valor={asArr(a.situacao, []).map((v) => rotulo(SITUACOES, v))} />
+          <Chips label="Objetivo principal" valor={asArr(a.objetivo, []).map((v) => rotulo(OBJETIVOS, v))} />
           <Linha label="Preferência" valor={rotulo(PREFERENCIAS, a.preferencia)} />
           <Chips label="Fontes de rendimento" valor={a.fontesRendimento} />
           <Chips label="Principais despesas" valor={a.principaisDespesas} />
@@ -295,16 +318,16 @@ function PerfilPreferencias() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <MultiLabeled label="Situação atual" lista={SITUACOES} k="situacao" max={SEL_MAX} />
+          <MultiLabeled label="Objetivo principal" lista={OBJETIVOS} k="objetivo" max={SEL_MAX} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Seletor label="Situação atual" lista={SITUACOES} k="situacao" />
-            <Seletor label="Objetivo principal" lista={OBJETIVOS} k="objetivo" />
             <Seletor label="Preferência" lista={PREFERENCIAS} k="preferencia" />
             <Seletor label="Planeamento" lista={PLANEAMENTO} k="planeamento" />
             <Seletor label="Partilha de despesas" lista={PARTILHA} k="partilha" />
             <Field label="Telefone"><input className="input" value={f.telefone} onChange={(e) => setF((s) => ({ ...s, telefone: e.target.value }))} placeholder="+351 912 345 678" inputMode="tel" /></Field>
           </div>
-          <Multi label="Fontes de rendimento" opcoes={RENDIMENTOS} k="fontesRendimento" />
-          <Multi label="Principais despesas" opcoes={DESPESAS} k="principaisDespesas" />
+          <Multi label="Fontes de rendimento" opcoes={RENDIMENTOS} k="fontesRendimento" max={SEL_MAX} />
+          <Multi label="Principais despesas" opcoes={DESPESAS} k="principaisDespesas" max={SEL_MAX} />
           <Field label="Sobre os teus objetivos"><textarea className="input" rows={3} maxLength={250} value={f.sobre} onChange={(e) => setF((s) => ({ ...s, sobre: e.target.value }))} placeholder="Ex.: Quero juntar dinheiro para viajar…" style={{ resize: "vertical", minHeight: 80 }} /></Field>
           <div className="row" style={{ gap: 16, flexWrap: "wrap", margin: "4px 0 10px" }}>
             <button type="button" className={"chip" + (f.notificacoes ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, notificacoes: !s.notificacoes }))}>Notificações: {f.notificacoes ? "On" : "Off"}</button>

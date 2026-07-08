@@ -128,9 +128,6 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
       <header className={"lp-header" + (scrolled ? " scrolled" : "")}>
         <div className="lp-header-brand">
           <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
-          <button type="button" className="lp-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}>
-            <Icon name={menuOpen ? "close" : "menu"} size={19} />
-          </button>
         </div>
         <nav className="lp-nav">
           {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
@@ -144,6 +141,9 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
           </button>
           <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Entrar</button>
           <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta</button>
+          <button type="button" className="lp-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}>
+            <Icon name={menuOpen ? "close" : "menu"} size={19} />
+          </button>
         </div>
       </header>
 
@@ -174,19 +174,32 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
       <div className="lp-main">
         {/* ============ HERO ============ */}
-        <section className="lp2-hero lp2-hero-bg">
+        <section className="lp2-hero">
           <div className="lp2-hero-txt">
-            <span className="lp-eyebrow lp-eyebrow-on-dark"><Icon name="spark" size={14} /> Controlo financeiro inteligente</span>
+            <span className="lp-eyebrow"><Icon name="spark" size={14} /> Controlo financeiro inteligente</span>
             <h1 className="lp2-h1">O seu futuro financeiro <span className="accent">começa aqui.</span></h1>
             <p className="lp-sub">O Rende+ ajuda-o a gerir o seu dinheiro de forma simples, inteligente e segura.</p>
             <div className="lp-cta">
               <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Criar conta gratuita <Icon name="chevR" size={16} color="#fff" /></button>
               <button className="btn lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver como funciona</button>
             </div>
-            <div className="lp-trust lp-trust-on-dark">
+            <div className="lp-trust">
               <span className="lp-trust-item"><Icon name="shield" size={16} color="var(--accent)" /> 100% Seguro</span>
               <span className="lp-trust-item"><Icon name="sync" size={16} color="var(--accent)" /> Sincronização em tempo real</span>
               <span className="lp-trust-item"><Icon name="heart" size={16} color="var(--accent)" /> Suporte dedicado</span>
+            </div>
+          </div>
+          <div className="lp2-hero-img">
+            <picture>
+              <source srcSet="assets/img/hero.webp" type="image/webp" />
+              <img className="lp2-hero-single" src="assets/img/hero.png" alt="Rende+ no computador e no telemóvel" width="1536" height="1024" loading="eager" />
+            </picture>
+            <div className="lp2-hero-growth" aria-hidden="true">
+              <svg className="lp2-hero-growth-svg" viewBox="0 0 120 46" width="120" height="46">
+                <path className="lp2-hero-growth-line" d="M3 40 L26 28 L45 34 L67 16 L88 22 L117 4" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle className="lp2-hero-growth-dot" cx="117" cy="4" r="4" fill="var(--accent)" />
+              </svg>
+              <span className="lp2-hero-growth-tag"><Icon name="arrowUp" size={12} color="var(--accent)" /> Em crescimento</span>
             </div>
           </div>
         </section>

@@ -135,9 +135,14 @@ function FinanceProvider({ children }) {
     const r = await API.verificarEmail({ email: (email || "").trim(), codigo: (codigo || "").trim() });
     return r.setupToken;
   };
+  const camposPerfil = ["pais", "telefone", "preferencia", "sobre", "situacao", "objetivo", "planeamento", "partilha", "fontesRendimento", "principaisDespesas", "notificacoes", "resumoSemanal"];
   const definirPassword = async (setupToken, password, info) => {
     const moedas = Array.isArray(info == null ? void 0 : info.moedas) && info.moedas.length ? Array.from(/* @__PURE__ */ new Set([info.moeda, ...info.moedas])) : [info == null ? void 0 : info.moeda].filter(Boolean);
-    const resp = await API.definirPassword({ setupToken, password, dataNascimento: (info == null ? void 0 : info.nascimento) || null });
+    const perfil = {};
+    camposPerfil.forEach((k) => {
+      if (info && info[k] !== void 0) perfil[k] = info[k];
+    });
+    const resp = await API.definirPassword({ setupToken, password, dataNascimento: (info == null ? void 0 : info.nascimento) || null, ...perfil });
     API.setToken(resp.token);
     const extra = info ? { idade: info.idade, nascimento: info.nascimento, cidade: info.cidade, pais: info.pais, perfil: info.perfil, estado: info.estado, habitacao: info.habitacao, moedas } : {};
     setAccount((a) => ({ ...a || {}, ...resp.user || {}, ...extra }));
@@ -164,7 +169,7 @@ function FinanceProvider({ children }) {
     setSession(null);
     setData({ ...EMPTY_DATA });
   };
-  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento"];
+  const camposServidor = ["nome", "moeda", "poupancaPct", "orcamento", "dataNascimento", ...camposPerfil];
   const updateAccount = (patch) => {
     setAccount((a) => ({ ...a || {}, ...patch }));
     const servidor = {};
