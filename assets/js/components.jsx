@@ -54,6 +54,7 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
     { id: "partilha", label: "Partilha", icon: "users" },
     { id: "previsao", label: "Previsão", icon: "chart" },
   ];
+  const ehPremium = !!(account && account.plano === "premium");
   const Item = (n) => (
     <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)} title={n.label}>
       <Icon name={n.icon} size={19} />
@@ -71,9 +72,17 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
       {nav.map(Item)}
       <div className="nav-label">{tr("lbl_analysis")}</div>
       {nav2.map(Item)}
-      <div className="nav-label">Premium</div>
-      {navPrem.map(Item)}
-      <button className={"nav-item" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Rende+ Premium"><Icon name="spark" size={19} /><span>Rende+ Premium</span></button>
+      {ehPremium ? (
+        <>
+          <div className="nav-label">Premium</div>
+          {navPrem.map(Item)}
+          <button className={"nav-item" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Rende+ Premium"><Icon name="spark" size={19} /><span>Rende+ Premium</span></button>
+        </>
+      ) : (
+        <button className={"nav-item nav-premium-cta" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Desbloqueia o Rende+ Premium">
+          <Icon name="spark" size={19} /><span>Rende+ Premium</span>
+        </button>
+      )}
       <div className="sidebar-foot">
         <button className="nav-item sb-toggle" onClick={onToggle} title={collapsed ? tr("sb_expand") : tr("sb_collapse")}>
           <span style={{ display: "grid", transform: collapsed ? "none" : "rotate(180deg)" }}><Icon name="chevR" size={18} /></span>
@@ -165,13 +174,21 @@ function MobileNav({ route, go, onMore }) {
   );
 }
 
-function MoreSheet({ route, go, onClose, theme, setTheme, onLogout }) {
+function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
+  const ehPremium = !!(account && account.plano === "premium");
   const items = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
     { id: "historico", label: tr("lbl_history"), icon: "history" },
     { id: "perfil", label: tr("lbl_profile"), icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
+  ];
+  const premItems = [
+    { id: "lembretes", label: "Lembretes", icon: "bell" },
+    { id: "recorrentes", label: "Recorrentes", icon: "history" },
+    { id: "subscricoes", label: "Subscrições", icon: "card" },
+    { id: "partilha", label: "Partilha", icon: "users" },
+    { id: "previsao", label: "Previsão", icon: "chart" },
   ];
   return (
     <div className="sheet-bg" onClick={onClose}>
@@ -182,6 +199,18 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout }) {
             <span className="si-ico"><Icon name={it.icon} size={18} /></span>{it.label}
           </button>
         ))}
+        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
+        {ehPremium ? (
+          premItems.map((it) => (
+            <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); onClose(); }}>
+              <span className="si-ico"><Icon name={it.icon} size={18} color="var(--accent)" /></span>{it.label}
+            </button>
+          ))
+        ) : (
+          <button className={"sheet-item" + (route === "premium" ? " on" : "")} onClick={() => { go("premium"); onClose(); }}>
+            <span className="si-ico"><Icon name="spark" size={18} color="var(--accent)" /></span>Rende+ Premium
+          </button>
+        )}
         <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
         <button className="sheet-item" onClick={() => { setTheme(theme === "dark" ? "light" : "dark"); }}>
           <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}

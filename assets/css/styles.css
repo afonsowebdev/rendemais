@@ -8025,3 +8025,15 @@ input.range::-moz-range-thumb {
   padding: 1px 7px;
   letter-spacing: .02em;
 }
+
+/* Botão de convite ao Premium (visível só para contas free) */
+.nav-item.nav-premium-cta {
+  margin-top: 10px;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 62%, #0b7a4f));
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.nav-item.nav-premium-cta span { color: #fff; }
+.nav-item.nav-premium-cta svg { color: #fff; stroke: #fff; }
+.nav-item.nav-premium-cta:hover { filter: brightness(1.06); background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 62%, #0b7a4f)); }
