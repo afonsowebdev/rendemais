@@ -75,23 +75,38 @@ const PREM_FEATS = [
 
 function Paywall() {
   const prem = usePremium();
+  const fin = useFinance();
   const s = prem.get();
-  const [plano, setPlano] = React.useState(s.plano || "month");
+  const [plano, setPlano] = React.useState(s.plano === "year" ? "year" : "month");
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState("");
 
-  if (s.premium) {
+  const ehPremium = fin.account && fin.account.plano === "premium";
+
+  const irParaPagamento = async () => {
+    setBusy(true); setErr("");
+    try {
+      // "month"/"year" (visual) -> "mensal"/"anual" (o que o backend espera)
+      const resp = await API.criarCheckout(plano === "year" ? "anual" : "mensal");
+      if (resp && resp.url) window.location.href = resp.url; // vai para a página do Stripe
+      else { setErr("Não foi possível iniciar o pagamento."); setBusy(false); }
+    } catch (e) { setErr(e.message || "Não foi possível iniciar o pagamento."); setBusy(false); }
+  };
+
+  if (ehPremium) {
     return (
       <div className="content">
         <div className="card card-pad prem-hero">
           <div className="prem-crown"><Icon name="spark" size={26} color="#fff" /></div>
           <div style={{ fontWeight: 700, fontSize: 19 }}>Premium ativo</div>
-          <div className="muted" style={{ marginTop: 6, fontSize: 14 }}>Plano {s.plano === "year" ? "anual" : "mensal"} · obrigado por apoiares o Rende+.</div>
-          <button className="btn btn-soft" style={{ marginTop: 16 }} onClick={() => prem.deactivate()}>Cancelar subscrição (demo)</button>
+          <div className="muted" style={{ marginTop: 6, fontSize: 14 }}>Obrigado por apoiares o Rende+. Tens acesso a todas as funcionalidades.</div>
+          {fin.account.planoExpira && <div className="tiny muted" style={{ marginTop: 8, fontWeight: 600 }}>Renova em {BM.fmtData(String(fin.account.planoExpira).slice(0, 10))}.</div>}
         </div>
       </div>
     );
   }
 
-  const precos = { month: { v: "2,99 €", sub: "por mês" }, year: { v: "29,90 €", sub: "≈ 2,49 €/mês" } };
+  const precos = { month: { v: "2,99 €", sub: "por mês" }, year: { v: "29,99 €", sub: "≈ 2,50 €/mês" } };
   return (
     <div className="content">
       <div className="card card-pad paywall">
@@ -114,17 +129,17 @@ function Paywall() {
           </button>
           <button className={"prem-plan" + (plano === "year" ? " on" : "")} onClick={() => setPlano("year")}>
             <span className="pp-tag">POUPA 2 MESES</span>
-            <div className="pp-n">ANUAL</div><div className="pp-v">29,90 €</div><div className="pp-s">≈ 2,49 €/mês</div>
+            <div className="pp-n">ANUAL</div><div className="pp-v">29,99 €</div><div className="pp-s">≈ 2,50 €/mês</div>
           </button>
         </div>
 
-        <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: 15, fontSize: 15.5 }} onClick={() => prem.activate(plano)}>
-          Começar 7 dias grátis
+        {err && <div className="alert bad" style={{ margin: "0 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+        <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
+        <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 15, fontSize: 15.5, border: "none", opacity: busy ? .8 : 1, cursor: busy ? "wait" : "pointer" }} onClick={irParaPagamento}>
+          {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
+          {busy ? "A abrir pagamento…" : "Assinar " + (plano === "year" ? "plano anual" : "plano mensal")}
         </button>
-        <p className="tiny muted" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>Cancela quando quiseres · {precos[plano].sub}</p>
-        <p className="tiny muted" style={{ textAlign: "center", marginTop: 14, opacity: .8 }}>
-          (Demo: ativa já o premium. Em produção, este botão abre o pagamento Stripe.)
-        </p>
+        <p className="tiny muted" style={{ textAlign: "center", marginTop: 10, fontWeight: 600 }}>Pagamento seguro via Stripe · cancela quando quiseres · {precos[plano].sub}</p>
       </div>
     </div>
   );

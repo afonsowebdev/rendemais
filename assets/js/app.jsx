@@ -393,6 +393,31 @@ function Shell() {
   const tr = I18N.make(lang);
   useEffect(() => { document.documentElement.setAttribute("lang", lang); }, [lang]);
 
+  // Regresso do Stripe: se o URL trouxer ?pagamento=sucesso&session_id=..., confirmamos
+  // o pagamento no backend (que pergunta ao Stripe) e ativamos o premium localmente.
+  const [pagamentoMsg, setPagamentoMsg] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const estado = params.get("pagamento");
+    const sessionId = params.get("session_id");
+    const limparUrl = () => window.history.replaceState({}, "", window.location.pathname);
+    if (estado === "sucesso" && sessionId && fin.session) {
+      API.confirmarPagamento(sessionId)
+        .then((r) => {
+          if (r && r.premium) {
+            fin.updateAccount({ plano: "premium", planoExpira: r.planoExpira || null });
+            setPagamentoMsg("🎉 Bem-vindo ao Rende+ Premium! As funcionalidades estão desbloqueadas.");
+            setRoute("premium");
+          }
+        })
+        .catch(() => setPagamentoMsg("Recebemos o teu regresso, mas ainda não confirmámos o pagamento. Se já pagaste, atualiza daqui a instantes."))
+        .finally(limparUrl);
+    } else if (estado === "cancelado") {
+      setPagamentoMsg("Pagamento cancelado. Podes tentar de novo quando quiseres.");
+      limparUrl();
+    }
+  }, [fin.session]);
+
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
@@ -471,6 +496,12 @@ function Shell() {
 
   return (
     <div className={"app" + (sbCollapsed ? " sb-collapsed" : "")}>
+      {pagamentoMsg && (
+        <div onClick={() => setPagamentoMsg("")} style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
+          <Icon name="spark" size={18} color="var(--accent)" />
+          <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 }}>{pagamentoMsg}</span>
+        </div>
+      )}
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
         <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
