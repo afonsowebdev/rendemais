@@ -47,6 +47,13 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
     { id: "historico", label: tr("lbl_history"), icon: "history" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
+  const navPrem = [
+    { id: "lembretes", label: "Lembretes", icon: "bell" },
+    { id: "recorrentes", label: "Recorrentes", icon: "history" },
+    { id: "subscricoes", label: "Subscrições", icon: "card" },
+    { id: "partilha", label: "Partilha", icon: "users" },
+    { id: "previsao", label: "Previsão", icon: "chart" },
+  ];
   const Item = (n) => (
     <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)} title={n.label}>
       <Icon name={n.icon} size={19} />
@@ -64,6 +71,9 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
       {nav.map(Item)}
       <div className="nav-label">{tr("lbl_analysis")}</div>
       {nav2.map(Item)}
+      <div className="nav-label">Premium</div>
+      {navPrem.map(Item)}
+      <button className={"nav-item" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Rende+ Premium"><Icon name="spark" size={19} /><span>Rende+ Premium</span></button>
       <div className="sidebar-foot">
         <button className="nav-item sb-toggle" onClick={onToggle} title={collapsed ? tr("sb_expand") : tr("sb_collapse")}>
           <span style={{ display: "grid", transform: collapsed ? "none" : "rotate(180deg)" }}><Icon name="chevR" size={18} /></span>

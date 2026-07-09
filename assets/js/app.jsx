@@ -452,7 +452,10 @@ function Shell() {
 
   const P = PAGES[route];
   const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
-  const pageTitle = tr(titleByRoute[route] || "lbl_dashboard");
+  const PREM_TITULOS = { lembretes: "Lembretes", recorrentes: "Recorrentes", subscricoes: "Subscrições", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium" };
+  const pageTitle = PREM_TITULOS[route] || tr(titleByRoute[route] || "lbl_dashboard");
+  // portão de plano: quem tem premium ativo usa as funcionalidades; os outros veem o Paywall
+  const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
     dashboard: tfmt(tr("sub_dashboard"), { month: fin.monthLabel }),
     despesas: tfmt(tr("sub_despesas"), { month: fin.monthLabel }),
@@ -484,6 +487,12 @@ function Shell() {
         {route === "historico" && <Historico />}
         {route === "perfil" && <Perfil open={open} />}
         {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} />}
+        {route === "lembretes" && (ehPremium ? <Lembretes /> : <Paywall />)}
+        {route === "recorrentes" && (ehPremium ? <Recorrentes /> : <Paywall />)}
+        {route === "subscricoes" && (ehPremium ? <Subscricoes /> : <Paywall />)}
+        {route === "partilha" && (ehPremium ? <Partilha /> : <Paywall />)}
+        {route === "previsao" && (ehPremium ? <Previsao /> : <Paywall />)}
+        {route === "premium" && <Paywall />}
       </div>
       <MobileNav route={route} go={go} onMore={() => setMoreOpen(true)} />
       {moreOpen && <MoreSheet route={route} go={go} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}

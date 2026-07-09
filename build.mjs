@@ -6,7 +6,7 @@ import { rmSync, mkdirSync, cpSync, existsSync, readFileSync, writeFileSync } fr
 
 const OUT = "dist";
 // ORDEM importa: é a mesma ordem em que o index.html carrega os scripts.
-const JSX = ["tweaks-panel", "icons", "charts", "finance", "components", "screens1", "screens2", "contas", "landing", "onboarding", "app"];
+const JSX = ["tweaks-panel", "icons", "charts", "finance", "components", "screens1", "screens2", "contas", "landing", "onboarding", "lock", "premium", "app"];
 const BUILD = Date.now().toString(36); // id de versão para a cache (?v=)
 
 // limpa e recria dist/
