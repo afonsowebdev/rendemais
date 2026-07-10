@@ -475,7 +475,7 @@ function Shell() {
     return (<><Landing onCreate={() => setAuthView("signup")} onLogin={() => setAuthView("login")} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tr={tr} />{panel}</>);
   }
 
-  const P = PAGES[route];
+  const P = PAGES[route] || {};
   const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
   const PREM_TITULOS = { lembretes: "Lembretes", recorrentes: "Recorrentes", subscricoes: "Subscrições", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium" };
   const pageTitle = PREM_TITULOS[route] || tr(titleByRoute[route] || "lbl_dashboard");
