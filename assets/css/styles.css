@@ -161,7 +161,7 @@ button {
    ============================================================ */
 /* ----- Sidebar ----- */
 .sidebar {
-  background: var(--bg);
+  background: var(--navy);
   color: var(--navy-ink);
   display: flex;
   flex-direction: column;
