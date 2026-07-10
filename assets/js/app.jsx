@@ -525,8 +525,8 @@ function Shell() {
         {route === "previsao" && (ehPremium ? <Previsao /> : <Paywall />)}
         {route === "premium" && <Paywall />}
       </div>
-      <MobileNav route={route} go={go} onMore={() => setMoreOpen(true)} />
-      {moreOpen && <MoreSheet route={route} go={go} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}
+      <MobileNav route={route} go={go} onAdd={() => open(P.add || "despesa")} onMore={() => setMoreOpen(true)} />
+      {moreOpen && <MoreSheet route={route} go={go} account={fin.account} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}
       {modal && <EntryModal type={modal.type} item={modal.item} onClose={() => setModal(null)} />}
       {panel}
     </div>

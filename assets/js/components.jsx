@@ -149,26 +149,23 @@ function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthN
   );
 }
 
-function MobileNav({ route, go, onMore }) {
+function MobileNav({ route, go, onAdd, onMore }) {
   const tr = useT();
-  const tabs = [
-    { id: "dashboard", label: tr("lbl_home"), icon: "grid" },
-    { id: "despesas", label: tr("lbl_expenses"), icon: "wallet" },
-    { id: "rendimentos", label: tr("lbl_income_m"), icon: "arrowsDown" },
-    { id: "poupanca", label: tr("lbl_savings"), icon: "target" },
-  ];
-  const moreRoutes = ["relatorios", "historico", "perfil", "config"];
+  const Tab = (t) => (
+    <button key={t.id} className={"mtab" + (route === t.id ? " on" : "")} onClick={() => go(t.id)}>
+      <Icon name={t.icon} size={23} sw={route === t.id ? 2.1 : 1.8} />
+      <span>{t.label}</span>
+    </button>
+  );
+  const moreRoutes = ["poupanca", "contas", "relatorios", "historico", "perfil", "config", "lembretes", "recorrentes", "subscricoes", "partilha", "previsao", "premium"];
   return (
     <nav className="mobilenav">
-      {tabs.map((t) => (
-        <button key={t.id} className={"mtab" + (route === t.id ? " on" : "")} onClick={() => go(t.id)}>
-          <Icon name={t.icon} size={21} sw={route === t.id ? 2.1 : 1.8} />
-          <span>{t.label}</span>
-        </button>
-      ))}
+      {Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" })}
+      {Tab({ id: "despesas", label: tr("lbl_expenses"), icon: "wallet" })}
+      <button className="mtab-fab" onClick={onAdd} aria-label="Adicionar"><Icon name="plus" size={27} color="#fff" sw={2.4} /></button>
+      {Tab({ id: "rendimentos", label: tr("lbl_income_m"), icon: "arrowsDown" })}
       <button className={"mtab" + (moreRoutes.includes(route) ? " on" : "")} onClick={onMore}>
-        <Icon name="dots" size={21} sw={2.4} />
-        <span>{tr("lbl_more")}</span>
+        <Icon name="dots" size={23} sw={2.4} /><span>{tr("lbl_more")}</span>
       </button>
     </nav>
   );
