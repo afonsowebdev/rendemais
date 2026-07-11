@@ -37,6 +37,7 @@ const estaticos = [
   "manifest.webmanifest", "sw.js", "favicon.svg", "favicon.ico",
   "favicon-16.png", "favicon-32.png", "favicon-48.png", "favicon-96.png", "favicon-512.png",
   "apple-touch-icon.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "og-image.png",
+  "termos.html", "privacidade.html",
 ];
 for (const f of estaticos) if (existsSync(f)) cpSync(f, `${OUT}/${f}`);
 

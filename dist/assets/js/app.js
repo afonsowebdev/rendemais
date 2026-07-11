@@ -240,6 +240,25 @@ function Shell() {
   useEffect(() => {
     document.documentElement.setAttribute("lang", lang);
   }, [lang]);
+  const [pagamentoMsg, setPagamentoMsg] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const estado = params.get("pagamento");
+    const sessionId = params.get("session_id");
+    const limparUrl = () => window.history.replaceState({}, "", window.location.pathname);
+    if (estado === "sucesso" && sessionId && fin.session) {
+      API.confirmarPagamento(sessionId).then((r) => {
+        if (r && r.premium) {
+          fin.updateAccount({ plano: "premium", planoExpira: r.planoExpira || null });
+          setPagamentoMsg("\u{1F389} Bem-vindo ao Rende+ Premium! As funcionalidades est\xE3o desbloqueadas.");
+          setRoute("premium");
+        }
+      }).catch(() => setPagamentoMsg("Recebemos o teu regresso, mas ainda n\xE3o confirm\xE1mos o pagamento. Se j\xE1 pagaste, atualiza daqui a instantes.")).finally(limparUrl);
+    } else if (estado === "cancelado") {
+      setPagamentoMsg("Pagamento cancelado. Podes tentar de novo quando quiseres.");
+      limparUrl();
+    }
+  }, [fin.session]);
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
@@ -285,9 +304,11 @@ function Shell() {
     if (authView) return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Auth, { initialMode: authView, onBack: () => setAuthView(null), onSignup: () => setAuthView("signup") }), panel);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Landing, { onCreate: () => setAuthView("signup"), onLogin: () => setAuthView("login"), theme, setTheme, lang, setLang, tr }), panel);
   }
-  const P = PAGES[route];
+  const P = PAGES[route] || {};
   const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
-  const pageTitle = tr(titleByRoute[route] || "lbl_dashboard");
+  const PREM_TITULOS = { lembretes: "Lembretes", recorrentes: "Recorrentes", subscricoes: "Subscri\xE7\xF5es", partilha: "Partilha", previsao: "Previs\xE3o", premium: "Rende+ Premium" };
+  const pageTitle = PREM_TITULOS[route] || tr(titleByRoute[route] || "lbl_dashboard");
+  const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
     dashboard: tfmt(tr("sub_dashboard"), { month: fin.monthLabel }),
     despesas: tfmt(tr("sub_despesas"), { month: fin.monthLabel }),
@@ -300,7 +321,7 @@ function Shell() {
     config: tr("sub_config")
   };
   const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
-  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(
     Topbar,
     {
       title: pageTitle,
@@ -324,7 +345,7 @@ function Shell() {
         }
       ) : null
     }
-  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "despesas" && /* @__PURE__ */ React.createElement(Despesas, { open }), route === "rendimentos" && /* @__PURE__ */ React.createElement(Rendimentos, { open }), route === "poupanca" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "historico" && /* @__PURE__ */ React.createElement(Historico, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open })), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), panel);
+  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "despesas" && /* @__PURE__ */ React.createElement(Despesas, { open }), route === "rendimentos" && /* @__PURE__ */ React.createElement(Rendimentos, { open }), route === "poupanca" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "historico" && /* @__PURE__ */ React.createElement(Historico, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open }), route === "lembretes" && (ehPremium ? /* @__PURE__ */ React.createElement(Lembretes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "recorrentes" && (ehPremium ? /* @__PURE__ */ React.createElement(Recorrentes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "subscricoes" && (ehPremium ? /* @__PURE__ */ React.createElement(Subscricoes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "partilha" && (ehPremium ? /* @__PURE__ */ React.createElement(Partilha, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "previsao" && (ehPremium ? /* @__PURE__ */ React.createElement(Previsao, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "premium" && /* @__PURE__ */ React.createElement(Paywall, null)), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onAdd: () => open(P.add || "despesa"), onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, account: fin.account, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), panel);
 }
 function App() {
   return /* @__PURE__ */ React.createElement(FinanceProvider, null, /* @__PURE__ */ React.createElement(Shell, null));

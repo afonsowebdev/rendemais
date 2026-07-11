@@ -61,6 +61,9 @@ const API = (function () {
     criar: (recurso, corpo) => req("POST", "/api/" + recurso, corpo),
     editar: (recurso, id, corpo) => req("PATCH", "/api/" + recurso + "/" + id, corpo),
     apagar: (recurso, id) => req("DELETE", "/api/" + recurso + "/" + id),
+    // pagamentos (Stripe)
+    criarCheckout: (plano) => req("POST", "/api/pagamentos/checkout", { plano }),
+    confirmarPagamento: (sessionId) => req("GET", "/api/pagamentos/confirmar?session_id=" + encodeURIComponent(sessionId)),
   };
 })();
 window.API = API;
