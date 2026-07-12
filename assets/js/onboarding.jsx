@@ -65,6 +65,58 @@ function ObSummaryRow({ icon, label, value }) {
   );
 }
 
+const MESES_NOME = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+/* Seletor de data de nascimento (Dia / Mês / Ano) — guarda sempre ISO (YYYY-MM-DD).
+   Os próprios seletores impedem datas futuras (em vez de validar depois): o ano nunca
+   passa do atual, o mês fica limitado ao mês atual quando o ano escolhido é o atual, e o
+   dia segue o mesmo raciocínio — o que também resolve bissextos automaticamente, porque
+   o número de dias vem sempre de new Date(ano, mes, 0). */
+function DateOfBirthPicker({ value, onChange }) {
+  const parse = (iso) => { const p = String(iso || "").split("-").map((v) => parseInt(v, 10)); return { d: p[2] || "", m: p[1] || "", y: p[0] || "" }; };
+  const [sel, setSel] = React.useState(() => parse(value));
+  const hoje = new Date();
+  const anoMax = hoje.getFullYear();
+  const anos = Array.from({ length: 101 }, (_, i) => anoMax - i);
+  const diasNoMes = (y, m) => (y && m) ? new Date(y, m, 0).getDate() : 31;
+
+  const isAnoAtual = sel.y && +sel.y === anoMax;
+  const mesMax = isAnoAtual ? hoje.getMonth() + 1 : 12;
+  const meses = MESES_NOME.slice(0, mesMax);
+  const isMesAtual = isAnoAtual && sel.m && +sel.m === mesMax;
+  const diaMax = isMesAtual ? hoje.getDate() : diasNoMes(sel.y || anoMax, sel.m || 1);
+  const dias = Array.from({ length: diaMax }, (_, i) => i + 1);
+
+  const update = (patch) => {
+    const next = { ...sel, ...patch };
+    const nAnoAtual = next.y && +next.y === anoMax;
+    const nMesMax = nAnoAtual ? hoje.getMonth() + 1 : 12;
+    if (next.m && next.m > nMesMax) next.m = nMesMax;
+    const nMesAtual = nAnoAtual && next.m && +next.m === nMesMax;
+    const nDiaMax = nMesAtual ? hoje.getDate() : diasNoMes(next.y || anoMax, next.m || 1);
+    if (next.d && next.d > nDiaMax) next.d = nDiaMax;
+    setSel(next);
+    onChange(next.d && next.m && next.y ? `${next.y}-${String(next.m).padStart(2, "0")}-${String(next.d).padStart(2, "0")}` : "");
+  };
+
+  return (
+    <div className="ob-dob-grid">
+      <select className="select" aria-label="Dia de nascimento" value={sel.d} onChange={(e) => update({ d: +e.target.value })}>
+        <option value="" disabled>Dia</option>
+        {dias.map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+      <select className="select" aria-label="Mês de nascimento" value={sel.m} onChange={(e) => update({ m: +e.target.value })}>
+        <option value="" disabled>Mês</option>
+        {meses.map((nome, i) => <option key={nome} value={i + 1}>{nome}</option>)}
+      </select>
+      <select className="select" aria-label="Ano de nascimento" value={sel.y} onChange={(e) => update({ y: +e.target.value })}>
+        <option value="" disabled>Ano</option>
+        {anos.map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+    </div>
+  );
+}
+
 function Onboarding({ onBack, onLogin }) {
   const fin = useFinance();
 
@@ -74,47 +126,71 @@ function Onboarding({ onBack, onLogin }) {
     ["freelancer", "Freelancer", "bx-laptop"],
     ["empresario", "Empresário", "bx-buildings"],
     ["casado", "Casado", "bx-heart"],
-    ["solteiro", "Solteiro", "bx-user"],
+    ["vive-sozinho", "Vive sozinho", "bx-user"],
+    ["casa-partilhada", "Vive numa casa partilhada", "bx-group"],
     ["outro", "Outro", "bx-dots-horizontal-rounded"],
   ];
-  const RENDIMENTOS = ["Salário", "Apoio familiar", "Bolsa", "Investimentos", "Freelancer", "Rendimentos extras", "Negócio próprio", "Outro"];
-  const DESPESAS = ["Renda", "Alimentação", "Streaming", "Água", "Universidade", "Lazer", "Luz", "Ginásio", "Empréstimos", "Internet", "Saúde", "Animais", "Transportes", "Seguro", "Outro"];
+  // As mesmas chaves que assets/js/data.js usa em BM.incomeCats — para que a escolha
+  // no onboarding seja diretamente a opção mostrada no modal "Novo rendimento" (sem tradução).
+  const RENDIMENTOS = Object.keys(BM.incomeCats);
+  const DESPESAS = ["Renda", "Água", "Eletricidade", "Gás", "Internet", "Alimentação", "Transporte", "Educação", "Saúde", "Seguros", "Subscrições", "Lazer", "Telecomunicações", "Outro"];
   const OBJETIVOS = [
-    ["casa", "Comprar casa", "bx-home"],
-    ["viajar", "Viajar", "bx-plane"],
-    ["carro", "Comprar carro", "bx-car"],
-    ["computador", "Novo computador", "bx-laptop"],
-    ["familia", "Família", "bx-group"],
     ["fundo", "Fundo de emergência", "bx-shield-quarter"],
-    ["investir", "Investir", "bx-line-chart"],
-    ["estudos", "Estudos", "bx-book"],
+    ["casa", "Comprar casa", "bx-home"],
+    ["carro", "Comprar carro", "bx-car"],
+    ["viagem", "Viagem", "bx-plane"],
+    ["educacao", "Educação", "bx-book"],
+    ["tecnologia", "Tecnologia", "bx-laptop"],
+    ["familia", "Família", "bx-group"],
+    ["saude", "Saúde", "bx-heart"],
+    ["investimento", "Investimento", "bx-line-chart"],
+    ["outro", "Outro", "bx-dots-horizontal-rounded"],
   ];
+  // "Como pretende utilizar o Rende+?" — até 3 prioridades, usadas para personalizar o painel.
   const PREFERENCIAS = [
-    ["controlar", "Controlar gastos", "Acompanhe os seus gastos e mantenha o controlo do seu dinheiro.", "bx-wallet"],
-    ["poupar", "Poupança e objetivos", "Defina metas e construa o seu futuro com planeamento.", "bx-target-lock"],
-    ["investir", "Investir melhor", "Organize e analise para tomar melhores decisões de investimento.", "bx-line-chart"],
+    ["controlar", "Controlar despesas", "bx-wallet"],
+    ["orcamento", "Organizar o orçamento mensal", "bx-receipt"],
+    ["objetivos", "Criar objetivos financeiros", "bx-target-lock"],
+    ["partilhadas", "Gerir despesas partilhadas", "bx-group"],
+    ["pagamentos", "Acompanhar pagamentos futuros", "bx-calendar"],
+    ["habitos", "Melhorar hábitos financeiros", "bx-line-chart"],
   ];
   // nomes de país (o mesmo texto que o sistema usa no i18n: country_PT = "Portugal", etc.)
   const PAIS_NOME = { PT: "Portugal", ES: "Espanha", FR: "França", DE: "Alemanha", LU: "Luxemburgo", CH: "Suíça", GB: "Reino Unido", US: "Estados Unidos", CA: "Canadá", AO: "Angola" };
   const nomePais = (code) => PAIS_NOME[code] || code;
 
   const defPais = React.useMemo(() => BM.detectCountry(), []);
-  const [step, setStep] = React.useState(1);
+  // Rascunho local: permite continuar o onboarding depois de recarregar a página.
+  // Nunca guarda password/código — só dados de configuração, e só até ao fim do Passo 3.
+  const DRAFT_KEY = "rende_onboarding_draft";
+  const draft = React.useMemo(() => { try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }, []);
+  const limparRascunho = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} };
+
+  const [step, setStep] = React.useState(() => (draft && [1, 2, 3].includes(draft.step)) ? draft.step : 1);
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
   const [showPw, setShowPw] = React.useState(false);
   const [showPw2, setShowPw2] = React.useState(false);
+  const [moedaAberta, setMoedaAberta] = React.useState(false);
+  const [addingCatOb, setAddingCatOb] = React.useState(false);
   const [setupToken, setSetupToken] = React.useState("");
   const SEL_MAX = 3;
-  const [f, setF] = React.useState({
-    nome: "", email: "", password: "", password2: "", termos: false,
-    moeda: BM.currencyForCountry(defPais), pais: defPais, nascimento: "", telefone: "",
-    preferencia: "controlar", sobre: "",
-    situacao: ["estudante"], rendimentos: [], despesas: [], objetivo: ["fundo"],
-    planeamento: "ainda-nao", partilha: "nao", orcamento: "",
-    notificacoes: true, resumoSemanal: true, code: "",
+  const [f, setF] = React.useState(() => {
+    const base = {
+      nome: "", email: "", password: "", password2: "", termos: false,
+      moeda: BM.currencyForCountry(defPais), pais: defPais, nascimento: "",
+      preferencia: [], situacao: ["estudante"], rendimentos: [], despesas: [], objetivo: ["fundo"],
+      planeamento: "mais-tarde", partilha: "nao", orcamento: "",
+      notificacoes: true, resumoSemanal: true, code: "",
+    };
+    return draft && draft.f ? { ...base, ...draft.f, password: "", password2: "", code: "" } : base;
   });
+  // grava o rascunho sempre que muda (só até à conta ficar criada — ver criarPassword)
+  React.useEffect(() => {
+    if (typeof step !== "number" || step > 3) return;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, f: { ...f, password: "", password2: "", code: "" } })); } catch (e) {}
+  }, [step, f]);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
   const onNome = (e) => { let v = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "").replace(/\s{2,}/g, " ").replace(/(^|\s)([a-zà-öø-ÿ])/g, (m, sp, ch) => sp + ch.toUpperCase()); setF((s) => ({ ...s, nome: v })); };
   const setPais = (code) => setF((s) => ({ ...s, pais: code, moeda: BM.currencyForCountry(code) }));
@@ -133,14 +209,14 @@ function Onboarding({ onBack, onLogin }) {
   const labelsOf = (lista, ids) => ids.map((id) => (lista.find((o) => o[0] === id) || [null, id])[1]);
   const objetivoLabel = f.objetivo.length ? labelsOf(OBJETIVOS, f.objetivo).join(", ") : "—";
   const situacaoLabel = f.situacao.length ? labelsOf(SITUACOES, f.situacao).join(", ") : "—";
-  const preferenciaLabel = (PREFERENCIAS.find((o) => o[0] === f.preferencia) || [null, "—"])[1];
-  const partilhaLabel = { nao: "Não", parceiro: "Parceiro(a)", casa: "Casa partilhada", familia: "Família" }[f.partilha];
+  const preferenciaLabel = f.preferencia.length ? labelsOf(PREFERENCIAS, f.preferencia).join(", ") : "—";
+  const partilhaLabel = { nao: "Não", parceiro: "Com parceiro ou parceira", familia: "Com família", casa: "Numa casa partilhada", grupo: "Em grupos ocasionais" }[f.partilha];
   const paisLabel = nomePais(f.pais);
 
   const validaPasso1 = () => {
     if (!f.nome.trim() || !f.email.trim()) return "Preenche o nome e o email.";
     if (!nomeOk) return "O nome só pode conter letras.";
-    if (!emailOk) return "Indica um email válido.";
+    if (!emailOk) return "Introduza um endereço de email válido.";
     if (!f.termos) return "Tens de aceitar os Termos de Serviço e a Política de Privacidade.";
     return "";
   };
@@ -194,14 +270,22 @@ function Onboarding({ onBack, onLogin }) {
       // cria a conta + sessão e guarda o perfil (o backend recebe tudo de uma vez)
       await fin.definirPassword(setupToken, f.password, {
         idade, nascimento: f.nascimento, pais: f.pais, moeda: f.moeda, moedas: [f.moeda],
-        perfil: situacaoLabel, telefone: f.telefone, preferencia: f.preferencia, sobre: f.sobre,
+        perfil: situacaoLabel, preferencia: f.preferencia,
         situacao: f.situacao, fontesRendimento: f.rendimentos, principaisDespesas: f.despesas, objetivo: f.objetivo,
         planeamento: f.planeamento, partilha: f.partilha,
         notificacoes: f.notificacoes, resumoSemanal: f.resumoSemanal,
       });
-      // O perfil já foi gravado pelo definir-password. Só falta o orçamento inicial.
+      // Cria já os objetivos escolhidos (reais, com 0 guardado / 0% de progresso — nunca inventa valores).
+      if (f.objetivo.length) {
+        await Promise.all(f.objetivo.map((id) => {
+          const nome = (OBJETIVOS.find((o) => o[0] === id) || [null, id])[1];
+          return fin.meta.add({ nome, alvo: 0, atual: 0 });
+        }));
+      }
+      // O perfil já foi gravado pelo definir-password. Só falta o orçamento inicial, se o utilizador o definiu.
       const orc = parseFloat(String(f.orcamento).replace(",", "."));
       if (!isNaN(orc) && orc > 0) fin.updateAccount({ orcamento: orc });
+      limparRascunho();
       // a partir daqui fin.session passa a existir e a app abre o painel sozinha
     } catch (e) { setErr(e.message || "Não foi possível criar a palavra-passe."); }
     finally { setBusy(false); }
@@ -350,55 +434,51 @@ function Onboarding({ onBack, onLogin }) {
           <h3 className="ob-sec-t">Informações pessoais</h3>
           <div className="ob-grid2">
             <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" /></Field>
-            <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" /></Field>
+            <Field label="Email">
+              <div className="ob-locked-input">
+                <input className="input" value={f.email} disabled readOnly />
+                <Icon name="lock" size={14} color="var(--ink-3)" />
+              </div>
+            </Field>
           </div>
-          <div className="ob-note tiny"><Icon name="lock" size={13} color="var(--ink-3)" /> A palavra-passe já foi definida no passo anterior.</div>
+          <div className="ob-note tiny"><Icon name="lock" size={13} color="var(--ink-3)" /> Este email está associado à sua conta. A palavra-passe já foi definida no passo anterior.</div>
         </section>
 
         <section className="ob-sec">
           <h3 className="ob-sec-t">Informações adicionais</h3>
           <div className="ob-grid2">
             <Field label="País de residência">
-              <select className="select" value={f.pais} onChange={(e) => setPais(e.target.value)}>
+              <select className="select" value={f.pais} onChange={(e) => { setPais(e.target.value); setMoedaAberta(false); }}>
                 {BM.countries.map((c) => <option key={c.code} value={c.code}>{nomePais(c.code)}</option>)}
               </select>
             </Field>
-            <Field label="Moeda principal" hint="Definida automaticamente a partir do país.">
-              <div className="ob-locked-input">
-                <input className="input" value={`${cur.nome} (${cur.sym})`} disabled readOnly />
-                <Icon name="lock" size={14} color="var(--ink-3)" />
-              </div>
+            <Field label="Moeda principal" hint={moedaAberta ? "Escolha a moeda que quer usar na sua conta." : "Sugerida a partir do país. Pode alterar."}>
+              {moedaAberta ? (
+                <select className="select" value={f.moeda} onChange={(e) => setF((s) => ({ ...s, moeda: e.target.value }))}>
+                  {Object.values(BM.currencies).map((c) => <option key={c.code} value={c.code}>{c.nome} ({c.sym})</option>)}
+                </select>
+              ) : (
+                <div className="ob-locked-input">
+                  <input className="input" value={`${cur.nome} (${cur.sym})`} disabled readOnly />
+                  <Icon name="lock" size={14} color="var(--ink-3)" />
+                </div>
+              )}
+              <button type="button" className="ob-inline-link" onClick={() => setMoedaAberta((v) => !v)}>{moedaAberta ? "Usar a moeda sugerida" : "Alterar moeda"}</button>
             </Field>
             <Field label="Data de nascimento" hint="Calculamos a tua idade a partir desta data (mínimo 16 anos).">
-              <div className="ob-date-input">
-                <Icon name="cal" size={16} color="var(--ink-3)" />
-                <input className="input" type="date" value={f.nascimento} max={BM.todayISO()} onChange={(e) => setF((s) => ({ ...s, nascimento: e.target.value }))} />
-              </div>
+              <DateOfBirthPicker value={f.nascimento} onChange={(iso) => setF((s) => ({ ...s, nascimento: iso }))} />
               {idade != null && <div className="tiny" style={{ marginTop: 6, fontWeight: 700, color: idade < 16 ? "var(--neg)" : "var(--accent)" }}>{idade < 16 ? `Tens ${idade} anos — a idade mínima é 16.` : `Tens ${idade} anos.`}</div>}
             </Field>
-            <Field label="Telefone (opcional)"><input className="input" value={f.telefone} onChange={set("telefone")} placeholder="+351 912 345 678" inputMode="tel" /></Field>
           </div>
         </section>
 
         <section className="ob-sec">
-          <h3 className="ob-sec-t">Preferências financeiras</h3>
-          <div className="ob-pref-grid">
-            {PREFERENCIAS.map(([id, t, d, ic]) => (
-              <button type="button" key={id} className={"ob-pref" + (f.preferencia === id ? " sel" : "")} onClick={() => setF((s) => ({ ...s, preferencia: id }))}>
-                <span className="ob-pref-ico"><i className={"bx " + ic}></i></span>
-                <b>{t}</b><span>{d}</span>
-                <span className="ob-opt-radio" aria-hidden="true" />
-              </button>
+          <h3 className="ob-sec-t">Como pretende utilizar o Rende+?</h3>
+          <p className="ob-sec-d">Selecione até {SEL_MAX} prioridades. <span className="ob-sel-count">({f.preferencia.length}/{SEL_MAX})</span></p>
+          <div className="ob-opt-grid">
+            {PREFERENCIAS.map(([id, lbl, ic]) => (
+              <ObOptionCard key={id} icon={ic} label={lbl} sel={f.preferencia.includes(id)} disabled={!f.preferencia.includes(id) && f.preferencia.length >= SEL_MAX} onClick={() => toggleArr("preferencia", id, SEL_MAX)} />
             ))}
-          </div>
-        </section>
-
-        <section className="ob-sec">
-          <h3 className="ob-sec-t">Sobre si <span className="ob-opt-tag">opcional</span></h3>
-          <p className="ob-sec-d">Conte-nos um pouco sobre os seus objetivos financeiros.</p>
-          <div style={{ position: "relative" }}>
-            <textarea className="input" rows={3} maxLength={250} value={f.sobre} onChange={set("sobre")} placeholder="Ex.: Quero juntar dinheiro para viajar, comprar uma casa, aposentar-me…" style={{ resize: "vertical", minHeight: 92 }} />
-            <span className="ob-count">{(f.sobre || "").length}/250</span>
           </div>
         </section>
 
@@ -427,7 +507,7 @@ function Onboarding({ onBack, onLogin }) {
           <h4 className="ob-card-t">Resumo da sua conta</h4>
           <ObSummaryRow icon="bx-dollar-circle" label="Moeda" value={`${cur.nome} (${cur.sym})`} />
           <ObSummaryRow icon="bx-world" label="País" value={paisLabel} />
-          <ObSummaryRow icon="bx-target-lock" label="Objetivo principal" value={preferenciaLabel} />
+          <ObSummaryRow icon="bx-target-lock" label="Como pretende usar" value={preferenciaLabel} />
           <ObSummaryRow icon="bx-bell" label="Notificações" value={f.notificacoes ? "Ativadas" : "Desativadas"} />
           <ObSummaryRow icon="bx-calendar" label="Resumo semanal" value={f.resumoSemanal ? "Ativado" : "Desativado"} />
         </div>
@@ -440,8 +520,8 @@ function Onboarding({ onBack, onLogin }) {
   /* ---------------- PASSO 3 — Configurar as finanças ---------------- */
   const main = (
     <>
-      <h1 className="ob-title">Vamos configurar as suas finanças 🎉</h1>
-      <p className="ob-lead">Dedique apenas 2 minutos para personalizar a sua experiência. Quanto mais informação fornecer, melhores serão os relatórios e sugestões.</p>
+      <h1 className="ob-title">Configure a sua experiência financeira</h1>
+      <p className="ob-lead">Estas informações ajudam o Rende+ a preparar categorias, objetivos e atalhos de acordo com a sua realidade.</p>
 
       <div className="ob-grid2 ob-grid2-cards">
         <section className="ob-block">
@@ -454,18 +534,21 @@ function Onboarding({ onBack, onLogin }) {
 
         <section className="ob-block">
           <h3 className="ob-block-t"><span className="ob-num">2</span> Fontes de rendimento</h3>
-          <p className="ob-block-d">Selecione até {SEL_MAX} fontes de rendimento. <span className="ob-sel-count">({f.rendimentos.length}/{SEL_MAX})</span></p>
+          <p className="ob-block-d">Selecione uma ou mais fontes de rendimento. <span className="ob-sel-count">({f.rendimentos.length})</span></p>
           <div className="ob-check-grid">
-            {RENDIMENTOS.map((r) => <ObCheck key={r} label={r} on={f.rendimentos.includes(r)} disabled={!f.rendimentos.includes(r) && f.rendimentos.length >= SEL_MAX} onClick={() => toggleArr("rendimentos", r, SEL_MAX)} />)}
+            {RENDIMENTOS.map((r) => <ObCheck key={r} label={r} on={f.rendimentos.includes(r)} onClick={() => toggleArr("rendimentos", r)} />)}
           </div>
         </section>
 
         <section className="ob-block">
           <h3 className="ob-block-t"><span className="ob-num">3</span> Principais despesas</h3>
-          <p className="ob-block-d">Selecione até {SEL_MAX} despesas do seu dia a dia. <span className="ob-sel-count">({f.despesas.length}/{SEL_MAX})</span></p>
+          <p className="ob-block-d">Selecione as despesas do seu dia a dia. <span className="ob-sel-count">({f.despesas.length})</span></p>
           <div className="ob-check-grid">
-            {DESPESAS.map((d) => <ObCheck key={d} label={d} on={f.despesas.includes(d)} disabled={!f.despesas.includes(d) && f.despesas.length >= SEL_MAX} onClick={() => toggleArr("despesas", d, SEL_MAX)} />)}
+            {DESPESAS.map((d) => <ObCheck key={d} label={d} on={f.despesas.includes(d)} onClick={() => toggleArr("despesas", d)} />)}
           </div>
+          {addingCatOb
+            ? <NewCategoryInline onCreate={(key) => { toggleArr("despesas", key); setAddingCatOb(false); }} onCancel={() => setAddingCatOb(false)} />
+            : <button type="button" className="ob-inline-link" style={{ marginTop: 10 }} onClick={() => setAddingCatOb(true)}><Icon name="plus" size={13} /> Adicionar categoria personalizada</button>}
         </section>
 
         <section className="ob-block">
@@ -487,31 +570,21 @@ function Onboarding({ onBack, onLogin }) {
 
       <div className="ob-grid3">
         <section className="ob-block">
-          <h3 className="ob-block-t"><span className="ob-num">5</span> Planeamento</h3>
-          <p className="ob-block-d">Costuma fazer orçamento mensal?</p>
-          {[["sim", "Sim, todos os meses"], ["ainda-nao", "Ainda não"], ["comecar", "Quero começar"]].map(([id, lbl]) => <ObRadio key={id} label={lbl} on={f.planeamento === id} onClick={() => setF((s) => ({ ...s, planeamento: id }))} />)}
+          <h3 className="ob-block-t"><span className="ob-num">5</span> Como pretende planear o seu orçamento?</h3>
+          {[["criar-agora", "Quero criar um orçamento mensal agora"], ["sugestao", "Quero receber uma sugestão inicial"], ["mais-tarde", "Prefiro configurar mais tarde"]].map(([id, lbl]) => <ObRadio key={id} label={lbl} on={f.planeamento === id} onClick={() => setF((s) => ({ ...s, planeamento: id }))} />)}
+          {f.planeamento === "criar-agora" && (
+            <Field label={`Limite mensal (${cur.sym})`} hint="Pode ajustar por categoria mais tarde, nas Definições.">
+              <div style={{ position: "relative" }}>
+                <input className="input tnum" value={f.orcamento} onChange={(e) => setF((s) => ({ ...s, orcamento: e.target.value.replace(/[^\d.,]/g, "") }))} placeholder="1.000,00" inputMode="decimal" style={{ paddingRight: 42 }} />
+                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--ink-3)" }}>{cur.sym}</span>
+              </div>
+            </Field>
+          )}
+          {f.planeamento === "sugestao" && <div className="ob-inline-note"><Icon name="info" size={14} color="var(--accent)" /> Preparamos um rascunho com base nas categorias escolhidas — completa os valores depois de entrar.</div>}
         </section>
         <section className="ob-block">
-          <h3 className="ob-block-t"><span className="ob-num">6</span> Partilha de despesas</h3>
-          <p className="ob-block-d">Partilha despesas com alguém?</p>
-          {[["nao", "Não"], ["parceiro", "Parceiro(a)"], ["casa", "Casa partilhada"], ["familia", "Família"]].map(([id, lbl]) => <ObRadio key={id} label={lbl} on={f.partilha === id} onClick={() => setF((s) => ({ ...s, partilha: id }))} />)}
-        </section>
-        <section className="ob-block">
-          <h3 className="ob-block-t"><span className="ob-num">7</span> Moeda e orçamento inicial <span className="ob-opt-tag">opcional</span></h3>
-          <p className="ob-block-d">A moeda foi definida no passo anterior. Falta só o valor aproximado disponível por mês.</p>
-          <Field label="Moeda principal" hint="Definida no passo anterior a partir do país.">
-            <div className="ob-locked-input">
-              <input className="input" value={`${cur.nome} (${cur.sym})`} disabled readOnly />
-              <Icon name="lock" size={14} color="var(--ink-3)" />
-            </div>
-          </Field>
-          <Field label="Orçamento mensal disponível">
-            <div style={{ position: "relative" }}>
-              <input className="input tnum" value={f.orcamento} onChange={(e) => setF((s) => ({ ...s, orcamento: e.target.value.replace(/[^\d.,]/g, "") }))} placeholder="1.000,00" inputMode="decimal" style={{ paddingRight: 42 }} />
-              <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--ink-3)" }}>{cur.sym}</span>
-            </div>
-          </Field>
-          <div className="ob-inline-note"><Icon name="info" size={14} color="var(--accent)" /> Pode editar estas informações mais tarde nas definições.</div>
+          <h3 className="ob-block-t"><span className="ob-num">6</span> Partilha despesas com outras pessoas?</h3>
+          {[["nao", "Não"], ["parceiro", "Com parceiro ou parceira"], ["familia", "Com família"], ["casa", "Numa casa partilhada"], ["grupo", "Em grupos ocasionais"]].map(([id, lbl]) => <ObRadio key={id} label={lbl} on={f.partilha === id} onClick={() => setF((s) => ({ ...s, partilha: id }))} />)}
         </section>
       </div>
 
@@ -538,7 +611,7 @@ function Onboarding({ onBack, onLogin }) {
         <ObSummaryRow icon="bx-group" label="Partilha de despesas" value={partilhaLabel} />
       </div>
       <div className="ob-card ob-card-soft ob-final">
-        <h4 className="ob-card-t">Está quase lá! 🎉</h4>
+        <h4 className="ob-card-t">Está quase lá</h4>
         <p className="ob-card-d">Com estas informações o Rende+ poderá oferecer uma experiência personalizada para si.</p>
         <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
         <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 13, fontSize: 15, marginTop: 4 }} onClick={finalizar}>

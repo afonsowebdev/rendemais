@@ -4504,12 +4504,6 @@ input.range::-moz-range-thumb {
   margin: -8px 0 12px;
 }
 
-.ob-opt-tag {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
 .ob-grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4535,21 +4529,28 @@ input.range::-moz-range-thumb {
   pointer-events: none;
 }
 
-.ob-date-input {
-  position: relative;
+.ob-dob-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.3fr 1fr;
+  gap: 8px;
 }
 
-.ob-date-input svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 1;
+.ob-inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 0 0;
 }
 
-.ob-date-input .input {
-  padding-left: 38px;
+.ob-inline-link:hover {
+  text-decoration: underline;
 }
 
 .ob-note {
@@ -4559,15 +4560,6 @@ input.range::-moz-range-thumb {
   color: var(--ink-3);
   font-weight: 600;
   margin-top: 10px;
-}
-
-.ob-count {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ink-3);
 }
 
 /* Preferências financeiras (cards) */

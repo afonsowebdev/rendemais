@@ -378,6 +378,7 @@ function AnexoViewer({ anexo, onClose }) {
   );
 }
 function DespesaPartilhadaModal({ grupo, onClose, onSave }) {
+  const fin = useFinance();
   const pessoas = ["Eu", ...(grupo.membros || [])];
   const [f, setF] = React.useState({ titulo: "", categoria: "outros", valor: "", data: BM.todayISO(), vencimento: "", pagador: "Eu", estado: "pendente", obs: "" });
   const [parts, setParts] = React.useState(() => pessoas.slice());
@@ -452,7 +453,7 @@ function DespesaPartilhadaModal({ grupo, onClose, onSave }) {
                 <span style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{p}</span>
                 {metodo === "percentagem"
                   ? <span className="pg-split-in"><input className="input" inputMode="decimal" value={pcts[p] || ""} onChange={(e) => setPcts((s) => ({ ...s, [p]: e.target.value }))} placeholder="0" /><i>%</i></span>
-                  : <span className="pg-split-in"><input className="input" inputMode="decimal" value={vals[p] || ""} onChange={(e) => setVals((s) => ({ ...s, [p]: e.target.value }))} placeholder="0,00" /><i>€</i></span>}
+                  : <span className="pg-split-in"><input className="input" inputMode="decimal" value={vals[p] || ""} onChange={(e) => setVals((s) => ({ ...s, [p]: e.target.value }))} placeholder="0,00" /><i>{fin.curSym}</i></span>}
                 <span className="pg-split-q">{BM.eur(quotas[p] || 0)}</span>
               </div>
             ))}
@@ -1722,10 +1723,21 @@ function diasDesde(iso) {
   return Math.round((hj - d) / 86400000);
 }
 
+/* Semana ISO (ex.: "2026-W28") — usada para o resumo semanal aparecer uma vez por semana. */
+function isoWeekKey(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - dayNum);
+  const anoInicio = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+  const semana = Math.ceil((((dt - anoInicio) / 86400000) + 1) / 7);
+  return dt.getUTCFullYear() + "-W" + String(semana).padStart(2, "0");
+}
+
 /* MOTOR DE NOTIFICAÇÕES — função pura: recebe o estado, devolve a lista.
    Hoje corre no browser; amanhã, com backend, corre igual num cron job.
-   Categorias: pagamento · trial · orcamento · meta · insight · inatividade */
-function gerarNotificacoes(prem, dados) {
+   Categorias: pagamento · trial · orcamento · meta · insight · inatividade · resumo
+   "account" é opcional (só é preciso para o resumo semanal, que depende de account.resumoSemanal). */
+function gerarNotificacoes(prem, dados, account) {
   const s = prem.get();
   const d0 = dados || {};
   const out = [];
@@ -1792,20 +1804,41 @@ function gerarNotificacoes(prem, dados) {
     }
   }
 
+  // 7) Resumo semanal — uma entrada por semana ISO, só com dados reais dos últimos 7 dias.
+  // Fica como notificação interna (sem envio de email: não há infraestrutura de backend para isso).
+  if (!account || account.resumoSemanal !== false) {
+    const semanaKey = isoWeekKey(new Date());
+    const desde = new Date(); desde.setDate(desde.getDate() - 7);
+    const desdeISO = desde.toISOString().slice(0, 10);
+    const despSemana = (d0.despesas || []).filter((e) => (e.data || "") >= desdeISO);
+    const recSemana = (d0.rendimentos || []).filter((r) => (r.data || "") >= desdeISO).reduce((a, r) => a + (+r.valor || 0), 0);
+    const gastoSemana = despSemana.reduce((a, e) => a + (+e.valor || 0), 0);
+    if (recSemana > 0 || gastoSemana > 0) {
+      const porCatSemana = {};
+      despSemana.forEach((e) => { porCatSemana[e.cat] = (porCatSemana[e.cat] || 0) + (+e.valor || 0); });
+      const catTopoKey = Object.keys(porCatSemana).sort((a, b) => porCatSemana[b] - porCatSemana[a])[0];
+      const catTopoNome = catTopoKey ? (BM.cats[catTopoKey] || BM.cats.outros).nome : null;
+      const diff = recSemana - gastoSemana;
+      const partes = ["Recebido " + BM.eur(recSemana), "gasto " + BM.eur(gastoSemana), (diff >= 0 ? "saldo +" : "saldo ") + BM.eur(diff)];
+      if (catTopoNome) partes.push("mais gasto em " + catTopoNome);
+      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" · ") + "." });
+    }
+  }
+
   const ordSev = { urgent: 0, warn: 1, info: 2 };
   return out.sort((a, b) => (ordSev[a.sev] - ordSev[b.sev]) || ((a.d == null ? 99 : a.d) - (b.d == null ? 99 : b.d)));
 }
 
 /* Dispara notificações nativas do dispositivo (só enquanto a app está aberta).
    Junta tudo numa só notificação-resumo e não repete o mesmo aviso no mesmo dia. */
-function dispararNotificacoesNativas(prem, dados) {
+function dispararNotificacoesNativas(prem, dados, account) {
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
   const s = prem.get();
   if (!(s.notif && s.notif.ativo)) return;
   const hoje = BM.todayISO();
   const log = s.notifLog || {};
   const jaHoje = new Set(log[hoje] || []);
-  const novos = gerarNotificacoes(prem, dados || {}).filter((a) => !jaHoje.has(a.chave));
+  const novos = gerarNotificacoes(prem, dados || {}, account).filter((a) => !jaHoje.has(a.chave));
   if (!novos.length) return;
   const titulo = novos.length === 1 ? "Tens uma novidade" : "Tens " + novos.length + " novidades";
   const corpo = novos.slice(0, 3).map((a) => a.titulo).join("\n") + (novos.length > 3 ? "\n+ " + (novos.length - 3) + " mais" : "");
@@ -1823,14 +1856,14 @@ function NotifBell() {
   const [perm, setPerm] = React.useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const s = prem.get();
   const cfg = s.notif || { ativo: true, aviso: 3 };
-  const notifs = gerarNotificacoes(prem, dados);
+  const notifs = gerarNotificacoes(prem, dados, fin.account);
   const count = notifs.length;
 
   // dispara ao abrir a app e a cada 30 min enquanto está aberta
   const nMov = (dados.despesas || []).length + (dados.rendimentos || []).length;
   React.useEffect(() => {
     if (!cfg.ativo) return;
-    const tick = () => dispararNotificacoesNativas(prem, fin.data || {});
+    const tick = () => dispararNotificacoesNativas(prem, fin.data || {}, fin.account);
     tick();
     const iv = setInterval(tick, 1000 * 60 * 30);
     return () => clearInterval(iv);

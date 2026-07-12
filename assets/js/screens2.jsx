@@ -466,8 +466,6 @@ function Perfil({ open }) {
 function Definicoes({ theme, setTheme, open }) {
   const fin = useFinance();
   const a = fin.account || {};
-  const [notif, setNotif] = React.useState(true);
-  const [alertas, setAlertas] = React.useState(true);
   // Bloqueio por PIN (window.RendeLock — camada local do dispositivo)
   const [pinModal, setPinModal] = React.useState(false);
   const [, force] = React.useReducer((x) => x + 1, 0);
@@ -501,11 +499,9 @@ function Definicoes({ theme, setTheme, open }) {
         <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
           <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
         </Rowi>
-        <Rowi label="Orçamento mensal" sub={fin.data.orcamento ? `Limite atual: ${BM.eur0(fin.data.orcamento)}` : "Ainda não definido"}>
+        <Rowi label="Orçamento mensal" sub={fin.data.orcamento ? `Limite atual: ${BM.eur0(fin.data.orcamento)}` : "Ainda não definido"} last>
           <button className="btn btn-ghost" onClick={() => open("orcamento")}><Icon name="edit" size={14} /> Definir</button>
         </Rowi>
-        <Rowi label="Notificações" sub="Resumos semanais por email"><Toggle on={notif} onClick={() => setNotif(!notif)} /></Rowi>
-        <Rowi label="Alertas inteligentes" sub="Avisos de orçamento e poupança" last><Toggle on={alertas} onClick={() => setAlertas(!alertas)} /></Rowi>
       </Section>
 
       <Section title="Segurança" icon="shield">

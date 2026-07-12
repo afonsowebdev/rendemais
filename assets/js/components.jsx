@@ -119,6 +119,8 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
 
 function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar }) {
   const tr = useT();
+  const fin = useFinance();
+  const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   return (
     <div className="topbar">
       <div className="row" style={{ gap: 11, minWidth: 0 }}>
@@ -140,6 +142,7 @@ function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthN
             <Icon name={ocultar ? "eyeOff" : "eye"} size={18} />
           </button>
         )}
+        {notificacoesOn && <NotifBell />}
         <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={tr("theme_title")}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
         </button>

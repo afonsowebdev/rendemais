@@ -36,13 +36,13 @@ window.BM = (function () {
 
   // categorias de RENDIMENTO (label -> cor)
   const incomeCats = {
-    "Salário":        "var(--accent)",
-    "Bolsa":          "var(--c-habitacao)",
-    "Ajuda Familiar": "var(--c-transporte)",
-    "Subsídios":      "var(--c-educacao)",
-    "Apoios do Estado":"var(--c-internet)",
-    "Freelance":      "var(--c-lazer)",
-    "Outros":         "var(--c-outros)",
+    "Salário":                     "var(--accent)",
+    "Bolsa":                       "var(--c-habitacao)",
+    "Trabalho independente":       "var(--c-lazer)",
+    "Negócio próprio":             "var(--c-transporte)",
+    "Apoio familiar":              "var(--c-educacao)",
+    "Rendimentos de investimentos":"var(--c-internet)",
+    "Outro":                       "var(--c-outros)",
   };
 
   const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];

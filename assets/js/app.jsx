@@ -44,6 +44,14 @@ const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habita
 const CAT_ICONS = ["cart", "bag", "coffee", "food", "car", "fuel", "bus", "train", "plane", "bike", "home", "key", "bulb", "droplet", "flame", "wifi", "cross", "pill", "heart", "cap", "book", "briefcase", "film", "music", "game", "tv", "dumbbell", "shirt", "scissors", "gift", "tag", "paw", "phone", "tools", "umbrella", "leaf", "bank", "wallet", "card", "coins", "sack", "receipt", "chart", "target", "flag", "spark", "bolt", "cal", "bell"];
 const CAT_EMOJIS = ["🛒", "🍔", "🍕", "☕", "🍺", "🥖", "🥗", "🍣", "🍜", "🥤", "🧋", "🍦", "🧀", "🥩", "🍳", "🥫", "🍫", "🥦", "🍓", "🥚", "🍌", "🍎", "🎂", "🍷", "🏠", "🚿", "🛋️", "🛏️", "🧹", "🧼", "🔌", "🪑", "💡", "💧", "⚡", "🚰", "🔧", "🛠️", "🌱", "🚗", "⛽", "🚌", "✈️", "🚆", "🚇", "🚕", "🚲", "🛵", "🛴", "🅿️", "🎫", "🏥", "💊", "🩺", "💉", "🩹", "🦷", "👓", "🪥", "🧠", "🎓", "📚", "💻", "📱", "📞", "🌐", "💼", "📝", "📅", "🖥️", "🎮", "🎬", "🎵", "🎨", "🎟️", "📷", "⚽", "🎲", "🎸", "🎧", "🏋️", "🧘", "🏖️", "🏕️", "🎉", "💇", "✂️", "💅", "🧖", "👕", "🎁", "🐕", "🐈", "🐾", "🐠", "👶", "🍼", "🧸", "💳", "🏦", "📈", "💰", "🧾", "💶", "💵", "🪙", "💸", "🏧", "🤑", "🎯", "❤️", "☂️", "🔑", "📦", "♻️", "🧳", "🌷"];
 const CAT_COLORS = ["var(--c-habitacao)", "var(--c-alimentacao)", "var(--c-transporte)", "var(--c-educacao)", "var(--c-lazer)", "var(--c-internet)", "var(--c-saude)", "var(--c-outros)"];
+// Traduz as etiquetas de "principais despesas" do onboarding (mais granulares) para as
+// categorias reais de BM.cats — não cria categorias novas, só prioriza o seletor.
+const DESPESA_LABEL_TO_CAT = {
+  "Renda": "habitacao", "Água": "habitacao", "Eletricidade": "habitacao", "Gás": "habitacao",
+  "Internet": "internet", "Telecomunicações": "internet",
+  "Alimentação": "alimentacao", "Transporte": "transporte", "Educação": "educacao", "Saúde": "saude",
+  "Lazer": "lazer", "Subscrições": "lazer", "Seguros": "outros", "Outro": "outros",
+};
 
 /* ---------- Criador inline de categoria personalizada ---------- */
 function NewCategoryInline({ onCreate, onCancel }) {
@@ -107,13 +115,20 @@ function NewCategoryInline({ onCreate, onCancel }) {
 /* ---------- Modal de entrada (despesa / rendimento / meta / depósito / orçamento / perfil) ---------- */
 function EntryModal({ type, item, onClose }) {
   const fin = useFinance();
-  const catKeys = Object.keys(BM.cats);
-  const incKeys = Object.keys(BM.incomeCats);
+  const account = fin.account || {};
+  // Prioriza no seletor as categorias/fontes que o utilizador escolheu no onboarding
+  // (ou depois, em Definições → Preferências financeiras) — sem criar nada, só ordena.
+  const favDespesaKeys = (Array.isArray(account.principaisDespesas) ? account.principaisDespesas : [])
+    .map((label) => (BM.cats[label] ? label : DESPESA_LABEL_TO_CAT[label]))
+    .filter((k, i, arr) => k && arr.indexOf(k) === i);
+  const catKeys = [...favDespesaKeys, ...Object.keys(BM.cats).filter((k) => !favDespesaKeys.includes(k))];
+  const favIncKeys = (Array.isArray(account.fontesRendimento) ? account.fontesRendimento : []).filter((label) => BM.incomeCats[label] != null);
+  const incKeys = [...favIncKeys, ...Object.keys(BM.incomeCats).filter((k) => !favIncKeys.includes(k))];
   const editing = !!item;
 
   const seed = () => {
-    if (type === "despesa") return { nome: item?.nome || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || "alimentacao", tipo: item?.tipo || "variavel" };
-    if (type === "rendimento") return { fonte: item?.fonte || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || "Salário", rec: item?.rec ?? true };
+    if (type === "despesa") return { nome: item?.nome || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || catKeys[0] || "alimentacao", tipo: item?.tipo || "variavel" };
+    if (type === "rendimento") return { fonte: item?.fonte || "", valor: item?.valor ?? "", data: item?.data || BM.todayISO(), cat: item?.cat || incKeys[0] || "Salário", rec: item?.rec ?? true };
     if (type === "meta") return { nome: item?.nome || "", alvo: item?.alvo ?? "", atual: item?.atual ?? 0, cor: item?.cor || META_CORES[0] };
     if (type === "deposit") return { valor: "", inicial: false };
     if (type === "orcamento") return { valor: fin.data.orcamento ?? "" };
