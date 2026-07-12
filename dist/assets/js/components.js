@@ -25,26 +25,21 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
 function Sidebar({ route, go, account, collapsed, onToggle }) {
   const tr = useT();
   const nav = [
-    { id: "dashboard", label: tr("lbl_dashboard"), icon: "grid" },
-    { id: "despesas", label: tr("lbl_expenses"), icon: "wallet" },
-    { id: "rendimentos", label: tr("lbl_income"), icon: "arrowsDown" },
-    { id: "poupanca", label: tr("lbl_savings"), icon: "target" }
-  ];
-  const nav2 = [
-    { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
-    { id: "historico", label: tr("lbl_history"), icon: "history" },
-    { id: "config", label: tr("lbl_settings"), icon: "gear" }
-  ];
-  const navPrem = [
-    { id: "lembretes", label: "Lembretes", icon: "bell" },
-    { id: "recorrentes", label: "Recorrentes", icon: "history" },
-    { id: "subscricoes", label: "Subscri\xE7\xF5es", icon: "card" },
+    { id: "dashboard", label: "Painel", icon: "grid" },
+    { id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" },
+    { id: "objetivos", label: "Objetivos", icon: "target" },
+    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
     { id: "partilha", label: "Partilha", icon: "users" },
-    { id: "previsao", label: "Previs\xE3o", icon: "chart" }
+    { id: "contas", label: "Contas", icon: "wallet" },
+    { id: "relatorios", label: "Relat\xF3rios", icon: "report" },
+    { id: "config", label: "Defini\xE7\xF5es", icon: "gear" }
   ];
   const ehPremium = !!(account && account.plano === "premium");
-  const Item = (n) => /* @__PURE__ */ React.createElement("button", { key: n.id, className: "nav-item" + (route === n.id ? " active" : ""), onClick: () => go(n.id), title: n.label }, /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }), /* @__PURE__ */ React.createElement("span", null, n.label));
-  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, { nameColor: "#fff" }))), /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, tr("lbl_general")), nav.map(Item), /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, tr("lbl_analysis")), nav2.map(Item), ehPremium ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, "Premium"), navPrem.map(Item), /* @__PURE__ */ React.createElement("button", { className: "nav-item" + (route === "premium" ? " active" : ""), onClick: () => go("premium"), title: "Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 19 }), /* @__PURE__ */ React.createElement("span", null, "Rende+ Premium"))) : /* @__PURE__ */ React.createElement("button", { className: "nav-item nav-premium-cta" + (route === "premium" ? " active" : ""), onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 19 }), /* @__PURE__ */ React.createElement("span", null, "Rende+ Premium")), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse"))), /* @__PURE__ */ React.createElement("button", { className: "user-chip", style: { border: "none", width: "100%", textAlign: "left" }, onClick: () => go("perfil"), title: (account == null ? void 0 : account.nome) || tr("lbl_my_account") }, /* @__PURE__ */ React.createElement(Avatar, { account, size: 34 }), /* @__PURE__ */ React.createElement("div", { className: "uc-text", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, (account == null ? void 0 : account.nome) || tr("lbl_my_account")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, opacity: 0.6 } }, [account == null ? void 0 : account.perfil, account == null ? void 0 : account.cidade].filter(Boolean).join(" \xB7 ") || tr("lbl_profile"))))));
+  const Item = (n) => {
+    const active = route === n.id;
+    return /* @__PURE__ */ React.createElement("button", { key: n.id, className: "nav-item" + (active ? " active" : ""), onClick: () => go(n.id), title: n.label, "aria-current": active ? "page" : void 0 }, /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }), /* @__PURE__ */ React.createElement("span", null, n.label));
+  };
+  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, { nameColor: "#fff" }))), nav.map(Item), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
 }
 function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday }) {
   const tr = useT();
@@ -59,29 +54,71 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
     /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 15 })
   )));
 }
-function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar }) {
+function useDropdownClose() {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return [open, setOpen, ref];
+}
+function ProfileMenu({ account, go, onLogout }) {
   const tr = useT();
-  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 11, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "mobile-brand brand-mark", style: { width: 34, height: 34, borderRadius: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "brand-mark-txt", style: { fontSize: 17 } }, "R")), /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, title), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub))), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, monthNav, onAdd && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: onAdd }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " ", /* @__PURE__ */ React.createElement("span", { className: "hide-mobile" }, addLabel || tr("add_generic"))), onToggleOcultar && /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: onToggleOcultar, title: ocultar ? "Mostrar valores" : "Ocultar valores", "aria-pressed": ocultar }, /* @__PURE__ */ React.createElement(Icon, { name: ocultar ? "eyeOff" : "eye", size: 18 })), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: tr("theme_title") }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 18 })), /* @__PURE__ */ React.createElement("button", { className: "icon-btn hide-mobile", onClick: onLogout, title: tr("logout_short") }, /* @__PURE__ */ React.createElement(Icon, { name: "logout", size: 18 }))));
+  const [open, setOpen, ref] = useDropdownClose();
+  const primeiroNome = ((account == null ? void 0 : account.nome) || "").split(" ")[0] || tr("lbl_my_account");
+  return /* @__PURE__ */ React.createElement("div", { className: "profile-menu", ref }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "profile-menu-btn", onClick: () => setOpen((v) => !v), "aria-haspopup": "menu", "aria-expanded": open, "aria-label": "Abrir menu de conta" }, /* @__PURE__ */ React.createElement(Avatar, { account, size: 30 }), /* @__PURE__ */ React.createElement("span", { className: "profile-menu-name hide-mobile" }, primeiroNome), /* @__PURE__ */ React.createElement("i", { className: "bx bx-chevron-down hide-mobile", "aria-hidden": "true" })), open && /* @__PURE__ */ React.createElement("div", { className: "profile-menu-pop", role: "menu", "aria-label": "Conta" }, /* @__PURE__ */ React.createElement("div", { className: "profile-menu-head" }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 13.5 } }, (account == null ? void 0 : account.nome) || tr("lbl_my_account")), (account == null ? void 0 : account.email) && /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600, marginTop: 1 } }, account.email)), /* @__PURE__ */ React.createElement("div", { className: "profile-menu-sep" }), /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
+    setOpen(false);
+    go("perfil");
+  } }, /* @__PURE__ */ React.createElement(Icon, { name: "user", size: 16 }), " Ver perfil"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
+    setOpen(false);
+    go("config");
+  } }, /* @__PURE__ */ React.createElement(Icon, { name: "gear", size: 16 }), " Defini\xE7\xF5es"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
+    setOpen(false);
+    go("config");
+  } }, /* @__PURE__ */ React.createElement(Icon, { name: "shield", size: 16 }), " Seguran\xE7a"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
+    setOpen(false);
+    go("premium");
+  } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 16 }), " Plano atual"), /* @__PURE__ */ React.createElement("div", { className: "profile-menu-sep" }), /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", className: "profile-menu-danger", onClick: () => {
+    setOpen(false);
+    onLogout();
+  } }, /* @__PURE__ */ React.createElement(Icon, { name: "logout", size: 16 }), " ", tr("logout_full"))));
+}
+function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar, go }) {
+  const tr = useT();
+  const fin = useFinance();
+  const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
+  const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
+  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 11, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "mobile-brand brand-mark", style: { width: 34, height: 34, borderRadius: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "brand-mark-txt", style: { fontSize: 17 } }, "R")), /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, title), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub))), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, monthNav, onAdd && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: onAdd }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " ", /* @__PURE__ */ React.createElement("span", { className: "hide-mobile" }, addLabel || tr("add_generic"))), onToggleOcultar && /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: onToggleOcultar, title: ocultar ? "Mostrar valores" : "Ocultar valores", "aria-pressed": ocultar }, /* @__PURE__ */ React.createElement(Icon, { name: ocultar ? "eyeOff" : "eye", size: 18 })), notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, null), /* @__PURE__ */ React.createElement("button", { className: "icon-btn hide-mobile", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 18 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
 }
 function MobileNav({ route, go, onAdd, onMore }) {
   const tr = useT();
   const Tab = (t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: "mtab" + (route === t.id ? " on" : ""), onClick: () => go(t.id) }, /* @__PURE__ */ React.createElement(Icon, { name: t.icon, size: 23, sw: route === t.id ? 2.1 : 1.8 }), /* @__PURE__ */ React.createElement("span", null, t.label));
-  const moreRoutes = ["poupanca", "contas", "relatorios", "historico", "perfil", "config", "lembretes", "recorrentes", "subscricoes", "partilha", "previsao", "premium"];
-  return /* @__PURE__ */ React.createElement("nav", { className: "mobilenav" }, Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" }), Tab({ id: "despesas", label: tr("lbl_expenses"), icon: "wallet" }), /* @__PURE__ */ React.createElement("button", { className: "mtab-fab", onClick: onAdd, "aria-label": "Adicionar" }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 27, color: "#fff", sw: 2.4 })), Tab({ id: "rendimentos", label: tr("lbl_income_m"), icon: "arrowsDown" }), /* @__PURE__ */ React.createElement("button", { className: "mtab" + (moreRoutes.includes(route) ? " on" : ""), onClick: onMore }, /* @__PURE__ */ React.createElement(Icon, { name: "dots", size: 23, sw: 2.4 }), /* @__PURE__ */ React.createElement("span", null, tr("lbl_more"))));
+  const moreRoutes = ["agenda", "contas", "relatorios", "perfil", "config", "partilha", "previsao", "premium"];
+  return /* @__PURE__ */ React.createElement("nav", { className: "mobilenav" }, Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" }), Tab({ id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" }), /* @__PURE__ */ React.createElement("button", { className: "mtab-fab", onClick: onAdd, "aria-label": "Adicionar" }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 27, color: "#fff", sw: 2.4 })), Tab({ id: "objetivos", label: "Objetivos", icon: "target" }), /* @__PURE__ */ React.createElement("button", { className: "mtab" + (moreRoutes.includes(route) ? " on" : ""), onClick: onMore }, /* @__PURE__ */ React.createElement(Icon, { name: "dots", size: 23, sw: 2.4 }), /* @__PURE__ */ React.createElement("span", null, tr("lbl_more"))));
 }
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
   const items = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
-    { id: "historico", label: tr("lbl_history"), icon: "history" },
+    { id: "contas", label: tr("lbl_accounts"), icon: "wallet" },
     { id: "perfil", label: tr("lbl_profile"), icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" }
   ];
   const premItems = [
-    { id: "lembretes", label: "Lembretes", icon: "bell" },
-    { id: "recorrentes", label: "Recorrentes", icon: "history" },
-    { id: "subscricoes", label: "Subscri\xE7\xF5es", icon: "card" },
+    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
     { id: "partilha", label: "Partilha", icon: "users" },
     { id: "previsao", label: "Previs\xE3o", icon: "chart" }
   ];

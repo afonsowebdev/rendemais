@@ -29,15 +29,21 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const PAGES = {
-  dashboard: { title: "Dashboard", add: "despesa" },
-  despesas: { title: "Despesas", add: "despesa" },
-  rendimentos: { title: "Rendimentos", add: "rendimento" },
-  poupanca: { title: "Poupança", add: "meta" },
-  perfil: { title: "Perfil", add: null },
+  dashboard: { title: "Painel", add: "despesa" },
+  transacoes: { title: "Transações", add: "despesa" },
+  objetivos: { title: "Objetivos", add: "meta" },
+  agenda: { title: "Agenda Financeira", add: null },
+  partilha: { title: "Partilha", add: null },
   contas: { title: "Contas", add: null },
   relatorios: { title: "Relatórios", add: null },
-  historico: { title: "Histórico", add: null },
+  perfil: { title: "Perfil", add: null },
   config: { title: "Definições", add: null },
+};
+// Compatibilidade com rotas antigas: qualquer go(id) antigo continua a levar ao
+// sítio certo na nova estrutura (nada fica sem destino, nenhum link quebra).
+const ROUTE_ALIASES = {
+  despesas: "transacoes", rendimentos: "transacoes", poupanca: "objetivos",
+  lembretes: "agenda", recorrentes: "agenda", subscricoes: "agenda", historico: "relatorios",
 };
 const ADD_LABEL = { despesa: "Nova despesa", rendimento: "Novo rendimento", meta: "Nova meta" };
 const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
@@ -487,7 +493,7 @@ function Shell() {
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }, []);
 
-  const go = (id) => { setRoute(id); document.querySelector(".main")?.scrollTo(0, 0); };
+  const go = (id) => { setRoute(ROUTE_ALIASES[id] || id); document.querySelector(".main")?.scrollTo(0, 0); };
   const open = (type, item) => setModal({ type, item });
 
   const panel = (
@@ -510,23 +516,29 @@ function Shell() {
   }
 
   const P = PAGES[route] || {};
-  const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
-  const PREM_TITULOS = { lembretes: "Lembretes", recorrentes: "Recorrentes", subscricoes: "Subscrições", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium" };
-  const pageTitle = PREM_TITULOS[route] || tr(titleByRoute[route] || "lbl_dashboard");
+  // Títulos diretos em PT (mesmo padrão já usado para as rotas Premium) — os nomes da
+  // nova navegação (Painel/Transações/Objetivos/Agenda Financeira) não têm chave de
+  // tradução própria ainda, por isso não mexemos no sistema de i18n global só por isto.
+  const TITULOS = {
+    dashboard: "Visão geral financeira", transacoes: "Transações", objetivos: "Objetivos",
+    agenda: "Agenda Financeira", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium",
+    contas: tr("lbl_accounts"), relatorios: tr("lbl_reports"), config: tr("lbl_settings"), perfil: tr("lbl_profile"),
+  };
+  const pageTitle = TITULOS[route] || "Painel";
   // portão de plano: quem tem premium ativo usa as funcionalidades; os outros veem o Paywall
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
-    dashboard: tfmt(tr("sub_dashboard"), { month: fin.monthLabel }),
-    despesas: tfmt(tr("sub_despesas"), { month: fin.monthLabel }),
-    rendimentos: tfmt(tr("sub_rendimentos"), { month: fin.monthLabel }),
-    poupanca: tr("sub_poupanca"),
-    perfil: tr("sub_perfil"),
+    dashboard: "Acompanhe a sua situação financeira e as principais atividades do mês.",
+    transacoes: "Receitas, despesas e movimentos · " + fin.monthLabel,
+    objetivos: tr("sub_poupanca"),
+    agenda: "Lembretes, recorrentes e pagamentos futuros.",
+    partilha: "Divida despesas e acompanhe os seus grupos.",
     contas: tr("sub_contas"),
     relatorios: tr("sub_relatorios"),
-    historico: tr("sub_historico"),
     config: tr("sub_config"),
+    perfil: tr("sub_perfil"),
   };
-  const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
+  const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
 
   return (
     <div className={"app" + (sbCollapsed ? " sb-collapsed" : "")}>
@@ -538,24 +550,20 @@ function Shell() {
       )}
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
-        <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout}
+        <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go}
           ocultar={ocultar} onToggleOcultar={toggleOcultar}
           onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? tr("add_" + P.add) : null}
           monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
             canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
-        {route === "despesas" && <Despesas open={open} />}
-        {route === "rendimentos" && <Rendimentos open={open} />}
-        {route === "poupanca" && <Poupanca open={open} />}
+        {route === "transacoes" && <Transacoes open={open} />}
+        {route === "objetivos" && <Poupanca open={open} />}
+        {route === "agenda" && (ehPremium ? <AgendaFinanceira /> : <Paywall />)}
+        {route === "partilha" && (ehPremium ? <Partilha /> : <Paywall />)}
         {route === "contas" && <Contas open={open} />}
         {route === "relatorios" && <Relatorios />}
-        {route === "historico" && <Historico />}
-        {route === "perfil" && <Perfil open={open} />}
-        {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} />}
-        {route === "lembretes" && (ehPremium ? <Lembretes /> : <Paywall />)}
-        {route === "recorrentes" && (ehPremium ? <Recorrentes /> : <Paywall />)}
-        {route === "subscricoes" && (ehPremium ? <Subscricoes /> : <Paywall />)}
-        {route === "partilha" && (ehPremium ? <Partilha /> : <Paywall />)}
+        {route === "perfil" && <Perfil open={open} go={go} />}
+        {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} go={go} />}
         {route === "previsao" && (ehPremium ? <Previsao /> : <Paywall />)}
         {route === "premium" && <Paywall />}
       </div>

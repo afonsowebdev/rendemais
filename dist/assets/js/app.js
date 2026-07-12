@@ -30,21 +30,46 @@ const TWEAK_DEFAULTS = (
   }
 );
 const PAGES = {
-  dashboard: { title: "Dashboard", add: "despesa" },
-  despesas: { title: "Despesas", add: "despesa" },
-  rendimentos: { title: "Rendimentos", add: "rendimento" },
-  poupanca: { title: "Poupan\xE7a", add: "meta" },
-  perfil: { title: "Perfil", add: null },
+  dashboard: { title: "Painel", add: "despesa" },
+  transacoes: { title: "Transa\xE7\xF5es", add: "despesa" },
+  objetivos: { title: "Objetivos", add: "meta" },
+  agenda: { title: "Agenda Financeira", add: null },
+  partilha: { title: "Partilha", add: null },
   contas: { title: "Contas", add: null },
   relatorios: { title: "Relat\xF3rios", add: null },
-  historico: { title: "Hist\xF3rico", add: null },
+  perfil: { title: "Perfil", add: null },
   config: { title: "Defini\xE7\xF5es", add: null }
+};
+const ROUTE_ALIASES = {
+  despesas: "transacoes",
+  rendimentos: "transacoes",
+  poupanca: "objetivos",
+  lembretes: "agenda",
+  recorrentes: "agenda",
+  subscricoes: "agenda",
+  historico: "relatorios"
 };
 const ADD_LABEL = { despesa: "Nova despesa", rendimento: "Novo rendimento", meta: "Nova meta" };
 const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
 const CAT_ICONS = ["cart", "bag", "coffee", "food", "car", "fuel", "bus", "train", "plane", "bike", "home", "key", "bulb", "droplet", "flame", "wifi", "cross", "pill", "heart", "cap", "book", "briefcase", "film", "music", "game", "tv", "dumbbell", "shirt", "scissors", "gift", "tag", "paw", "phone", "tools", "umbrella", "leaf", "bank", "wallet", "card", "coins", "sack", "receipt", "chart", "target", "flag", "spark", "bolt", "cal", "bell"];
 const CAT_EMOJIS = ["\u{1F6D2}", "\u{1F354}", "\u{1F355}", "\u2615", "\u{1F37A}", "\u{1F956}", "\u{1F957}", "\u{1F363}", "\u{1F35C}", "\u{1F964}", "\u{1F9CB}", "\u{1F366}", "\u{1F9C0}", "\u{1F969}", "\u{1F373}", "\u{1F96B}", "\u{1F36B}", "\u{1F966}", "\u{1F353}", "\u{1F95A}", "\u{1F34C}", "\u{1F34E}", "\u{1F382}", "\u{1F377}", "\u{1F3E0}", "\u{1F6BF}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F9F9}", "\u{1F9FC}", "\u{1F50C}", "\u{1FA91}", "\u{1F4A1}", "\u{1F4A7}", "\u26A1", "\u{1F6B0}", "\u{1F527}", "\u{1F6E0}\uFE0F", "\u{1F331}", "\u{1F697}", "\u26FD", "\u{1F68C}", "\u2708\uFE0F", "\u{1F686}", "\u{1F687}", "\u{1F695}", "\u{1F6B2}", "\u{1F6F5}", "\u{1F6F4}", "\u{1F17F}\uFE0F", "\u{1F3AB}", "\u{1F3E5}", "\u{1F48A}", "\u{1FA7A}", "\u{1F489}", "\u{1FA79}", "\u{1F9B7}", "\u{1F453}", "\u{1FAA5}", "\u{1F9E0}", "\u{1F393}", "\u{1F4DA}", "\u{1F4BB}", "\u{1F4F1}", "\u{1F4DE}", "\u{1F310}", "\u{1F4BC}", "\u{1F4DD}", "\u{1F4C5}", "\u{1F5A5}\uFE0F", "\u{1F3AE}", "\u{1F3AC}", "\u{1F3B5}", "\u{1F3A8}", "\u{1F39F}\uFE0F", "\u{1F4F7}", "\u26BD", "\u{1F3B2}", "\u{1F3B8}", "\u{1F3A7}", "\u{1F3CB}\uFE0F", "\u{1F9D8}", "\u{1F3D6}\uFE0F", "\u{1F3D5}\uFE0F", "\u{1F389}", "\u{1F487}", "\u2702\uFE0F", "\u{1F485}", "\u{1F9D6}", "\u{1F455}", "\u{1F381}", "\u{1F415}", "\u{1F408}", "\u{1F43E}", "\u{1F420}", "\u{1F476}", "\u{1F37C}", "\u{1F9F8}", "\u{1F4B3}", "\u{1F3E6}", "\u{1F4C8}", "\u{1F4B0}", "\u{1F9FE}", "\u{1F4B6}", "\u{1F4B5}", "\u{1FA99}", "\u{1F4B8}", "\u{1F3E7}", "\u{1F911}", "\u{1F3AF}", "\u2764\uFE0F", "\u2602\uFE0F", "\u{1F511}", "\u{1F4E6}", "\u267B\uFE0F", "\u{1F9F3}", "\u{1F337}"];
 const CAT_COLORS = ["var(--c-habitacao)", "var(--c-alimentacao)", "var(--c-transporte)", "var(--c-educacao)", "var(--c-lazer)", "var(--c-internet)", "var(--c-saude)", "var(--c-outros)"];
+const DESPESA_LABEL_TO_CAT = {
+  "Renda": "habitacao",
+  "\xC1gua": "habitacao",
+  "Eletricidade": "habitacao",
+  "G\xE1s": "habitacao",
+  "Internet": "internet",
+  "Telecomunica\xE7\xF5es": "internet",
+  "Alimenta\xE7\xE3o": "alimentacao",
+  "Transporte": "transporte",
+  "Educa\xE7\xE3o": "educacao",
+  "Sa\xFAde": "saude",
+  "Lazer": "lazer",
+  "Subscri\xE7\xF5es": "lazer",
+  "Seguros": "outros",
+  "Outro": "outros"
+};
 function NewCategoryInline({ onCreate, onCancel }) {
   const fin = useFinance();
   const [nome, setNome] = useState("");
@@ -60,13 +85,16 @@ function NewCategoryInline({ onCreate, onCancel }) {
 }
 function EntryModal({ type, item, onClose }) {
   const fin = useFinance();
-  const catKeys = Object.keys(BM.cats);
-  const incKeys = Object.keys(BM.incomeCats);
+  const account = fin.account || {};
+  const favDespesaKeys = (Array.isArray(account.principaisDespesas) ? account.principaisDespesas : []).map((label) => BM.cats[label] ? label : DESPESA_LABEL_TO_CAT[label]).filter((k, i, arr) => k && arr.indexOf(k) === i);
+  const catKeys = [...favDespesaKeys, ...Object.keys(BM.cats).filter((k) => !favDespesaKeys.includes(k))];
+  const favIncKeys = (Array.isArray(account.fontesRendimento) ? account.fontesRendimento : []).filter((label) => BM.incomeCats[label] != null);
+  const incKeys = [...favIncKeys, ...Object.keys(BM.incomeCats).filter((k) => !favIncKeys.includes(k))];
   const editing = !!item;
   const seed = () => {
     var _a, _b, _c, _d, _e, _f, _g;
-    if (type === "despesa") return { nome: (item == null ? void 0 : item.nome) || "", valor: (_a = item == null ? void 0 : item.valor) != null ? _a : "", data: (item == null ? void 0 : item.data) || BM.todayISO(), cat: (item == null ? void 0 : item.cat) || "alimentacao", tipo: (item == null ? void 0 : item.tipo) || "variavel" };
-    if (type === "rendimento") return { fonte: (item == null ? void 0 : item.fonte) || "", valor: (_b = item == null ? void 0 : item.valor) != null ? _b : "", data: (item == null ? void 0 : item.data) || BM.todayISO(), cat: (item == null ? void 0 : item.cat) || "Sal\xE1rio", rec: (_c = item == null ? void 0 : item.rec) != null ? _c : true };
+    if (type === "despesa") return { nome: (item == null ? void 0 : item.nome) || "", valor: (_a = item == null ? void 0 : item.valor) != null ? _a : "", data: (item == null ? void 0 : item.data) || BM.todayISO(), cat: (item == null ? void 0 : item.cat) || catKeys[0] || "alimentacao", tipo: (item == null ? void 0 : item.tipo) || "variavel" };
+    if (type === "rendimento") return { fonte: (item == null ? void 0 : item.fonte) || "", valor: (_b = item == null ? void 0 : item.valor) != null ? _b : "", data: (item == null ? void 0 : item.data) || BM.todayISO(), cat: (item == null ? void 0 : item.cat) || incKeys[0] || "Sal\xE1rio", rec: (_c = item == null ? void 0 : item.rec) != null ? _c : true };
     if (type === "meta") return { nome: (item == null ? void 0 : item.nome) || "", alvo: (_d = item == null ? void 0 : item.alvo) != null ? _d : "", atual: (_e = item == null ? void 0 : item.atual) != null ? _e : 0, cor: (item == null ? void 0 : item.cor) || META_CORES[0] };
     if (type === "deposit") return { valor: "", inicial: false };
     if (type === "orcamento") return { valor: (_f = fin.data.orcamento) != null ? _f : "" };
@@ -312,7 +340,7 @@ function Shell() {
   }, []);
   const go = (id) => {
     var _a;
-    setRoute(id);
+    setRoute(ROUTE_ALIASES[id] || id);
     (_a = document.querySelector(".main")) == null ? void 0 : _a.scrollTo(0, 0);
   };
   const open = (type, item) => setModal({ type, item });
@@ -323,22 +351,33 @@ function Shell() {
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Landing, { onCreate: () => setAuthView("signup"), onLogin: () => setAuthView("login"), theme, setTheme, lang, setLang, tr }), panel);
   }
   const P = PAGES[route] || {};
-  const titleByRoute = { dashboard: "lbl_dashboard", despesas: "lbl_expenses", rendimentos: "lbl_income", poupanca: "lbl_savings", perfil: "lbl_profile", contas: "lbl_accounts", relatorios: "lbl_reports", historico: "lbl_history", config: "lbl_settings" };
-  const PREM_TITULOS = { lembretes: "Lembretes", recorrentes: "Recorrentes", subscricoes: "Subscri\xE7\xF5es", partilha: "Partilha", previsao: "Previs\xE3o", premium: "Rende+ Premium" };
-  const pageTitle = PREM_TITULOS[route] || tr(titleByRoute[route] || "lbl_dashboard");
+  const TITULOS = {
+    dashboard: "Vis\xE3o geral financeira",
+    transacoes: "Transa\xE7\xF5es",
+    objetivos: "Objetivos",
+    agenda: "Agenda Financeira",
+    partilha: "Partilha",
+    previsao: "Previs\xE3o",
+    premium: "Rende+ Premium",
+    contas: tr("lbl_accounts"),
+    relatorios: tr("lbl_reports"),
+    config: tr("lbl_settings"),
+    perfil: tr("lbl_profile")
+  };
+  const pageTitle = TITULOS[route] || "Painel";
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
-    dashboard: tfmt(tr("sub_dashboard"), { month: fin.monthLabel }),
-    despesas: tfmt(tr("sub_despesas"), { month: fin.monthLabel }),
-    rendimentos: tfmt(tr("sub_rendimentos"), { month: fin.monthLabel }),
-    poupanca: tr("sub_poupanca"),
-    perfil: tr("sub_perfil"),
+    dashboard: "Acompanhe a sua situa\xE7\xE3o financeira e as principais atividades do m\xEAs.",
+    transacoes: "Receitas, despesas e movimentos \xB7 " + fin.monthLabel,
+    objetivos: tr("sub_poupanca"),
+    agenda: "Lembretes, recorrentes e pagamentos futuros.",
+    partilha: "Divida despesas e acompanhe os seus grupos.",
     contas: tr("sub_contas"),
     relatorios: tr("sub_relatorios"),
-    historico: tr("sub_historico"),
-    config: tr("sub_config")
+    config: tr("sub_config"),
+    perfil: tr("sub_perfil")
   };
-  const showMonthNav = ["dashboard", "despesas", "rendimentos", "relatorios"].includes(route);
+  const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
   return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(
     Topbar,
     {
@@ -347,6 +386,7 @@ function Shell() {
       theme,
       setTheme,
       onLogout: fin.logout,
+      go,
       ocultar,
       onToggleOcultar: toggleOcultar,
       onAdd: P.add ? () => open(P.add) : null,
@@ -363,7 +403,7 @@ function Shell() {
         }
       ) : null
     }
-  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "despesas" && /* @__PURE__ */ React.createElement(Despesas, { open }), route === "rendimentos" && /* @__PURE__ */ React.createElement(Rendimentos, { open }), route === "poupanca" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "historico" && /* @__PURE__ */ React.createElement(Historico, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open }), route === "lembretes" && (ehPremium ? /* @__PURE__ */ React.createElement(Lembretes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "recorrentes" && (ehPremium ? /* @__PURE__ */ React.createElement(Recorrentes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "subscricoes" && (ehPremium ? /* @__PURE__ */ React.createElement(Subscricoes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "partilha" && (ehPremium ? /* @__PURE__ */ React.createElement(Partilha, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "previsao" && (ehPremium ? /* @__PURE__ */ React.createElement(Previsao, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "premium" && /* @__PURE__ */ React.createElement(Paywall, null)), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onAdd: () => open(P.add || "despesa"), onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, account: fin.account, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), /* @__PURE__ */ React.createElement(LockGate, { active: !!fin.session }), novaVersao && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", left: "50%", bottom: 20, transform: "translateX(-50%)", zIndex: 9999, maxWidth: 440, width: "calc(100% - 32px)", background: "var(--navy)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.28)", padding: "13px 16px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("span", { style: { display: "flex", gap: 10, alignItems: "center", fontSize: 13.5, fontWeight: 600 } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), "Nova vers\xE3o dispon\xEDvel (", novaVersao, ")."), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 14px", fontSize: 13, border: "none", flex: "none" }, onClick: () => window.location.reload() }, "Atualizar")), panel);
+  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "transacoes" && /* @__PURE__ */ React.createElement(Transacoes, { open }), route === "objetivos" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "agenda" && (ehPremium ? /* @__PURE__ */ React.createElement(AgendaFinanceira, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "partilha" && (ehPremium ? /* @__PURE__ */ React.createElement(Partilha, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open, go }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open, go }), route === "previsao" && (ehPremium ? /* @__PURE__ */ React.createElement(Previsao, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "premium" && /* @__PURE__ */ React.createElement(Paywall, null)), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onAdd: () => open(P.add || "despesa"), onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, account: fin.account, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), /* @__PURE__ */ React.createElement(LockGate, { active: !!fin.session }), novaVersao && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", left: "50%", bottom: 20, transform: "translateX(-50%)", zIndex: 9999, maxWidth: 440, width: "calc(100% - 32px)", background: "var(--navy)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.28)", padding: "13px 16px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("span", { style: { display: "flex", gap: 10, alignItems: "center", fontSize: 13.5, fontWeight: 600 } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), "Nova vers\xE3o dispon\xEDvel (", novaVersao, ")."), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 14px", fontSize: 13, border: "none", flex: "none" }, onClick: () => window.location.reload() }, "Atualizar")), panel);
 }
 function App() {
   return /* @__PURE__ */ React.createElement(FinanceProvider, null, /* @__PURE__ */ React.createElement(Shell, null));

@@ -14,7 +14,7 @@ const BX = {
   tv: "bx-tv", dumbbell: "bx-dumbbell", gift: "bx-gift", phone: "bx-phone", bulb: "bx-bulb", droplet: "bx-droplet",
   umbrella: "bx-umbrella", receipt: "bx-receipt", card: "bx-credit-card", briefcase: "bx-briefcase", leaf: "bx-leaf",
   key: "bx-key", tools: "bx-wrench", bag: "bx-shopping-bag", tag: "bx-purchase-tag", scissors: "bx-cut",
-  lock: "bx-lock-alt",
+  lock: "bx-lock-alt", transfer: "bx-transfer-alt", calendarCheck: "bx-calendar-check",
 };
 
 function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {

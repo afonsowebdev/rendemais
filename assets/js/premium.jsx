@@ -198,7 +198,9 @@ function LembreteModal({ item, onClose, onSave }) {
 function Lembretes() {
   return <PremiumGate><LembretesInner /></PremiumGate>;
 }
-function LembretesInner() {
+/* variant: undefined (ecrã completo, com tiles+filtros) | "hoje" | "proximos" | "concluidos"
+   — usado pela Agenda Financeira para mostrar cada separador sem duplicar a lógica de lembretes. */
+function LembretesInner({ variant }) {
   const prem = usePremium();
   const todos = [...(prem.get().lembretes || [])].sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const [modal, setModal] = React.useState(null);
@@ -212,7 +214,9 @@ function LembretesInner() {
   const totalAtrasado = atrasados.reduce((s, l) => s + (+l.valor || 0), 0);
   const totalPago = pagos.reduce((s, l) => s + (+l.valor || 0), 0);
 
-  const lista = filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes;
+  const variantListas = { hoje: pendentes.filter((l) => daysUntil(l.data) <= 0), proximos: pendentes.filter((l) => daysUntil(l.data) > 0), concluidos: pagos };
+  const variantVazio = { hoje: "Sem lembretes para hoje ou em atraso.", proximos: "Sem lembretes futuros.", concluidos: "Ainda não há lembretes pagos." };
+  const lista = variant ? variantListas[variant] : (filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes);
   const marcarPago = (l) => { if (l.repete) prem.edit("lembretes", l.id, { data: addMonths(l.data, 1) }); else prem.edit("lembretes", l.id, { pago: true }); };
 
   const tiles = [
@@ -222,31 +226,40 @@ function LembretesInner() {
   ];
 
   return (
-    <div className="content">
-      <PremActions label="Novo lembrete" onAdd={() => setModal({})} />
+    <div className={variant ? "" : "content"}>
+      {!variant && <PremActions label="Novo lembrete" onAdd={() => setModal({})} />}
+      {variant && (
+        <div className="row" style={{ justifyContent: "flex-end", marginBottom: 14 }}>
+          <button className="btn btn-primary" onClick={() => setModal({})}><Icon name="plus" size={16} color="#fff" /> Novo lembrete</button>
+        </div>
+      )}
       {todos.length === 0 ? (
         <EmptyState icon="bell" title="Sem lembretes" msg="Cria um lembrete e avisamos-te antes de cada conta vencer."
           action={<button className="btn btn-primary" onClick={() => setModal({})}><Icon name="plus" size={16} color="#fff" /> Criar lembrete</button>} />
       ) : (
         <>
-          <div className="prem-stats">
-            {tiles.map((t) => (
-              <button key={t.id} className={"prem-stat " + (t.tone) + (filtro === t.id ? " on" : "")} onClick={() => setFiltro(t.id)}>
-                <span className="prem-stat-l">{t.label}</span>
-                <span className="prem-stat-v tnum">{t.val}</span>
-                <span className="prem-stat-s">{t.sub}</span>
-              </button>
-            ))}
-          </div>
+          {!variant && (
+            <>
+              <div className="prem-stats">
+                {tiles.map((t) => (
+                  <button key={t.id} className={"prem-stat " + (t.tone) + (filtro === t.id ? " on" : "")} onClick={() => setFiltro(t.id)}>
+                    <span className="prem-stat-l">{t.label}</span>
+                    <span className="prem-stat-v tnum">{t.val}</span>
+                    <span className="prem-stat-s">{t.sub}</span>
+                  </button>
+                ))}
+              </div>
 
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {[["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => (
-              <button key={id} className={"chip" + (filtro === id ? " sel" : "")} onClick={() => setFiltro(id)} style={{ cursor: "pointer" }}>{lbl}</button>
-            ))}
-          </div>
+              <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+                {[["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => (
+                  <button key={id} className={"chip" + (filtro === id ? " sel" : "")} onClick={() => setFiltro(id)} style={{ cursor: "pointer" }}>{lbl}</button>
+                ))}
+              </div>
+            </>
+          )}
 
           {lista.length === 0 ? (
-            <div className="card card-pad muted" style={{ textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>Nada nesta lista.</div>
+            <div className="card card-pad muted" style={{ textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>{variant ? variantVazio[variant] : "Nada nesta lista."}</div>
           ) : (
             <div className="card card-pad">
               {lista.map((l) => {
@@ -283,6 +296,38 @@ function LembretesInner() {
 
 /* ---------------- Recorrentes (gestor unificado: subscrições + despesas periódicas) ---------------- */
 function Recorrentes() { return <PremiumGate><SubscricoesInner /></PremiumGate>; }
+
+/* ---------------- Agenda Financeira (Lembretes + Recorrentes + Calendário, num só ecrã) ----------------
+   Reaproveita LembretesInner (com "variant" para pré-filtrar sem duplicar a lógica),
+   SubscricoesInner e SubCalendario tal como já existem — não recria nada. */
+function AgendaFinanceira() { return <PremiumGate><AgendaFinanceiraInner /></PremiumGate>; }
+function AgendaFinanceiraInner() {
+  const prem = usePremium();
+  const [tab, setTab] = React.useState("hoje");
+  const recorrentes = prem.get().recorrentes || [];
+  const TABS = [["hoje", "Hoje"], ["proximos", "Próximos"], ["recorrentes", "Recorrentes"], ["calendario", "Calendário"], ["concluidos", "Concluídos"]];
+  return (
+    <>
+      <div className="content" style={{ paddingBottom: 0 }}>
+        <div className="pg-tabs" style={{ width: "fit-content" }}>
+          {TABS.map(([id, lbl]) => (
+            <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+      {tab === "recorrentes" ? (
+        <SubscricoesInner />
+      ) : (
+        <div className="content">
+          {tab === "hoje" && <LembretesInner variant="hoje" />}
+          {tab === "proximos" && <LembretesInner variant="proximos" />}
+          {tab === "calendario" && <SubCalendario subs={recorrentes} />}
+          {tab === "concluidos" && <LembretesInner variant="concluidos" />}
+        </div>
+      )}
+    </>
+  );
+}
 
 /* ---------------- Partilha (orçamentos partilhados) ---------------- */
 const nomeDeEmail = (e) => { const p = ((e || "").split("@")[0] || "").replace(/[._-]/g, " "); return p.split(" ").map((w) => (w ? w[0].toUpperCase() + w.slice(1) : "")).join(" ").trim() || e; };
@@ -1853,11 +1898,15 @@ function NotifBell() {
   const fin = useFinance();
   const dados = fin.data || {};
   const [open, setOpen] = React.useState(false);
+  const [verTodas, setVerTodas] = React.useState(false);
   const [perm, setPerm] = React.useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const s = prem.get();
   const cfg = s.notif || { ativo: true, aviso: 3 };
   const notifs = gerarNotificacoes(prem, dados, fin.account);
   const count = notifs.length;
+  const LIMITE = 5;
+  const notifsMostradas = verTodas ? notifs : notifs.slice(0, LIMITE);
+  React.useEffect(() => { if (!open) setVerTodas(false); }, [open]);
 
   // dispara ao abrir a app e a cada 30 min enquanto está aberta
   const nMov = (dados.despesas || []).length + (dados.rendimentos || []).length;
@@ -1877,7 +1926,7 @@ function NotifBell() {
 
   return (
     <div className="notif-wrap">
-      <button className="icon-btn notif-btn" title="Notificações" onClick={() => setOpen((v) => !v)}>
+      <button className="icon-btn notif-btn" title="Notificações" aria-label={count > 0 ? `Notificações (${count} por ler)` : "Notificações"} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <Icon name="bell" size={18} />
         {count > 0 && <span className="notif-badge">{count > 9 ? "9+" : count}</span>}
       </button>
@@ -1906,7 +1955,7 @@ function NotifBell() {
               {notifs.length === 0 ? (
                 <div className="notif-empty"><Icon name="check" size={20} color="var(--accent)" /><span>Estás em dia. Nada a tratar por agora.</span></div>
               ) : (
-                notifs.map((a) => {
+                notifsMostradas.map((a) => {
                   const cor = a.sev === "urgent" ? "var(--neg)" : a.sev === "warn" ? "#e0792b" : "var(--accent)";
                   return (
                     <div className="notif-item" key={a.chave}>
@@ -1919,6 +1968,9 @@ function NotifBell() {
                     </div>
                   );
                 })
+              )}
+              {!verTodas && notifs.length > LIMITE && (
+                <button type="button" className="notif-ver-todas" onClick={() => setVerTodas(true)}>Ver todas ({notifs.length})</button>
               )}
             </div>
 
@@ -1945,4 +1997,4 @@ function PremiumBadge() {
   return <span className="prem-tag"><Icon name="spark" size={11} color="#fff" /> Premium</span>;
 }
 
-Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, Partilha, Previsao, PremiumBadge });
+Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge });

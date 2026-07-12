@@ -173,7 +173,7 @@ function LembreteModal({ item, onClose, onSave }) {
 function Lembretes() {
   return /* @__PURE__ */ React.createElement(PremiumGate, null, /* @__PURE__ */ React.createElement(LembretesInner, null));
 }
-function LembretesInner() {
+function LembretesInner({ variant }) {
   const prem = usePremium();
   const todos = [...prem.get().lembretes || []].sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const [modal, setModal] = React.useState(null);
@@ -189,7 +189,9 @@ function LembretesInner() {
   const totalPendente = pendentes.reduce((s, l) => s + (+l.valor || 0), 0);
   const totalAtrasado = atrasados.reduce((s, l) => s + (+l.valor || 0), 0);
   const totalPago = pagos.reduce((s, l) => s + (+l.valor || 0), 0);
-  const lista = filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes;
+  const variantListas = { hoje: pendentes.filter((l) => daysUntil(l.data) <= 0), proximos: pendentes.filter((l) => daysUntil(l.data) > 0), concluidos: pagos };
+  const variantVazio = { hoje: "Sem lembretes para hoje ou em atraso.", proximos: "Sem lembretes futuros.", concluidos: "Ainda n\xE3o h\xE1 lembretes pagos." };
+  const lista = variant ? variantListas[variant] : filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes;
   const marcarPago = (l) => {
     if (l.repete) prem.edit("lembretes", l.id, { data: addMonths(l.data, 1) });
     else prem.edit("lembretes", l.id, { pago: true });
@@ -199,7 +201,7 @@ function LembretesInner() {
     { id: "atrasados", label: "Atrasados", val: BM.eur(totalAtrasado), sub: atrasados.length + " em atraso", tone: "danger" },
     { id: "pagos", label: "Pagos", val: BM.eur(totalPago), sub: pagos.length + " conclu\xEDdo" + (pagos.length === 1 ? "" : "s"), tone: "ok" }
   ];
-  return /* @__PURE__ */ React.createElement("div", { className: "content" }, /* @__PURE__ */ React.createElement(PremActions, { label: "Novo lembrete", onAdd: () => setModal({}) }), todos.length === 0 ? /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: variant ? "" : "content" }, !variant && /* @__PURE__ */ React.createElement(PremActions, { label: "Novo lembrete", onAdd: () => setModal({}) }), variant && /* @__PURE__ */ React.createElement("div", { className: "row", style: { justifyContent: "flex-end", marginBottom: 14 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => setModal({}) }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " Novo lembrete")), todos.length === 0 ? /* @__PURE__ */ React.createElement(
     EmptyState,
     {
       icon: "bell",
@@ -207,7 +209,7 @@ function LembretesInner() {
       msg: "Cria um lembrete e avisamos-te antes de cada conta vencer.",
       action: /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => setModal({}) }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " Criar lembrete")
     }
-  ) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "prem-stats" }, tiles.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: "prem-stat " + t.tone + (filtro === t.id ? " on" : ""), onClick: () => setFiltro(t.id) }, /* @__PURE__ */ React.createElement("span", { className: "prem-stat-l" }, t.label), /* @__PURE__ */ React.createElement("span", { className: "prem-stat-v tnum" }, t.val), /* @__PURE__ */ React.createElement("span", { className: "prem-stat-s" }, t.sub)))), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 8, flexWrap: "wrap" } }, [["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { key: id, className: "chip" + (filtro === id ? " sel" : ""), onClick: () => setFiltro(id), style: { cursor: "pointer" } }, lbl))), lista.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "card card-pad muted", style: { textAlign: "center", fontSize: 13.5, fontWeight: 600 } }, "Nada nesta lista.") : /* @__PURE__ */ React.createElement("div", { className: "card card-pad" }, lista.map((l) => {
+  ) : /* @__PURE__ */ React.createElement(React.Fragment, null, !variant && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "prem-stats" }, tiles.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: "prem-stat " + t.tone + (filtro === t.id ? " on" : ""), onClick: () => setFiltro(t.id) }, /* @__PURE__ */ React.createElement("span", { className: "prem-stat-l" }, t.label), /* @__PURE__ */ React.createElement("span", { className: "prem-stat-v tnum" }, t.val), /* @__PURE__ */ React.createElement("span", { className: "prem-stat-s" }, t.sub)))), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 8, flexWrap: "wrap" } }, [["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { key: id, className: "chip" + (filtro === id ? " sel" : ""), onClick: () => setFiltro(id), style: { cursor: "pointer" } }, lbl)))), lista.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "card card-pad muted", style: { textAlign: "center", fontSize: 13.5, fontWeight: 600 } }, variant ? variantVazio[variant] : "Nada nesta lista.") : /* @__PURE__ */ React.createElement("div", { className: "card card-pad" }, lista.map((l) => {
     const d = daysUntil(l.data);
     const pago = l.pago;
     const late = !pago && d < 0;
@@ -221,6 +223,16 @@ function LembretesInner() {
 }
 function Recorrentes() {
   return /* @__PURE__ */ React.createElement(PremiumGate, null, /* @__PURE__ */ React.createElement(SubscricoesInner, null));
+}
+function AgendaFinanceira() {
+  return /* @__PURE__ */ React.createElement(PremiumGate, null, /* @__PURE__ */ React.createElement(AgendaFinanceiraInner, null));
+}
+function AgendaFinanceiraInner() {
+  const prem = usePremium();
+  const [tab, setTab] = React.useState("hoje");
+  const recorrentes = prem.get().recorrentes || [];
+  const TABS = [["hoje", "Hoje"], ["proximos", "Pr\xF3ximos"], ["recorrentes", "Recorrentes"], ["calendario", "Calend\xE1rio"], ["concluidos", "Conclu\xEDdos"]];
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "content", style: { paddingBottom: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "pg-tabs", style: { width: "fit-content" } }, TABS.map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, className: "pg-tab" + (tab === id ? " on" : ""), onClick: () => setTab(id) }, lbl)))), tab === "recorrentes" ? /* @__PURE__ */ React.createElement(SubscricoesInner, null) : /* @__PURE__ */ React.createElement("div", { className: "content" }, tab === "hoje" && /* @__PURE__ */ React.createElement(LembretesInner, { variant: "hoje" }), tab === "proximos" && /* @__PURE__ */ React.createElement(LembretesInner, { variant: "proximos" }), tab === "calendario" && /* @__PURE__ */ React.createElement(SubCalendario, { subs: recorrentes }), tab === "concluidos" && /* @__PURE__ */ React.createElement(LembretesInner, { variant: "concluidos" })));
 }
 const nomeDeEmail = (e) => {
   const p = ((e || "").split("@")[0] || "").replace(/[._-]/g, " ");
@@ -320,6 +332,7 @@ function AnexoViewer({ anexo, onClose }) {
   );
 }
 function DespesaPartilhadaModal({ grupo, onClose, onSave }) {
+  const fin = useFinance();
   const pessoas = ["Eu", ...grupo.membros || []];
   const [f, setF] = React.useState({ titulo: "", categoria: "outros", valor: "", data: BM.todayISO(), vencimento: "", pagador: "Eu", estado: "pendente", obs: "" });
   const [parts, setParts] = React.useState(() => pessoas.slice());
@@ -374,7 +387,7 @@ function DespesaPartilhadaModal({ grupo, onClose, onSave }) {
       onClose,
       footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: onClose }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: guardar }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 14, color: "#fff" }), " Adicionar"))
     },
-    /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } }, /* @__PURE__ */ React.createElement(Field, { label: "Descri\xE7\xE3o" }, /* @__PURE__ */ React.createElement("input", { className: "input", autoFocus: true, value: f.titulo, onChange: set("titulo"), placeholder: "Ex: Renda, Compras, Internet\u2026" })), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Categoria" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.categoria, onChange: set("categoria") }, Object.keys(BM.cats).map((k) => /* @__PURE__ */ React.createElement("option", { key: k, value: k }, BM.cats[k].nome)))), /* @__PURE__ */ React.createElement(Field, { label: "Valor" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: f.valor, onChange: set("valor"), placeholder: "0,00" }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Data" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "date", value: f.data, onChange: set("data") })), /* @__PURE__ */ React.createElement(Field, { label: "Vencimento", hint: "opcional" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "date", value: f.vencimento, onChange: set("vencimento") }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Quem pagou" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.pagador, onChange: set("pagador") }, pessoas.map((p) => /* @__PURE__ */ React.createElement("option", { key: p }, p)))), /* @__PURE__ */ React.createElement(Field, { label: "Estado" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.estado, onChange: set("estado") }, ESTADOS.map((s) => /* @__PURE__ */ React.createElement("option", { key: s.id, value: s.id }, s.label))))), /* @__PURE__ */ React.createElement(Field, { label: "Partilhar com" }, /* @__PURE__ */ React.createElement("div", { className: "prem-parts" }, pessoas.map((p) => /* @__PURE__ */ React.createElement("button", { type: "button", key: p, className: "chip" + (parts.includes(p) ? " sel" : ""), style: { cursor: "pointer" }, onClick: () => toggle(p) }, p)))), /* @__PURE__ */ React.createElement(Field, { label: "M\xE9todo de divis\xE3o" }, /* @__PURE__ */ React.createElement("div", { className: "pg-seg" }, [["igual", "Igual"], ["percentagem", "Percentagem"], ["personalizado", "Valor exato"]].map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, className: "pg-seg-b" + (metodo === id ? " on" : ""), onClick: () => setMetodo(id) }, lbl)))), parts.length > 0 && metodo === "igual" && valor > 0 && /* @__PURE__ */ React.createElement("div", { className: "muted tiny", style: { fontWeight: 600 } }, "Cada pessoa fica com ", BM.eur(valor / parts.length), "."), parts.length > 0 && metodo !== "igual" && /* @__PURE__ */ React.createElement("div", { className: "pg-split" }, parts.map((p) => /* @__PURE__ */ React.createElement("div", { className: "pg-split-row", key: p }, /* @__PURE__ */ React.createElement("span", { className: "prem-avatar sm" }, inicial(p)), /* @__PURE__ */ React.createElement("span", { style: { flex: 1, fontWeight: 600, fontSize: 13 } }, p), metodo === "percentagem" ? /* @__PURE__ */ React.createElement("span", { className: "pg-split-in" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: pcts[p] || "", onChange: (e) => setPcts((s) => ({ ...s, [p]: e.target.value })), placeholder: "0" }), /* @__PURE__ */ React.createElement("i", null, "%")) : /* @__PURE__ */ React.createElement("span", { className: "pg-split-in" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: vals[p] || "", onChange: (e) => setVals((s) => ({ ...s, [p]: e.target.value })), placeholder: "0,00" }), /* @__PURE__ */ React.createElement("i", null, "\u20AC")), /* @__PURE__ */ React.createElement("span", { className: "pg-split-q" }, BM.eur(quotas[p] || 0)))), /* @__PURE__ */ React.createElement("div", { className: "pg-split-sum" + ((metodo === "percentagem" ? Math.abs(somaPct - 100) < 0.5 : Math.abs(diff) < 0.02) ? " ok" : " bad") }, metodo === "percentagem" ? "Soma: " + Math.round(somaPct) + "%" + (Math.abs(somaPct - 100) < 0.5 ? " \u2713" : " \xB7 tem de dar 100%") : "Soma: " + BM.eur(somaQuotas) + " / " + BM.eur(valor) + (Math.abs(diff) < 0.02 ? " \u2713" : ""))), /* @__PURE__ */ React.createElement(Field, { label: "Observa\xE7\xF5es", hint: "opcional" }, /* @__PURE__ */ React.createElement("textarea", { className: "input", rows: 2, value: f.obs, onChange: set("obs"), placeholder: "Notas sobre a despesa\u2026", style: { resize: "vertical", fontFamily: "inherit" } })), /* @__PURE__ */ React.createElement(Field, { label: "Anexar fatura", hint: "imagem ou PDF" }, /* @__PURE__ */ React.createElement("label", { className: "pg-upload" }, /* @__PURE__ */ React.createElement("input", { type: "file", accept: "image/*,application/pdf", multiple: true, style: { display: "none" }, onChange: (e) => {
+    /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } }, /* @__PURE__ */ React.createElement(Field, { label: "Descri\xE7\xE3o" }, /* @__PURE__ */ React.createElement("input", { className: "input", autoFocus: true, value: f.titulo, onChange: set("titulo"), placeholder: "Ex: Renda, Compras, Internet\u2026" })), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Categoria" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.categoria, onChange: set("categoria") }, Object.keys(BM.cats).map((k) => /* @__PURE__ */ React.createElement("option", { key: k, value: k }, BM.cats[k].nome)))), /* @__PURE__ */ React.createElement(Field, { label: "Valor" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: f.valor, onChange: set("valor"), placeholder: "0,00" }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Data" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "date", value: f.data, onChange: set("data") })), /* @__PURE__ */ React.createElement(Field, { label: "Vencimento", hint: "opcional" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "date", value: f.vencimento, onChange: set("vencimento") }))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } }, /* @__PURE__ */ React.createElement(Field, { label: "Quem pagou" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.pagador, onChange: set("pagador") }, pessoas.map((p) => /* @__PURE__ */ React.createElement("option", { key: p }, p)))), /* @__PURE__ */ React.createElement(Field, { label: "Estado" }, /* @__PURE__ */ React.createElement("select", { className: "select", value: f.estado, onChange: set("estado") }, ESTADOS.map((s) => /* @__PURE__ */ React.createElement("option", { key: s.id, value: s.id }, s.label))))), /* @__PURE__ */ React.createElement(Field, { label: "Partilhar com" }, /* @__PURE__ */ React.createElement("div", { className: "prem-parts" }, pessoas.map((p) => /* @__PURE__ */ React.createElement("button", { type: "button", key: p, className: "chip" + (parts.includes(p) ? " sel" : ""), style: { cursor: "pointer" }, onClick: () => toggle(p) }, p)))), /* @__PURE__ */ React.createElement(Field, { label: "M\xE9todo de divis\xE3o" }, /* @__PURE__ */ React.createElement("div", { className: "pg-seg" }, [["igual", "Igual"], ["percentagem", "Percentagem"], ["personalizado", "Valor exato"]].map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, className: "pg-seg-b" + (metodo === id ? " on" : ""), onClick: () => setMetodo(id) }, lbl)))), parts.length > 0 && metodo === "igual" && valor > 0 && /* @__PURE__ */ React.createElement("div", { className: "muted tiny", style: { fontWeight: 600 } }, "Cada pessoa fica com ", BM.eur(valor / parts.length), "."), parts.length > 0 && metodo !== "igual" && /* @__PURE__ */ React.createElement("div", { className: "pg-split" }, parts.map((p) => /* @__PURE__ */ React.createElement("div", { className: "pg-split-row", key: p }, /* @__PURE__ */ React.createElement("span", { className: "prem-avatar sm" }, inicial(p)), /* @__PURE__ */ React.createElement("span", { style: { flex: 1, fontWeight: 600, fontSize: 13 } }, p), metodo === "percentagem" ? /* @__PURE__ */ React.createElement("span", { className: "pg-split-in" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: pcts[p] || "", onChange: (e) => setPcts((s) => ({ ...s, [p]: e.target.value })), placeholder: "0" }), /* @__PURE__ */ React.createElement("i", null, "%")) : /* @__PURE__ */ React.createElement("span", { className: "pg-split-in" }, /* @__PURE__ */ React.createElement("input", { className: "input", inputMode: "decimal", value: vals[p] || "", onChange: (e) => setVals((s) => ({ ...s, [p]: e.target.value })), placeholder: "0,00" }), /* @__PURE__ */ React.createElement("i", null, fin.curSym)), /* @__PURE__ */ React.createElement("span", { className: "pg-split-q" }, BM.eur(quotas[p] || 0)))), /* @__PURE__ */ React.createElement("div", { className: "pg-split-sum" + ((metodo === "percentagem" ? Math.abs(somaPct - 100) < 0.5 : Math.abs(diff) < 0.02) ? " ok" : " bad") }, metodo === "percentagem" ? "Soma: " + Math.round(somaPct) + "%" + (Math.abs(somaPct - 100) < 0.5 ? " \u2713" : " \xB7 tem de dar 100%") : "Soma: " + BM.eur(somaQuotas) + " / " + BM.eur(valor) + (Math.abs(diff) < 0.02 ? " \u2713" : ""))), /* @__PURE__ */ React.createElement(Field, { label: "Observa\xE7\xF5es", hint: "opcional" }, /* @__PURE__ */ React.createElement("textarea", { className: "input", rows: 2, value: f.obs, onChange: set("obs"), placeholder: "Notas sobre a despesa\u2026", style: { resize: "vertical", fontFamily: "inherit" } })), /* @__PURE__ */ React.createElement(Field, { label: "Anexar fatura", hint: "imagem ou PDF" }, /* @__PURE__ */ React.createElement("label", { className: "pg-upload" }, /* @__PURE__ */ React.createElement("input", { type: "file", accept: "image/*,application/pdf", multiple: true, style: { display: "none" }, onChange: (e) => {
       addFiles(e.target.files);
       e.target.value = "";
     } }), /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "var(--accent)" }), " ", busy ? "A processar\u2026" : "Escolher ficheiro(s)"), anexos.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 6, flexWrap: "wrap", marginTop: 8 } }, anexos.map((a, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: "chip", style: { gap: 7 } }, /* @__PURE__ */ React.createElement(Icon, { name: "receipt", size: 12 }), " ", a.nome.length > 18 ? a.nome.slice(0, 16) + "\u2026" : a.nome, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => setAnexos((arr) => arr.filter((_, j) => j !== i)), style: { background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" } }, /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(45deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 12, color: "var(--ink-3)" })))))), /* @__PURE__ */ React.createElement("div", { className: "muted tiny", style: { fontWeight: 600, marginTop: 6, lineHeight: 1.5 } }, "As imagens s\xE3o reduzidas automaticamente e guardadas localmente. A leitura autom\xE1tica (OCR) chega numa fase futura.")), err && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { padding: "9px 12px" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, err)))
@@ -1272,7 +1285,15 @@ function diasDesde(iso) {
   const d = new Date(p[0], (p[1] || 1) - 1, p[2] || 1);
   return Math.round((hj - d) / 864e5);
 }
-function gerarNotificacoes(prem, dados) {
+function isoWeekKey(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - dayNum);
+  const anoInicio = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+  const semana = Math.ceil(((dt - anoInicio) / 864e5 + 1) / 7);
+  return dt.getUTCFullYear() + "-W" + String(semana).padStart(2, "0");
+}
+function gerarNotificacoes(prem, dados, account) {
   const s = prem.get();
   const d0 = dados || {};
   const out = [];
@@ -1348,17 +1369,38 @@ function gerarNotificacoes(prem, dados) {
       });
     }
   }
+  if (!account || account.resumoSemanal !== false) {
+    const semanaKey = isoWeekKey(/* @__PURE__ */ new Date());
+    const desde = /* @__PURE__ */ new Date();
+    desde.setDate(desde.getDate() - 7);
+    const desdeISO = desde.toISOString().slice(0, 10);
+    const despSemana = (d0.despesas || []).filter((e) => (e.data || "") >= desdeISO);
+    const recSemana = (d0.rendimentos || []).filter((r) => (r.data || "") >= desdeISO).reduce((a, r) => a + (+r.valor || 0), 0);
+    const gastoSemana = despSemana.reduce((a, e) => a + (+e.valor || 0), 0);
+    if (recSemana > 0 || gastoSemana > 0) {
+      const porCatSemana = {};
+      despSemana.forEach((e) => {
+        porCatSemana[e.cat] = (porCatSemana[e.cat] || 0) + (+e.valor || 0);
+      });
+      const catTopoKey = Object.keys(porCatSemana).sort((a, b) => porCatSemana[b] - porCatSemana[a])[0];
+      const catTopoNome = catTopoKey ? (BM.cats[catTopoKey] || BM.cats.outros).nome : null;
+      const diff = recSemana - gastoSemana;
+      const partes = ["Recebido " + BM.eur(recSemana), "gasto " + BM.eur(gastoSemana), (diff >= 0 ? "saldo +" : "saldo ") + BM.eur(diff)];
+      if (catTopoNome) partes.push("mais gasto em " + catTopoNome);
+      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" \xB7 ") + "." });
+    }
+  }
   const ordSev = { urgent: 0, warn: 1, info: 2 };
   return out.sort((a, b) => ordSev[a.sev] - ordSev[b.sev] || (a.d == null ? 99 : a.d) - (b.d == null ? 99 : b.d));
 }
-function dispararNotificacoesNativas(prem, dados) {
+function dispararNotificacoesNativas(prem, dados, account) {
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
   const s = prem.get();
   if (!(s.notif && s.notif.ativo)) return;
   const hoje = BM.todayISO();
   const log = s.notifLog || {};
   const jaHoje = new Set(log[hoje] || []);
-  const novos = gerarNotificacoes(prem, dados || {}).filter((a) => !jaHoje.has(a.chave));
+  const novos = gerarNotificacoes(prem, dados || {}, account).filter((a) => !jaHoje.has(a.chave));
   if (!novos.length) return;
   const titulo = novos.length === 1 ? "Tens uma novidade" : "Tens " + novos.length + " novidades";
   const corpo = novos.slice(0, 3).map((a) => a.titulo).join("\n") + (novos.length > 3 ? "\n+ " + (novos.length - 3) + " mais" : "");
@@ -1374,15 +1416,21 @@ function NotifBell() {
   const fin = useFinance();
   const dados = fin.data || {};
   const [open, setOpen] = React.useState(false);
+  const [verTodas, setVerTodas] = React.useState(false);
   const [perm, setPerm] = React.useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const s = prem.get();
   const cfg = s.notif || { ativo: true, aviso: 3 };
-  const notifs = gerarNotificacoes(prem, dados);
+  const notifs = gerarNotificacoes(prem, dados, fin.account);
   const count = notifs.length;
+  const LIMITE = 5;
+  const notifsMostradas = verTodas ? notifs : notifs.slice(0, LIMITE);
+  React.useEffect(() => {
+    if (!open) setVerTodas(false);
+  }, [open]);
   const nMov = (dados.despesas || []).length + (dados.rendimentos || []).length;
   React.useEffect(() => {
     if (!cfg.ativo) return;
-    const tick = () => dispararNotificacoesNativas(prem, fin.data || {});
+    const tick = () => dispararNotificacoesNativas(prem, fin.data || {}, fin.account);
     tick();
     const iv = setInterval(tick, 1e3 * 60 * 30);
     return () => clearInterval(iv);
@@ -1395,14 +1443,14 @@ function NotifBell() {
     });
   };
   const setCfg = (patch) => prem.update({ notif: { ...cfg, ...patch } });
-  return /* @__PURE__ */ React.createElement("div", { className: "notif-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn notif-btn", title: "Notifica\xE7\xF5es", onClick: () => setOpen((v) => !v) }, /* @__PURE__ */ React.createElement(Icon, { name: "bell", size: 18 }), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-badge" }, count > 9 ? "9+" : count)), open && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "notif-pop-bg", onClick: () => setOpen(false) }), /* @__PURE__ */ React.createElement("div", { className: "notif-pop", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "notif-head" }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, fontSize: 14.5 } }, "Notifica\xE7\xF5es"), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-head-count" }, count)), perm !== "granted" && perm !== "unsupported" && /* @__PURE__ */ React.createElement("div", { className: "notif-perm" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("b", { style: { fontSize: 13 } }, "Ativar avisos no dispositivo"), /* @__PURE__ */ React.createElement("span", { style: { display: "block", fontSize: 12, color: "var(--ink-3)", marginTop: 2 } }, perm === "denied" ? "Est\xE3o bloqueados \u2014 ativa-os nas defini\xE7\xF5es do navegador." : "Para receberes avisos mesmo fora desta p\xE1gina.")), perm === "default" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 12px", fontSize: 12.5 }, onClick: pedirPermissao }, "Ativar")), /* @__PURE__ */ React.createElement("div", { className: "notif-list" }, notifs.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "notif-empty" }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 20, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", null, "Est\xE1s em dia. Nada a tratar por agora.")) : notifs.map((a) => {
+  return /* @__PURE__ */ React.createElement("div", { className: "notif-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn notif-btn", title: "Notifica\xE7\xF5es", "aria-label": count > 0 ? `Notifica\xE7\xF5es (${count} por ler)` : "Notifica\xE7\xF5es", "aria-haspopup": "true", "aria-expanded": open, onClick: () => setOpen((v) => !v) }, /* @__PURE__ */ React.createElement(Icon, { name: "bell", size: 18 }), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-badge" }, count > 9 ? "9+" : count)), open && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "notif-pop-bg", onClick: () => setOpen(false) }), /* @__PURE__ */ React.createElement("div", { className: "notif-pop", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "notif-head" }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, fontSize: 14.5 } }, "Notifica\xE7\xF5es"), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-head-count" }, count)), perm !== "granted" && perm !== "unsupported" && /* @__PURE__ */ React.createElement("div", { className: "notif-perm" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("b", { style: { fontSize: 13 } }, "Ativar avisos no dispositivo"), /* @__PURE__ */ React.createElement("span", { style: { display: "block", fontSize: 12, color: "var(--ink-3)", marginTop: 2 } }, perm === "denied" ? "Est\xE3o bloqueados \u2014 ativa-os nas defini\xE7\xF5es do navegador." : "Para receberes avisos mesmo fora desta p\xE1gina.")), perm === "default" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 12px", fontSize: 12.5 }, onClick: pedirPermissao }, "Ativar")), /* @__PURE__ */ React.createElement("div", { className: "notif-list" }, notifs.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "notif-empty" }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 20, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", null, "Est\xE1s em dia. Nada a tratar por agora.")) : notifsMostradas.map((a) => {
     const cor = a.sev === "urgent" ? "var(--neg)" : a.sev === "warn" ? "#e0792b" : "var(--accent)";
     return /* @__PURE__ */ React.createElement("div", { className: "notif-item", key: a.chave }, /* @__PURE__ */ React.createElement("span", { className: "notif-item-ico", style: { background: "color-mix(in srgb, " + cor + " 14%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: a.icon || "bell", size: 16, color: cor })), /* @__PURE__ */ React.createElement("div", { className: "notif-item-txt" }, /* @__PURE__ */ React.createElement("b", null, a.titulo), /* @__PURE__ */ React.createElement("span", { className: "notif-item-sub" }, a.texto, a.valor != null && a.cat === "pagamento" ? " \xB7 " + BM.eur(a.valor) : "")), a.acao === "pagar" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { padding: "6px 11px", fontSize: 12, flex: "none" }, onClick: () => resolverAlerta(prem, a, fin) }, "Pagar"));
-  })), /* @__PURE__ */ React.createElement("div", { className: "notif-foot" }, /* @__PURE__ */ React.createElement("button", { className: "notif-switch" + (cfg.ativo ? " on" : ""), onClick: () => setCfg({ ativo: !cfg.ativo }), title: "Ligar/desligar avisos" }, /* @__PURE__ */ React.createElement("span", { className: "notif-switch-dot" })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 600, flex: 1 } }, "Avisos ", cfg.ativo ? "ativos" : "desligados"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "var(--ink-3)", fontWeight: 600 } }, "Avisar"), /* @__PURE__ */ React.createElement("select", { className: "select", style: { width: "auto", padding: "5px 8px", fontSize: 12.5 }, value: cfg.aviso, onChange: (e) => setCfg({ aviso: +e.target.value }) }, [1, 3, 5, 7].map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n, " dia", n > 1 ? "s" : "", " antes")))))));
+  }), !verTodas && notifs.length > LIMITE && /* @__PURE__ */ React.createElement("button", { type: "button", className: "notif-ver-todas", onClick: () => setVerTodas(true) }, "Ver todas (", notifs.length, ")")), /* @__PURE__ */ React.createElement("div", { className: "notif-foot" }, /* @__PURE__ */ React.createElement("button", { className: "notif-switch" + (cfg.ativo ? " on" : ""), onClick: () => setCfg({ ativo: !cfg.ativo }), title: "Ligar/desligar avisos" }, /* @__PURE__ */ React.createElement("span", { className: "notif-switch-dot" })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 600, flex: 1 } }, "Avisos ", cfg.ativo ? "ativos" : "desligados"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "var(--ink-3)", fontWeight: 600 } }, "Avisar"), /* @__PURE__ */ React.createElement("select", { className: "select", style: { width: "auto", padding: "5px 8px", fontSize: 12.5 }, value: cfg.aviso, onChange: (e) => setCfg({ aviso: +e.target.value }) }, [1, 3, 5, 7].map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n, " dia", n > 1 ? "s" : "", " antes")))))));
 }
 function PremiumBadge() {
   const prem = usePremium();
   if (!prem.get().premium) return null;
   return /* @__PURE__ */ React.createElement("span", { className: "prem-tag" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 11, color: "#fff" }), " Premium");
 }
-Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, Partilha, Previsao, PremiumBadge });
+Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge });

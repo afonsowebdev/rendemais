@@ -383,6 +383,15 @@ function Dashboard({ go, open }) {
     return cc ? cc.nome : tr("cat_outros");
   };
   const hasData = fin.despMes.length > 0 || fin.rendMes.length > 0;
+  // Atalhos do painel personalizados pelas prioridades escolhidas no onboarding
+  // (Etapa 3 · "Como pretende utilizar o Rende+?") — nunca inventa dados, só aponta caminhos.
+  const prefs = Array.isArray(fin.account?.preferencia) ? fin.account.preferencia : (fin.account?.preferencia ? [fin.account.preferencia] : []);
+  const atalhosPersonalizados = [
+    prefs.includes("objetivos") && { icon: "target", t: "Crie o seu primeiro objetivo", d: "Defina uma meta e acompanhe o progresso.", onClick: () => go("objetivos") },
+    prefs.includes("orcamento") && !fin.data.orcamento && { icon: "wallet", t: "Crie o seu orçamento mensal", d: "Defina um limite de gastos para o mês.", onClick: () => open("orcamento") },
+    prefs.includes("partilhadas") && { icon: "users", t: "Crie o primeiro grupo", d: "Divida despesas com quem partilha consigo.", onClick: () => go("partilha") },
+    prefs.includes("pagamentos") && { icon: "cal", t: "Acompanhe pagamentos futuros", d: "Adicione lembretes e nunca perca uma data.", onClick: () => go("agenda") },
+  ].filter(Boolean);
   const orc = fin.data.orcamento;
   const pctGasto = orc ? Math.round((fin.totalGasto / orc) * 100) : null;
   const recent = [...fin.despMes].sort((a, b) => (b.data || "").localeCompare(a.data || "")).slice(0, 6);
@@ -412,6 +421,17 @@ function Dashboard({ go, open }) {
             </div>
           ))}
         </div>
+        {atalhosPersonalizados.length > 0 && (
+          <div className="grid" style={{ gridTemplateColumns: `repeat(${atalhosPersonalizados.length}, 1fr)`, marginTop: 4 }}>
+            {atalhosPersonalizados.map((a) => (
+              <button type="button" className="card card-pad" key={a.t} onClick={a.onClick} style={{ textAlign: "left", cursor: "pointer", border: "1px solid var(--border)" }}>
+                <div className="kpi-ico" style={{ background: "var(--accent-soft)", marginBottom: 12 }}><Icon name={a.icon} size={19} color="var(--accent)" /></div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{a.t}</div>
+                <div className="tiny muted" style={{ marginTop: 5, fontWeight: 600, lineHeight: 1.5 }}>{a.d}</div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -423,6 +443,23 @@ function Dashboard({ go, open }) {
   const nearMeta = fin.data.metas.find((m) => m.atual / m.alvo >= 0.7 && m.atual < m.alvo);
   if (nearMeta) alerts.push(["ok", "target", tt("dash_alert_meta_t", { nome: nearMeta.nome }), tt("dash_alert_meta_d", { x: BM.eur0(nearMeta.alvo - nearMeta.atual) })]);
 
+  // Objetivo em destaque: a meta aberta mais próxima da conclusão (maior progresso).
+  const metasAbertas = fin.data.metas.filter((m) => !m.fechada);
+  const metaDestaque = [...metasAbertas].sort((a, b) => {
+    const pa = a.alvo > 0 ? a.atual / a.alvo : -1;
+    const pb = b.alvo > 0 ? b.atual / b.alvo : -1;
+    return pb - pa;
+  })[0] || null;
+
+  // Próximos pagamentos: reaproveita o motor de alertas já existente (lembretes + recorrentes a vencer).
+  const prem = usePremium();
+  const proximosPagamentos = scanAlertas(prem).slice(0, 5);
+  const diaLabel = (d) => d < 0 ? "Atrasado" : d === 0 ? "Vence hoje" : d === 1 ? "Vence amanhã" : `Em ${d} dias`;
+
+  const ehPremium = fin.account?.plano === "premium";
+  const [qaOpen, setQaOpen, qaRef] = useDropdownClose();
+  const [novoEvento, setNovoEvento] = React.useState(false);
+
   return (
     <div className="content">
       {alerts.length > 0 && (
@@ -431,11 +468,31 @@ function Dashboard({ go, open }) {
         </div>
       )}
 
-      <div className="grid" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+      <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <div className="qa-menu" ref={qaRef}>
+          <button type="button" className="btn btn-primary" onClick={() => setQaOpen((v) => !v)} aria-haspopup="menu" aria-expanded={qaOpen}>
+            <Icon name="plus" size={16} color="#fff" /> Nova transação <i className="bx bx-chevron-down" aria-hidden="true" style={{ fontSize: 15 }}></i>
+          </button>
+          {qaOpen && (
+            <div className="qa-menu-pop" role="menu" aria-label="Nova transação">
+              <button type="button" role="menuitem" onClick={() => { setQaOpen(false); open("rendimento"); }}><Icon name="arrowsDown" size={16} /> {tr("add_income")}</button>
+              <button type="button" role="menuitem" onClick={() => { setQaOpen(false); open("despesa"); }}><Icon name="wallet" size={16} /> {tr("add_expense")}</button>
+            </div>
+          )}
+        </div>
+        <div className="row" style={{ gap: 8 }}>
+          <button type="button" className="btn btn-soft" onClick={() => open("meta")}><Icon name="target" size={15} /> Novo objetivo</button>
+          <button type="button" className="btn btn-soft" onClick={() => setNovoEvento(true)}><Icon name="cal" size={15} /> Novo evento</button>
+          {ehPremium && <button type="button" className="btn btn-soft" onClick={() => go("partilha")}><Icon name="users" size={15} /> Novo grupo</button>}
+        </div>
+      </div>
+
+      <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))" }}>
         <Kpi label={tr("kpi_received")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
         <Kpi label={tr("kpi_spent")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
         <Kpi label={tr("kpi_available")} value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} sub={fin.poupancaSeparada > 0 ? tt("kpi_after_savings", { x: BM.eur0(fin.poupancaSeparada) }) : tr("kpi_until_eom")} />
         <Kpi label={tr("kpi_saved")} value={BM.eur0(fin.poupado)} icon="target" color="var(--c-educacao)" sub={tt(fin.data.metas.length === 1 ? "kpi_meta_one" : "kpi_meta_many", { n: fin.data.metas.length })} />
+        <Kpi label="Objetivos ativos" value={String(metasAbertas.length)} icon="target" color="var(--c-lazer)" sub={metasAbertas.length === 0 ? "Nenhum em curso" : undefined} />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
@@ -485,7 +542,7 @@ function Dashboard({ go, open }) {
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 6 }}>
             <div className="section-title">{tr("dash_recent")}</div>
-            <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("despesas")}>{tr("see_all")} <Icon name="chevR" size={14} /></button>
+            <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("transacoes")}>{tr("see_all")} <Icon name="chevR" size={14} /></button>
           </div>
           {recent.length === 0 ? <div className="muted tiny" style={{ padding: "24px 0", fontWeight: 600 }}>{tr("dash_no_expenses")}.</div> : (
             <div className="list">
@@ -517,21 +574,64 @@ function Dashboard({ go, open }) {
             </div>
           ) : <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("budget_empty")}</div>}
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 13 }}>
-            <div className="tiny" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>{tr("goals_label")}</div>
-            {fin.data.metas.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("goals_empty")} <button onClick={() => go("poupanca")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, font: "inherit" }}>{tr("goals_create_first")}</button></div> :
-              fin.data.metas.map((m) => (
-                <div key={m.id}>
-                  <div className="row" style={{ justifyContent: "space-between", marginBottom: 7 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700 }}>{m.nome}</span>
-                    <span className="tnum tiny muted" style={{ fontWeight: 700 }}>{BM.eur0(m.atual)} / {BM.eur0(m.alvo)}</span>
-                  </div>
-                  <Progress value={m.atual} max={m.alvo} color={m.cor} />
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="tiny" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)" }}>Objetivo em destaque</div>
+              {metaDestaque && <button onClick={() => go("objetivos")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, font: "inherit", fontSize: 12 }}>{tr("see_all")}</button>}
+            </div>
+            {!metaDestaque ? <div className="muted tiny" style={{ fontWeight: 600 }}>{tr("goals_empty")} <button onClick={() => go("objetivos")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, cursor: "pointer", padding: 0, font: "inherit" }}>{tr("goals_create_first")}</button></div> : (
+              <div>
+                <div className="row" style={{ justifyContent: "space-between", marginBottom: 7 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>{metaDestaque.nome}</span>
+                  <span className="tnum tiny muted" style={{ fontWeight: 700 }}>{BM.eur0(metaDestaque.atual)} / {BM.eur0(metaDestaque.alvo)}</span>
                 </div>
-              ))}
+                <Progress value={metaDestaque.atual} max={metaDestaque.alvo} color={metaDestaque.cor} />
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <div className="card card-pad">
+        <div className="section-head" style={{ marginBottom: 10 }}>
+          <div className="section-title">Próximos pagamentos</div>
+          <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("agenda")}>{tr("see_all")} <Icon name="chevR" size={14} /></button>
+        </div>
+        {proximosPagamentos.length === 0 ? (
+          <div className="muted tiny" style={{ padding: "20px 0", fontWeight: 600 }}>Sem pagamentos a vencer nos próximos dias.</div>
+        ) : (
+          <div className="list">
+            {proximosPagamentos.map((a) => (
+              <div className="li" key={a.chave}>
+                <div className="kpi-ico" style={{ background: "var(--accent-soft)" }}><Icon name="cal" size={17} color="var(--accent)" /></div>
+                <div className="li-main">
+                  <div className="li-title">{a.titulo}</div>
+                  <div className="li-sub">{diaLabel(a.d)}</div>
+                </div>
+                <div className="li-amt tnum">{BM.eur(a.valor)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {novoEvento && <LembreteModal item={null} onClose={() => setNovoEvento(false)} onSave={(it) => { prem.add("lembretes", it); setNovoEvento(false); }} />}
     </div>
+  );
+}
+
+/* ---------- TRANSAÇÕES (Despesas + Rendimentos, reorganizados num único ecrã) ---------- */
+function Transacoes({ open }) {
+  const [tab, setTab] = React.useState("despesas");
+  return (
+    <>
+      <div className="content" style={{ paddingBottom: 0 }}>
+        <div className="pg-tabs" style={{ width: "fit-content" }}>
+          <button type="button" className={"pg-tab" + (tab === "despesas" ? " on" : "")} onClick={() => setTab("despesas")}><Icon name="wallet" size={15} /> Despesas</button>
+          <button type="button" className={"pg-tab" + (tab === "rendimentos" ? " on" : "")} onClick={() => setTab("rendimentos")}><Icon name="arrowsDown" size={15} /> Receitas</button>
+        </div>
+      </div>
+      {tab === "despesas" ? <Despesas open={open} /> : <Rendimentos open={open} />}
+    </>
   );
 }
 

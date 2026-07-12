@@ -36,31 +36,27 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
 
 function Sidebar({ route, go, account, collapsed, onToggle }) {
   const tr = useT();
+  // Navegação principal única — nomes diretos em PT (ver nota em app.jsx/TITULOS).
   const nav = [
-    { id: "dashboard", label: tr("lbl_dashboard"), icon: "grid" },
-    { id: "despesas", label: tr("lbl_expenses"), icon: "wallet" },
-    { id: "rendimentos", label: tr("lbl_income"), icon: "arrowsDown" },
-    { id: "poupanca", label: tr("lbl_savings"), icon: "target" },
-  ];
-  const nav2 = [
-    { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
-    { id: "historico", label: tr("lbl_history"), icon: "history" },
-    { id: "config", label: tr("lbl_settings"), icon: "gear" },
-  ];
-  const navPrem = [
-    { id: "lembretes", label: "Lembretes", icon: "bell" },
-    { id: "recorrentes", label: "Recorrentes", icon: "history" },
-    { id: "subscricoes", label: "Subscrições", icon: "card" },
+    { id: "dashboard", label: "Painel", icon: "grid" },
+    { id: "transacoes", label: "Transações", icon: "transfer" },
+    { id: "objetivos", label: "Objetivos", icon: "target" },
+    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
     { id: "partilha", label: "Partilha", icon: "users" },
-    { id: "previsao", label: "Previsão", icon: "chart" },
+    { id: "contas", label: "Contas", icon: "wallet" },
+    { id: "relatorios", label: "Relatórios", icon: "report" },
+    { id: "config", label: "Definições", icon: "gear" },
   ];
   const ehPremium = !!(account && account.plano === "premium");
-  const Item = (n) => (
-    <button key={n.id} className={"nav-item" + (route === n.id ? " active" : "")} onClick={() => go(n.id)} title={n.label}>
-      <Icon name={n.icon} size={19} />
-      <span>{n.label}</span>
-    </button>
-  );
+  const Item = (n) => {
+    const active = route === n.id;
+    return (
+      <button key={n.id} className={"nav-item" + (active ? " active" : "")} onClick={() => go(n.id)} title={n.label} aria-current={active ? "page" : undefined}>
+        <Icon name={n.icon} size={19} />
+        <span>{n.label}</span>
+      </button>
+    );
+  };
   return (
     <aside className="sidebar">
       <div style={{ padding: "4px 8px 22px" }}>
@@ -68,32 +64,16 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
           <Brand nameColor="#fff" />
         </button>
       </div>
-      <div className="nav-label">{tr("lbl_general")}</div>
       {nav.map(Item)}
-      <div className="nav-label">{tr("lbl_analysis")}</div>
-      {nav2.map(Item)}
-      {ehPremium ? (
-        <>
-          <div className="nav-label">Premium</div>
-          {navPrem.map(Item)}
-          <button className={"nav-item" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Rende+ Premium"><Icon name="spark" size={19} /><span>Rende+ Premium</span></button>
-        </>
-      ) : (
-        <button className={"nav-item nav-premium-cta" + (route === "premium" ? " active" : "")} onClick={() => go("premium")} title="Desbloqueia o Rende+ Premium">
-          <Icon name="spark" size={19} /><span>Rende+ Premium</span>
-        </button>
-      )}
       <div className="sidebar-foot">
+        {!ehPremium && (
+          <button className="sb-plan-pill" onClick={() => go("premium")} title="Desbloqueia o Rende+ Premium">
+            <Icon name="spark" size={14} color="var(--accent)" /> <span>Free — Upgrade</span>
+          </button>
+        )}
         <button className="nav-item sb-toggle" onClick={onToggle} title={collapsed ? tr("sb_expand") : tr("sb_collapse")}>
           <span style={{ display: "grid", transform: collapsed ? "none" : "rotate(180deg)" }}><Icon name="chevR" size={18} /></span>
           <span>{collapsed ? tr("sb_expand") : tr("sb_collapse")}</span>
-        </button>
-        <button className="user-chip" style={{ border: "none", width: "100%", textAlign: "left" }} onClick={() => go("perfil")} title={account?.nome || tr("lbl_my_account")}>
-          <Avatar account={account} size={34} />
-          <div className="uc-text" style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{account?.nome || tr("lbl_my_account")}</div>
-            <div style={{ fontSize: 11.5, opacity: .6 }}>{[account?.perfil, account?.cidade].filter(Boolean).join(" · ") || tr("lbl_profile")}</div>
-          </div>
         </button>
       </div>
     </aside>
@@ -117,10 +97,60 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
   );
 }
 
-function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar }) {
+/* Fecha um dropdown com Escape ou clique fora — reutilizado pelo menu de conta do header. */
+function useDropdownClose() {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return [open, setOpen, ref];
+}
+
+/* Botão de perfil do header interno — avatar + dropdown (ver perfil/definições/segurança/plano/sair). */
+function ProfileMenu({ account, go, onLogout }) {
+  const tr = useT();
+  const [open, setOpen, ref] = useDropdownClose();
+  const primeiroNome = (account?.nome || "").split(" ")[0] || tr("lbl_my_account");
+  return (
+    <div className="profile-menu" ref={ref}>
+      <button type="button" className="profile-menu-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Abrir menu de conta">
+        <Avatar account={account} size={30} />
+        <span className="profile-menu-name hide-mobile">{primeiroNome}</span>
+        <i className="bx bx-chevron-down hide-mobile" aria-hidden="true"></i>
+      </button>
+      {open && (
+        <div className="profile-menu-pop" role="menu" aria-label="Conta">
+          <div className="profile-menu-head">
+            <div style={{ fontWeight: 700, fontSize: 13.5 }}>{account?.nome || tr("lbl_my_account")}</div>
+            {account?.email && <div className="tiny muted" style={{ fontWeight: 600, marginTop: 1 }}>{account.email}</div>}
+          </div>
+          <div className="profile-menu-sep" />
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); go("perfil"); }}><Icon name="user" size={16} /> Ver perfil</button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); go("config"); }}><Icon name="gear" size={16} /> Definições</button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); go("config"); }}><Icon name="shield" size={16} /> Segurança</button>
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); go("premium"); }}><Icon name="spark" size={16} /> Plano atual</button>
+          <div className="profile-menu-sep" />
+          <button type="button" role="menuitem" className="profile-menu-danger" onClick={() => { setOpen(false); onLogout(); }}><Icon name="logout" size={16} /> {tr("logout_full")}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar, go }) {
   const tr = useT();
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
+  const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
   return (
     <div className="topbar">
       <div className="row" style={{ gap: 11, minWidth: 0 }}>
@@ -143,10 +173,10 @@ function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthN
           </button>
         )}
         {notificacoesOn && <NotifBell />}
-        <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={tr("theme_title")}>
+        <button className="icon-btn hide-mobile" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
         </button>
-        <button className="icon-btn hide-mobile" onClick={onLogout} title={tr("logout_short")}><Icon name="logout" size={18} /></button>
+        <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
       </div>
     </div>
   );
@@ -160,13 +190,13 @@ function MobileNav({ route, go, onAdd, onMore }) {
       <span>{t.label}</span>
     </button>
   );
-  const moreRoutes = ["poupanca", "contas", "relatorios", "historico", "perfil", "config", "lembretes", "recorrentes", "subscricoes", "partilha", "previsao", "premium"];
+  const moreRoutes = ["agenda", "contas", "relatorios", "perfil", "config", "partilha", "previsao", "premium"];
   return (
     <nav className="mobilenav">
       {Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" })}
-      {Tab({ id: "despesas", label: tr("lbl_expenses"), icon: "wallet" })}
+      {Tab({ id: "transacoes", label: "Transações", icon: "transfer" })}
       <button className="mtab-fab" onClick={onAdd} aria-label="Adicionar"><Icon name="plus" size={27} color="#fff" sw={2.4} /></button>
-      {Tab({ id: "rendimentos", label: tr("lbl_income_m"), icon: "arrowsDown" })}
+      {Tab({ id: "objetivos", label: "Objetivos", icon: "target" })}
       <button className={"mtab" + (moreRoutes.includes(route) ? " on" : "")} onClick={onMore}>
         <Icon name="dots" size={23} sw={2.4} /><span>{tr("lbl_more")}</span>
       </button>
@@ -179,14 +209,12 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const ehPremium = !!(account && account.plano === "premium");
   const items = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
-    { id: "historico", label: tr("lbl_history"), icon: "history" },
+    { id: "contas", label: tr("lbl_accounts"), icon: "wallet" },
     { id: "perfil", label: tr("lbl_profile"), icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const premItems = [
-    { id: "lembretes", label: "Lembretes", icon: "bell" },
-    { id: "recorrentes", label: "Recorrentes", icon: "history" },
-    { id: "subscricoes", label: "Subscrições", icon: "card" },
+    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
     { id: "partilha", label: "Partilha", icon: "users" },
     { id: "previsao", label: "Previsão", icon: "chart" },
   ];

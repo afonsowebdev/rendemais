@@ -92,7 +92,39 @@ function Poupanca({ open }) {
 }
 
 /* ---------- RELATÓRIOS ---------- */
+/* Relatórios: separadores por área de análise. "Visão geral" reaproveita o conteúdo
+   já existente (médias, receitas vs. despesas, categorias, análise automática) e
+   integra a tabela do Histórico (mesma fonte de dados, fin.historico) — o Histórico
+   deixa de ter entrada própria no menu, mas o componente continua 100% intacto e
+   acessível aqui. Os restantes separadores ficam "Em breve": a análise cruzada por
+   período/conta/categoria pedida fica para uma etapa futura, sem inventar dados. */
 function Relatorios() {
+  const [tab, setTab] = React.useState("geral");
+  const TABS = [["geral", "Visão geral"], ["receitas", "Receitas"], ["despesas", "Despesas"], ["objetivos", "Objetivos"], ["orcamento", "Orçamento"]];
+  return (
+    <>
+      <div className="content" style={{ paddingBottom: 0 }}>
+        <div className="pg-tabs" style={{ width: "fit-content" }}>
+          {TABS.map(([id, lbl]) => (
+            <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+      {tab === "geral" ? (
+        <>
+          <RelatoriosVisaoGeral />
+          <Historico />
+        </>
+      ) : (
+        <div className="content">
+          <EmptyState icon="report" title="Em breve" msg="Esta análise está a ser preparada e vai ficar disponível numa próxima atualização." />
+        </div>
+      )}
+    </>
+  );
+}
+
+function RelatoriosVisaoGeral() {
   const fin = useFinance();
   const hist = fin.historico;
   if (hist.length === 0) {
@@ -211,13 +243,15 @@ function PerfilPreferencias() {
   const [busy, setBusy] = React.useState(false);
   const [msg, setMsg] = React.useState("");
 
-  const SITUACOES = [["estudante", "Estudante"], ["trabalhador", "Trabalhador"], ["freelancer", "Freelancer"], ["empresario", "Empresário"], ["casado", "Casado"], ["solteiro", "Solteiro"], ["outro", "Outro"]];
-  const OBJETIVOS = [["casa", "Comprar casa"], ["viajar", "Viajar"], ["carro", "Comprar carro"], ["computador", "Novo computador"], ["familia", "Família"], ["fundo", "Fundo de emergência"], ["investir", "Investir"], ["estudos", "Estudos"]];
-  const PREFERENCIAS = [["controlar", "Controlar gastos"], ["poupar", "Poupança e objetivos"], ["investir", "Investir melhor"]];
-  const PLANEAMENTO = [["sim", "Sim, todos os meses"], ["ainda-nao", "Ainda não"], ["comecar", "Quero começar"]];
-  const PARTILHA = [["nao", "Não"], ["parceiro", "Parceiro(a)"], ["casa", "Casa partilhada"], ["familia", "Família"]];
-  const RENDIMENTOS = ["Salário", "Apoio familiar", "Bolsa", "Investimentos", "Freelancer", "Rendimentos extras", "Negócio próprio", "Outro"];
-  const DESPESAS = ["Renda", "Alimentação", "Streaming", "Água", "Universidade", "Lazer", "Luz", "Ginásio", "Empréstimos", "Internet", "Saúde", "Animais", "Transportes", "Seguro", "Outro"];
+  // Mesmas listas/chaves do onboarding (assets/js/onboarding.jsx) — mantidas iguais para
+  // que as opções guardadas aqui e lá batam sempre certo.
+  const SITUACOES = [["estudante", "Estudante"], ["trabalhador", "Trabalhador"], ["freelancer", "Freelancer"], ["empresario", "Empresário"], ["casado", "Casado"], ["vive-sozinho", "Vive sozinho"], ["casa-partilhada", "Vive numa casa partilhada"], ["outro", "Outro"]];
+  const OBJETIVOS = [["fundo", "Fundo de emergência"], ["casa", "Comprar casa"], ["carro", "Comprar carro"], ["viagem", "Viagem"], ["educacao", "Educação"], ["tecnologia", "Tecnologia"], ["familia", "Família"], ["saude", "Saúde"], ["investimento", "Investimento"], ["outro", "Outro"]];
+  const PREFERENCIAS = [["controlar", "Controlar despesas"], ["orcamento", "Organizar o orçamento mensal"], ["objetivos", "Criar objetivos financeiros"], ["partilhadas", "Gerir despesas partilhadas"], ["pagamentos", "Acompanhar pagamentos futuros"], ["habitos", "Melhorar hábitos financeiros"]];
+  const PLANEAMENTO = [["criar-agora", "Quero criar um orçamento mensal agora"], ["sugestao", "Quero receber uma sugestão inicial"], ["mais-tarde", "Prefiro configurar mais tarde"]];
+  const PARTILHA = [["nao", "Não"], ["parceiro", "Com parceiro ou parceira"], ["familia", "Com família"], ["casa", "Numa casa partilhada"], ["grupo", "Em grupos ocasionais"]];
+  const RENDIMENTOS = Object.keys(BM.incomeCats);
+  const DESPESAS = ["Renda", "Água", "Eletricidade", "Gás", "Internet", "Alimentação", "Transporte", "Educação", "Saúde", "Seguros", "Subscrições", "Lazer", "Telecomunicações", "Outro"];
   const rotulo = (lista, val) => (lista.find((o) => o[0] === val) || [null, "—"])[1];
 
   const SEL_MAX = 3;
@@ -225,8 +259,8 @@ function PerfilPreferencias() {
   const [f, setF] = React.useState({});
   const abrir = () => {
     setF({
-      situacao: asArr(a.situacao, ["estudante"]), objetivo: asArr(a.objetivo, ["fundo"]), preferencia: a.preferencia || "controlar",
-      planeamento: a.planeamento || "ainda-nao", partilha: a.partilha || "nao", telefone: a.telefone || "", sobre: a.sobre || "",
+      situacao: asArr(a.situacao, ["estudante"]), objetivo: asArr(a.objetivo, ["fundo"]), preferencia: asArr(a.preferencia, ["controlar"]),
+      planeamento: a.planeamento || "mais-tarde", partilha: a.partilha || "nao",
       fontesRendimento: Array.isArray(a.fontesRendimento) ? a.fontesRendimento : [], principaisDespesas: Array.isArray(a.principaisDespesas) ? a.principaisDespesas : [],
       notificacoes: a.notificacoes !== false, resumoSemanal: a.resumoSemanal !== false,
     });
@@ -300,35 +334,35 @@ function PerfilPreferencias() {
       {!editar ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <Chips label="Situação atual" valor={asArr(a.situacao, []).map((v) => rotulo(SITUACOES, v))} />
-          <Chips label="Objetivo principal" valor={asArr(a.objetivo, []).map((v) => rotulo(OBJETIVOS, v))} />
-          <Linha label="Preferência" valor={rotulo(PREFERENCIAS, a.preferencia)} />
+          <Chips label="Como pretende utilizar o Rende+" valor={asArr(a.preferencia, []).map((v) => rotulo(PREFERENCIAS, v))} />
           <Chips label="Fontes de rendimento" valor={a.fontesRendimento} />
           <Chips label="Principais despesas" valor={a.principaisDespesas} />
+          <Chips label="Objetivo principal" valor={asArr(a.objetivo, []).map((v) => rotulo(OBJETIVOS, v))} />
           <Linha label="Planeamento" valor={rotulo(PLANEAMENTO, a.planeamento)} />
           <Linha label="Partilha de despesas" valor={rotulo(PARTILHA, a.partilha)} />
-          <Linha label="Telefone" valor={a.telefone || "—"} />
-          <div className="row" style={{ justifyContent: "space-between", gap: 12, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
+          {a.telefone && <Linha label="Telefone" valor={a.telefone} />}
+          <div className="row" style={{ justifyContent: "space-between", gap: 12, paddingBottom: a.sobre ? 12 : 0, borderBottom: a.sobre ? "1px solid var(--border)" : "none" }}>
             <span className="tiny muted" style={{ fontWeight: 700 }}>Notificações · Resumo semanal</span>
             <span style={{ fontWeight: 700, fontSize: 13 }}>{a.notificacoes !== false ? "On" : "Off"} · {a.resumoSemanal !== false ? "On" : "Off"}</span>
           </div>
-          <div>
-            <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>Sobre os teus objetivos</div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)", lineHeight: 1.5 }}>{a.sobre || "—"}</div>
-          </div>
+          {a.sobre && (
+            <div>
+              <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 4 }}>Sobre os teus objetivos</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)", lineHeight: 1.5 }}>{a.sobre}</div>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <MultiLabeled label="Situação atual" lista={SITUACOES} k="situacao" max={SEL_MAX} />
+          <MultiLabeled label="Como pretende utilizar o Rende+" lista={PREFERENCIAS} k="preferencia" max={SEL_MAX} />
+          <Multi label="Fontes de rendimento" opcoes={RENDIMENTOS} k="fontesRendimento" />
+          <Multi label="Principais despesas" opcoes={DESPESAS} k="principaisDespesas" />
           <MultiLabeled label="Objetivo principal" lista={OBJETIVOS} k="objetivo" max={SEL_MAX} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Seletor label="Preferência" lista={PREFERENCIAS} k="preferencia" />
             <Seletor label="Planeamento" lista={PLANEAMENTO} k="planeamento" />
             <Seletor label="Partilha de despesas" lista={PARTILHA} k="partilha" />
-            <Field label="Telefone"><input className="input" value={f.telefone} onChange={(e) => setF((s) => ({ ...s, telefone: e.target.value }))} placeholder="+351 912 345 678" inputMode="tel" /></Field>
           </div>
-          <Multi label="Fontes de rendimento" opcoes={RENDIMENTOS} k="fontesRendimento" max={SEL_MAX} />
-          <Multi label="Principais despesas" opcoes={DESPESAS} k="principaisDespesas" max={SEL_MAX} />
-          <Field label="Sobre os teus objetivos"><textarea className="input" rows={3} maxLength={250} value={f.sobre} onChange={(e) => setF((s) => ({ ...s, sobre: e.target.value }))} placeholder="Ex.: Quero juntar dinheiro para viajar…" style={{ resize: "vertical", minHeight: 80 }} /></Field>
           <div className="row" style={{ gap: 16, flexWrap: "wrap", margin: "4px 0 10px" }}>
             <button type="button" className={"chip" + (f.notificacoes ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, notificacoes: !s.notificacoes }))}>Notificações: {f.notificacoes ? "On" : "Off"}</button>
             <button type="button" className={"chip" + (f.resumoSemanal ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => setF((s) => ({ ...s, resumoSemanal: !s.resumoSemanal }))}>Resumo semanal: {f.resumoSemanal ? "On" : "Off"}</button>
@@ -343,25 +377,15 @@ function PerfilPreferencias() {
   );
 }
 
-function Perfil({ open }) {
+function Perfil({ open, go }) {
   const fin = useFinance();
   const a = fin.account || {};
   const metas = fin.data.metas || [];
-  const [confirmClear, setConfirmClear] = React.useState(false);
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-  const [busyDel, setBusyDel] = React.useState(false);
-  const [delErr, setDelErr] = React.useState("");
   const stats = [
     { ico: "coins", v: a.moeda || "EUR", l: "Moeda", bg: "var(--accent-soft)", c: "var(--accent)" },
     { ico: "spark", v: BM.eur0(fin.poupado || 0), l: "Poupado", bg: "color-mix(in srgb, var(--c-educacao) 16%, transparent)", c: "var(--c-educacao)" },
     { ico: "flag", v: metas.length, l: metas.length === 1 ? "Meta" : "Metas", bg: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)", c: "var(--c-habitacao)" },
   ];
-  const Rowi = ({ label, sub, children, last }) => (
-    <div className="row" style={{ justifyContent: "space-between", paddingBottom: last ? 0 : 14, borderBottom: last ? "none" : "1px solid var(--border)" }}>
-      <div><div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>{sub && <div className="tiny muted" style={{ marginTop: 2, fontWeight: 600 }}>{sub}</div>}</div>
-      {children}
-    </div>
-  );
   return (
     <div className="content" style={{ maxWidth: 760 }}>
       <div className="card card-pad">
@@ -390,27 +414,188 @@ function Perfil({ open }) {
 
       <PerfilPreferencias />
 
-      <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div className="card card-pad row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <div className="row" style={{ gap: 10 }}>
           <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name="bank" size={16} color="var(--accent)" /></span>
-          Conta
+          <div><div style={{ fontWeight: 700, fontSize: 14 }}>Gestão de conta</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Terminar sessão, limpar dados ou eliminar a conta</div></div>
         </div>
+        <button className="btn btn-ghost" onClick={() => go("config")}><Icon name="gear" size={15} /> Ir a Definições</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- DEFINIÇÕES ---------- */
+/* Reorganizado em 8 secções nomeadas (Conta/Aparência/Finanças/Notificações/Segurança/
+   Privacidade/Plano/Preferências), num contentor centralizado. Reagrupa apenas cards e
+   ações já existentes noutros ecrãs (Perfil, PerfilPreferencias, Previsão, Paywall) —
+   nenhum toggle novo é criado sem função real; o que ainda não tem mecanismo próprio
+   fica marcado "Em breve". */
+function Definicoes({ theme, setTheme, open, go }) {
+  const fin = useFinance();
+  const a = fin.account || {};
+  // Bloqueio por PIN (window.RendeLock — camada local do dispositivo)
+  const [pinModal, setPinModal] = React.useState(false);
+  const [, force] = React.useReducer((x) => x + 1, 0);
+  React.useEffect(() => window.RendeLock.subscribe(force), []);
+  const hasPin = window.RendeLock.hasPin();
+  const lockMin = window.RendeLock.getMinutes();
+  const ehPremium = a.plano === "premium";
+
+  // Ações de conta (movidas do ecrã Perfil para aqui, secção Privacidade — única fonte destas ações)
+  const [confirmClear, setConfirmClear] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [busyDel, setBusyDel] = React.useState(false);
+  const [delErr, setDelErr] = React.useState("");
+
+  const Section = ({ title, icon, children }) => (
+    <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {icon && <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name={icon} size={16} color="var(--accent)" /></span>}
+        {title}
+      </div>{children}
+    </div>
+  );
+  const Toggle = ({ on, onClick }) => (
+    <button onClick={onClick} style={{ width: 46, height: 26, borderRadius: 99, border: "none", padding: 3, background: on ? "var(--accent)" : "var(--border-strong)", display: "flex", justifyContent: on ? "flex-end" : "flex-start", transition: "background .15s" }}>
+      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#fff", display: "block", boxShadow: "0 1px 3px rgba(0,0,0,.3)" }} />
+    </button>
+  );
+  const Rowi = ({ label, sub, children, last }) => (
+    <div className="row" style={{ justifyContent: "space-between", paddingBottom: last ? 0 : 14, borderBottom: last ? "none" : "1px solid var(--border)" }}>
+      <div><div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>{sub && <div className="tiny muted" style={{ marginTop: 2, fontWeight: 600 }}>{sub}</div>}</div>
+      {children}
+    </div>
+  );
+  const Soon = () => <span className="chip" style={{ color: "var(--ink-3)", fontWeight: 700 }}>Em breve</span>;
+
+  return (
+    <div className="content" style={{ maxWidth: 880, margin: "0 auto" }}>
+      <Section title="Conta" icon="user">
+        <Rowi label="Dados pessoais" sub={[a.nome, a.email].filter(Boolean).join(" · ") || "Sem dados"}>
+          <button className="btn btn-ghost" onClick={() => open("perfil")}><Icon name="edit" size={14} /> Editar</button>
+        </Rowi>
+        <Rowi label="Ver perfil completo" sub="Dados, estatísticas e preferências financeiras">
+          <button className="btn btn-ghost" onClick={() => go("perfil")}><Icon name="user" size={14} /> Abrir</button>
+        </Rowi>
+        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão" last>
+          <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={14} /> Sair</button>
+        </Rowi>
+      </Section>
+
+      <Section title="Aparência" icon="sun">
+        <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
+          <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
+        </Rowi>
+        <Rowi label="Cor de acento, tipo de letra e cantos" sub="Personalização avançada disponível no botão flutuante de personalização">
+          <Soon />
+        </Rowi>
+        <Rowi label="Contraste alto" sub="Aumenta o contraste para melhor legibilidade" last>
+          <Soon />
+        </Rowi>
+      </Section>
+
+      <Section title="Finanças" icon="wallet">
+        <Rowi label="Contas" sub="Gere as tuas contas bancárias e carteiras">
+          <button className="btn btn-ghost" onClick={() => go("contas")}><Icon name="wallet" size={14} /> Abrir</button>
+        </Rowi>
+        <Rowi label="Categorias personalizadas" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) criada(s)` : "Cria categorias próprias ao registar uma despesa"}>
+          <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="plus" size={14} /> Adicionar</button>
+        </Rowi>
+        {(fin.data.customCats || []).length > 0 && (
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            {fin.data.customCats.map((c) => (
+              <span key={c.key} className="chip" style={{ gap: 7 }}>
+                <span className="dot" style={{ background: c.color }} />{c.nome}
+                <button onClick={() => fin.removeCategory(c.key)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={13} color="var(--ink-3)" /></span></button>
+              </span>
+            ))}
+          </div>
+        )}
+        <Rowi label="Fontes de rendimento e principais despesas" sub="Definidas na secção Preferências, mais abaixo">
+          <Icon name="chevR" size={16} color="var(--ink-3)" />
+        </Rowi>
+        <Rowi label="Moeda principal" sub="Definida no registo — usada em toda a app">
+          <span className="chip">{a.moeda || fin.curSym || "EUR"}</span>
+        </Rowi>
+        <Rowi label="Orçamento mensal" sub={fin.data.orcamento ? `Limite atual: ${BM.eur0(fin.data.orcamento)}` : "Ainda não definido"} last>
+          <button className="btn btn-ghost" onClick={() => open("orcamento")}><Icon name="edit" size={14} /> Definir</button>
+        </Rowi>
+      </Section>
+
+      <Section title="Notificações" icon="bell">
+        <Rowi label="Notificações no separador" sub="Alertas de orçamento, objetivos e pagamentos a vencer — editar em Preferências, mais abaixo">
+          <span className="chip">{a.notificacoes !== false ? "Ativas" : "Desativadas"}</span>
+        </Rowi>
+        <Rowi label="Resumo semanal" sub="Editar em Preferências, mais abaixo">
+          <span className="chip">{a.resumoSemanal !== false ? "Ativo" : "Desativado"}</span>
+        </Rowi>
+        <Rowi label="Notificações de Partilha" sub="Avisos de despesas e pagamentos em grupos" last>
+          <Soon />
+        </Rowi>
+      </Section>
+
+      <Section title="Segurança" icon="shield">
+        <Rowi label="PIN de bloqueio" sub={hasPin ? "Definido — a app bloqueia por inatividade" : "Sem PIN — a app não bloqueia"}>
+          {hasPin
+            ? <button className="btn btn-ghost" style={{ color: "var(--neg)" }} onClick={() => window.RendeLock.removePin()}><Icon name="trash" size={14} /> Remover</button>
+            : <button className="btn btn-primary" onClick={() => setPinModal(true)}><Icon name="lock" size={14} color="#fff" /> Definir PIN</button>}
+        </Rowi>
+        {hasPin && <>
+          <Rowi label="Bloquear após inatividade" sub="Tempo sem usar até a app pedir o PIN">
+            <select className="select" style={{ width: "auto" }} value={lockMin} onChange={(e) => window.RendeLock.setMinutes(Number(e.target.value))}>
+              {[1, 5, 15, 30, 60].map((m) => <option key={m} value={m}>{m} min</option>)}
+            </select>
+          </Rowi>
+          <Rowi label="Bloquear agora" sub="Termina já o acesso até voltares a introduzir o PIN">
+            <button className="btn btn-ghost" onClick={() => window.RendeLock.lockNow()}><Icon name="lock" size={14} /> Bloquear</button>
+          </Rowi>
+        </>}
+        <Rowi label="Alterar palavra-passe" sub="Ainda não disponível">
+          <Soon />
+        </Rowi>
+        <Rowi label="Sessões ativas" sub="Ainda não disponível">
+          <Soon />
+        </Rowi>
+        <Rowi label="Autenticação social" sub="Ainda não disponível" last>
+          <Soon />
+        </Rowi>
+      </Section>
+
+      <Section title="Privacidade" icon="lock">
+        <Rowi label="Exportar dados" sub="Descarrega a tua previsão financeira em PDF ou Excel (Premium)">
+          <button className="btn btn-ghost" onClick={() => go("previsao")}><Icon name="report" size={14} /> Exportar</button>
+        </Rowi>
+        <Rowi label="Política de privacidade" sub="Como tratamos os teus dados">
+          <a className="btn btn-ghost" href="privacidade.html" target="_blank" rel="noopener">Ver</a>
+        </Rowi>
+        <Rowi label="Consentimentos" sub="Ainda não disponível">
+          <Soon />
+        </Rowi>
         <Rowi label="Apagar todos os dados" sub="Remove despesas, rendimentos e metas (a conta mantém-se)">
           <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
             onClick={() => setConfirmClear(true)}>
-            <Icon name="trash" size={15} /> Limpar dados
+            <Icon name="trash" size={14} /> Limpar dados
           </button>
-        </Rowi>
-        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão">
-          <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={15} /> Sair</button>
         </Rowi>
         <Rowi label="Eliminar conta" sub="Apaga a conta e todos os dados de forma permanente" last>
           <button className="btn btn-ghost" style={{ color: "var(--neg)", borderColor: "color-mix(in srgb, var(--neg) 35%, transparent)" }}
             onClick={() => { setDelErr(""); setConfirmDelete(true); }}>
-            <Icon name="trash" size={15} /> Eliminar conta
+            <Icon name="trash" size={14} /> Eliminar conta
           </button>
         </Rowi>
-      </div>
+      </Section>
+
+      <Section title="Plano" icon="spark">
+        <Rowi label={ehPremium ? "Rende+ Premium" : "Plano gratuito"} sub={ehPremium ? "Tens acesso a Lembretes, Recorrentes, Partilha e Previsão" : "Faz upgrade para desbloquear Lembretes, Recorrentes, Partilha e Previsão"} last>
+          <button className="btn btn-primary" onClick={() => go("premium")}><Icon name="spark" size={14} color="#fff" /> {ehPremium ? "Gerir plano" : "Upgrade"}</button>
+        </Rowi>
+      </Section>
+
+      <div className="tiny" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)", marginTop: 4 }}>Preferências</div>
+      <PerfilPreferencias />
+
+      {pinModal && <RLPinSetup onClose={() => setPinModal(false)} />}
 
       {confirmClear && (
         <div className="modal-bg" onClick={() => setConfirmClear(false)}>
@@ -458,86 +643,7 @@ function Perfil({ open }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-/* ---------- DEFINIÇÕES ---------- */
-function Definicoes({ theme, setTheme, open }) {
-  const fin = useFinance();
-  const a = fin.account || {};
-  // Bloqueio por PIN (window.RendeLock — camada local do dispositivo)
-  const [pinModal, setPinModal] = React.useState(false);
-  const [, force] = React.useReducer((x) => x + 1, 0);
-  React.useEffect(() => window.RendeLock.subscribe(force), []);
-  const hasPin = window.RendeLock.hasPin();
-  const lockMin = window.RendeLock.getMinutes();
-
-  const Section = ({ title, icon, children }) => (
-    <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {icon && <span className="li-ico" style={{ width: 30, height: 30, background: "var(--accent-soft)", flex: "none" }}><Icon name={icon} size={16} color="var(--accent)" /></span>}
-        {title}
-      </div>{children}
-    </div>
-  );
-  const Toggle = ({ on, onClick }) => (
-    <button onClick={onClick} style={{ width: 46, height: 26, borderRadius: 99, border: "none", padding: 3, background: on ? "var(--accent)" : "var(--border-strong)", display: "flex", justifyContent: on ? "flex-end" : "flex-start", transition: "background .15s" }}>
-      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#fff", display: "block", boxShadow: "0 1px 3px rgba(0,0,0,.3)" }} />
-    </button>
-  );
-  const Rowi = ({ label, sub, children, last }) => (
-    <div className="row" style={{ justifyContent: "space-between", paddingBottom: last ? 0 : 14, borderBottom: last ? "none" : "1px solid var(--border)" }}>
-      <div><div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>{sub && <div className="tiny muted" style={{ marginTop: 2, fontWeight: 600 }}>{sub}</div>}</div>
-      {children}
-    </div>
-  );
-
-  return (
-    <div className="content" style={{ maxWidth: 760 }}>
-      <Section title="Preferências" icon="gear">
-        <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
-          <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
-        </Rowi>
-        <Rowi label="Orçamento mensal" sub={fin.data.orcamento ? `Limite atual: ${BM.eur0(fin.data.orcamento)}` : "Ainda não definido"} last>
-          <button className="btn btn-ghost" onClick={() => open("orcamento")}><Icon name="edit" size={14} /> Definir</button>
-        </Rowi>
-      </Section>
-
-      <Section title="Segurança" icon="shield">
-        <Rowi label="PIN de bloqueio" sub={hasPin ? "Definido — a app bloqueia por inatividade" : "Sem PIN — a app não bloqueia"}>
-          {hasPin
-            ? <button className="btn btn-ghost" style={{ color: "var(--neg)" }} onClick={() => window.RendeLock.removePin()}><Icon name="trash" size={14} /> Remover</button>
-            : <button className="btn btn-primary" onClick={() => setPinModal(true)}><Icon name="lock" size={14} color="#fff" /> Definir PIN</button>}
-        </Rowi>
-        {hasPin && <>
-          <Rowi label="Bloquear após inatividade" sub="Tempo sem usar até a app pedir o PIN">
-            <select className="select" style={{ width: "auto" }} value={lockMin} onChange={(e) => window.RendeLock.setMinutes(Number(e.target.value))}>
-              {[1, 5, 15, 30, 60].map((m) => <option key={m} value={m}>{m} min</option>)}
-            </select>
-          </Rowi>
-          <Rowi label="Bloquear agora" sub="Termina já o acesso até voltares a introduzir o PIN" last>
-            <button className="btn btn-ghost" onClick={() => window.RendeLock.lockNow()}><Icon name="lock" size={14} /> Bloquear</button>
-          </Rowi>
-        </>}
-      </Section>
-
-      <Section title="Categorias de despesa" icon="grid">
-        <Rowi label="Categorias personalizadas" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) criada(s)` : "Cria categorias próprias ao registar uma despesa"} last={!(fin.data.customCats || []).length}>
-          <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="plus" size={14} /> Adicionar</button>
-        </Rowi>
-        {(fin.data.customCats || []).length > 0 && (
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {fin.data.customCats.map((c) => (
-              <span key={c.key} className="chip" style={{ gap: 7 }}>
-                <span className="dot" style={{ background: c.color }} />{c.nome}
-                <button onClick={() => fin.removeCategory(c.key)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={13} color="var(--ink-3)" /></span></button>
-              </span>
-            ))}
-          </div>
-        )}
-      </Section>
-      {pinModal && <RLPinSetup onClose={() => setPinModal(false)} />}
       <div className="tiny muted" style={{ textAlign: "center", marginTop: 4, fontWeight: 600 }}>Rende+ · versão {window.APP_VERSION || "1.0.0"}</div>
     </div>
   );
