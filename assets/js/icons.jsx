@@ -8,7 +8,7 @@ const BX = {
   spark: "bx-star", dots: "bx-dots-horizontal-rounded", logout: "bx-log-out", check: "bx-check", edit: "bx-pencil",
   trash: "bx-trash", sun: "bx-sun", moon: "bx-moon", filter: "bx-filter", cal: "bx-calendar", flag: "bx-flag",
   arrowUp: "bx-up-arrow-alt", arrowDown: "bx-down-arrow-alt", chevR: "bx-chevron-right", info: "bx-info-circle",
-  bank: "bx-bank", link: "bx-link", camera: "bx-camera", sync: "bx-sync", coins: "bx-coin-stack", coffee: "bx-coffee",
+  bank: "bx-landmark", link: "bx-link", camera: "bx-camera", sync: "bx-sync", coins: "bx-coin-stack", coffee: "bx-coffee",
   food: "bx-restaurant", car: "bx-car", fuel: "bx-gas-pump", plane: "bx-plane", train: "bx-train", bike: "bx-cycling",
   pill: "bx-capsule", cross: "bx-plus-medical", book: "bx-book", music: "bx-music", film: "bx-film", game: "bx-joystick",
   tv: "bx-tv", dumbbell: "bx-dumbbell", gift: "bx-gift", phone: "bx-phone", bulb: "bx-bulb", droplet: "bx-droplet",

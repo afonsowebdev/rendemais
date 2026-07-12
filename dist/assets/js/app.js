@@ -1,3 +1,5 @@
+const APP_VERSION = "1.0.0";
+window.APP_VERSION = APP_VERSION;
 function useLang() {
   const [lang, setLang] = React.useState(I18N.getLang());
   React.useEffect(() => I18N.subscribe(setLang), []);
@@ -259,6 +261,22 @@ function Shell() {
       limparUrl();
     }
   }, [fin.session]);
+  const [novaVersao, setNovaVersao] = useState(null);
+  useEffect(() => {
+    let vivo = true;
+    const verificar = () => {
+      fetch("/version.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((d) => {
+        if (vivo && d && d.version && d.version !== APP_VERSION) setNovaVersao(d.version);
+      }).catch(() => {
+      });
+    };
+    verificar();
+    const iv = setInterval(verificar, 5 * 60 * 1e3);
+    return () => {
+      vivo = false;
+      clearInterval(iv);
+    };
+  }, []);
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
@@ -345,7 +363,7 @@ function Shell() {
         }
       ) : null
     }
-  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "despesas" && /* @__PURE__ */ React.createElement(Despesas, { open }), route === "rendimentos" && /* @__PURE__ */ React.createElement(Rendimentos, { open }), route === "poupanca" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "historico" && /* @__PURE__ */ React.createElement(Historico, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open }), route === "lembretes" && (ehPremium ? /* @__PURE__ */ React.createElement(Lembretes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "recorrentes" && (ehPremium ? /* @__PURE__ */ React.createElement(Recorrentes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "subscricoes" && (ehPremium ? /* @__PURE__ */ React.createElement(Subscricoes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "partilha" && (ehPremium ? /* @__PURE__ */ React.createElement(Partilha, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "previsao" && (ehPremium ? /* @__PURE__ */ React.createElement(Previsao, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "premium" && /* @__PURE__ */ React.createElement(Paywall, null)), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onAdd: () => open(P.add || "despesa"), onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, account: fin.account, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), panel);
+  ), route === "dashboard" && /* @__PURE__ */ React.createElement(Dashboard, { go, open }), route === "despesas" && /* @__PURE__ */ React.createElement(Despesas, { open }), route === "rendimentos" && /* @__PURE__ */ React.createElement(Rendimentos, { open }), route === "poupanca" && /* @__PURE__ */ React.createElement(Poupanca, { open }), route === "contas" && /* @__PURE__ */ React.createElement(Contas, { open }), route === "relatorios" && /* @__PURE__ */ React.createElement(Relatorios, null), route === "historico" && /* @__PURE__ */ React.createElement(Historico, null), route === "perfil" && /* @__PURE__ */ React.createElement(Perfil, { open }), route === "config" && /* @__PURE__ */ React.createElement(Definicoes, { theme, setTheme, open }), route === "lembretes" && (ehPremium ? /* @__PURE__ */ React.createElement(Lembretes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "recorrentes" && (ehPremium ? /* @__PURE__ */ React.createElement(Recorrentes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "subscricoes" && (ehPremium ? /* @__PURE__ */ React.createElement(Subscricoes, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "partilha" && (ehPremium ? /* @__PURE__ */ React.createElement(Partilha, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "previsao" && (ehPremium ? /* @__PURE__ */ React.createElement(Previsao, null) : /* @__PURE__ */ React.createElement(Paywall, null)), route === "premium" && /* @__PURE__ */ React.createElement(Paywall, null)), /* @__PURE__ */ React.createElement(MobileNav, { route, go, onAdd: () => open(P.add || "despesa"), onMore: () => setMoreOpen(true) }), moreOpen && /* @__PURE__ */ React.createElement(MoreSheet, { route, go, account: fin.account, onClose: () => setMoreOpen(false), theme, setTheme, onLogout: fin.logout }), modal && /* @__PURE__ */ React.createElement(EntryModal, { type: modal.type, item: modal.item, onClose: () => setModal(null) }), /* @__PURE__ */ React.createElement(LockGate, { active: !!fin.session }), novaVersao && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", left: "50%", bottom: 20, transform: "translateX(-50%)", zIndex: 9999, maxWidth: 440, width: "calc(100% - 32px)", background: "var(--navy)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.28)", padding: "13px 16px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("span", { style: { display: "flex", gap: 10, alignItems: "center", fontSize: 13.5, fontWeight: 600 } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), "Nova vers\xE3o dispon\xEDvel (", novaVersao, ")."), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 14px", fontSize: 13, border: "none", flex: "none" }, onClick: () => window.location.reload() }, "Atualizar")), panel);
 }
 function App() {
   return /* @__PURE__ */ React.createElement(FinanceProvider, null, /* @__PURE__ */ React.createElement(Shell, null));

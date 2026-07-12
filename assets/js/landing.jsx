@@ -1,3 +1,21 @@
+/* Dropdown compacto (idioma / conta do cabeçalho): fecha com Escape ou clique fora */
+function useLpDropdown() {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return [open, setOpen, ref];
+}
+
 /* ===== Landing page (antes de criar conta / entrar) ===== */
 function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
   // Scroll suave até à secção, sem deixar o "#" colado no endereço.
@@ -28,11 +46,17 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
-  const cycleLang = () => {
-    const order = I18N.SUP;
-    setLang(order[(order.indexOf(lang) + 1) % order.length]);
-  };
+  // Dropdown de idioma e de conta (cabeçalho de desktop)
+  const [langOpen, setLangOpen, langRef] = useLpDropdown();
+  const [accountOpen, setAccountOpen, accountRef] = useLpDropdown();
+  const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
 
   /* Badges oficiais das lojas — atualizar os href quando a app for publicada */
   const StoreBadges = ({ compact }) => (
@@ -83,7 +107,8 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     { initial: "B", img: "assets/img/social-proof/pessoa-4.jpg" },
   ];
 
-  const NAV = [["funcionalidades", "Funcionalidades"], ["vantagens", "Vantagens"], ["como-funciona", "Como funciona"], ["precos", "Preços"], ["depoimentos", "Depoimentos"], ["faq", "FAQ"]];
+  const NAV = [["funcionalidades", "Funcionalidades"], ["como-funciona", "Como funciona"], ["vantagens", "Vantagens"], ["precos", "Preços"], ["faq", "FAQ"]];
+  const NAV_ICONS = { funcionalidades: "grid", "como-funciona": "info", vantagens: "spark", precos: "tag", faq: "book" };
 
   const FEATS = [
     ["sync", "Transações inteligentes", "Registe receitas e despesas em segundos e categorize automaticamente."],
@@ -126,23 +151,52 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
   return (
     <div className="lp">
       <header className={"lp-header" + (scrolled ? " scrolled" : "")}>
-        <div className="lp-header-brand">
-          <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
+        <div className="lp-header-left">
+          <div className="lp-header-brand">
+            <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
+          </div>
+          <nav className="lp-nav">
+            {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
+          </nav>
         </div>
-        <nav className="lp-nav">
-          {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
-        </nav>
         <div className="lp-header-actions">
-          <button type="button" className="icon-btn lp-theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Mudar tema" aria-label="Mudar tema">
+          <div className="lp-lang lp-desktop-only" ref={langRef}>
+            <button type="button" className="lp-lang-btn" onClick={() => setLangOpen((v) => !v)} aria-haspopup="listbox" aria-expanded={langOpen} aria-label={"Idioma: " + I18N.LABELS[lang]} title="Mudar idioma">
+              <Icon name="globe" size={15} /><span>{I18N.LABELS[lang]}</span><i className="bx bx-chevron-down" aria-hidden="true"></i>
+            </button>
+            {langOpen && (
+              <div className="lp-lang-menu" role="listbox" aria-label="Escolher idioma">
+                {I18N.SUP.map((l) => (
+                  <button key={l} type="button" role="option" aria-selected={l === lang} className={"lp-lang-opt" + (l === lang ? " on" : "")} onClick={() => { setLang(l); setLangOpen(false); }}>
+                    {I18N.LABELS[l]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button type="button" className="icon-btn lp-theme-btn lp-desktop-only" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
             <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
           </button>
-          <button type="button" className="icon-btn lp-lang-btn" onClick={cycleLang} title="Mudar idioma" aria-label="Mudar idioma">
-            <Icon name="globe" size={17} /><span>{I18N.LABELS[lang]}</span>
-          </button>
-          <button className="btn btn-ghost lp-header-login lp-desktop-only" onClick={onLogin}>Entrar</button>
-          <button className="btn btn-primary lp-header-cta lp-desktop-only" onClick={onCreate}>Criar conta</button>
+
+          <div className="lp-account lp-desktop-only" ref={accountRef}>
+            <button type="button" className="icon-btn lp-account-btn" onClick={() => setAccountOpen((v) => !v)} aria-haspopup="menu" aria-expanded={accountOpen} aria-label="Abrir menu de conta">
+              <i className="bx bx-user-circle" aria-hidden="true"></i>
+            </button>
+            {accountOpen && (
+              <div className="lp-account-menu" role="menu" aria-label="Conta">
+                <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); onLogin(); }}>
+                  <i className="bx bx-log-in" aria-hidden="true"></i> Iniciar sessão
+                </button>
+                <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); onCreate(); }}>
+                  <i className="bx bx-user-plus" aria-hidden="true"></i> Criar conta gratuita
+                </button>
+              </div>
+            )}
+          </div>
+
           <button type="button" className="lp-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen}>
-            <Icon name={menuOpen ? "close" : "menu"} size={19} />
+            <Icon name={menuOpen ? "close" : "menu"} size={23} />
           </button>
         </div>
       </header>
@@ -150,11 +204,27 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
       {menuOpen && (
         <div className="lp-menu-bg" onClick={() => setMenuOpen(false)}>
           <div className="lp-menu" onClick={(e) => e.stopPropagation()}>
+            <span className="lp-menu-label">Menu</span>
             <nav className="lp-menu-nav">
               {NAV.map(([id, label]) => (
-                <a key={id} href={"#" + id} onClick={(e) => { goSection(e, id); setMenuOpen(false); }}>{label}</a>
+                <a key={id} className="lp-menu-nav-link" href={"#" + id} onClick={(e) => { goSection(e, id); setMenuOpen(false); }}>
+                  <span className="lp-menu-nav-ico"><Icon name={NAV_ICONS[id]} size={17} color="var(--ink-2)" /></span>
+                  {label}
+                </a>
               ))}
             </nav>
+            <div className="lp-menu-sep" />
+            <span className="lp-menu-label">Preferências</span>
+            <div className="lp-menu-controls">
+              <div className="lp-menu-lang" role="group" aria-label="Idioma">
+                {I18N.SUP.map((l) => (
+                  <button key={l} type="button" className={"lp-menu-lang-opt" + (l === lang ? " on" : "")} aria-pressed={l === lang} onClick={() => setLang(l)}>{I18N.LABELS[l]}</button>
+                ))}
+              </div>
+              <button type="button" className="icon-btn lp-theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
+                <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+              </button>
+            </div>
             <div className="lp-menu-sep" />
             <div className="lp-menu-auth">
               <button className="btn btn-ghost" onClick={() => { setMenuOpen(false); onLogin(); }}>Entrar</button>
@@ -164,7 +234,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
               <span className="lp-menu-upgrade-ico"><Icon name="spark" size={17} color="var(--accent)" /></span>
               <span>
                 <b>Conheça o Rende+ Premium</b>
-                <small>Recorrentes, partilha em grupo e relatórios avançados a partir de 4,99 €/mês.</small>
+                <small>Recorrentes, partilha em grupo e relatórios avançados a partir de 2,99 €/mês.</small>
               </span>
               <Icon name="chevR" size={16} color="var(--ink-3)" />
             </a>
@@ -176,12 +246,12 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
         {/* ============ HERO ============ */}
         <section className="lp2-hero">
           <div className="lp2-hero-txt">
-            <span className="lp-eyebrow"><Icon name="spark" size={14} /> Controlo financeiro inteligente</span>
-            <h1 className="lp2-h1">O seu futuro financeiro <span className="accent">começa aqui.</span></h1>
-            <p className="lp-sub">O Rende+ ajuda-o a gerir o seu dinheiro de forma simples, inteligente e segura.</p>
+            <span className="lp-eyebrow"><Icon name="spark" size={14} /> Aplicação de Gestão Financeira</span>
+            <h1 className="lp2-h1">Assuma o controlo da sua <span className="accent">vida financeira.</span></h1>
+            <p className="lp-sub">O Rende+ é uma aplicação de gestão financeira que o ajuda a organizar receitas, despesas, objetivos financeiros e o orçamento mensal, tudo num único lugar.</p>
             <div className="lp-cta">
-              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Criar conta gratuita <Icon name="chevR" size={16} color="#fff" /></button>
-              <button className="btn lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver como funciona</button>
+              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Começar gratuitamente <Icon name="chevR" size={16} color="#fff" /></button>
+              <button className="btn lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver demonstração</button>
             </div>
             <div className="lp-trust">
               <span className="lp-trust-item"><Icon name="shield" size={16} color="var(--accent)" /> 100% Seguro</span>
@@ -293,7 +363,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <div className="lp2-plano card destaque">
               <span className="lp2-plano-badge">Recomendado</span>
               <div className="lp2-plano-nome">Rende+ Premium</div>
-              <div className="lp2-plano-preco">4,99 € <small>/ mês</small></div>
+              <div className="lp2-plano-preco">2,99 € <small>/ mês</small></div>
               <ul className="lp2-checks sm">
                 <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Tudo do Free, e ainda:</li>
                 <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Recorrentes e subscrições inteligentes</li>
@@ -339,18 +409,20 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
           </div>
         </section>
 
-        {/* ============ CTA FINAL ============ */}
-        <section className="lp2-final card">
-          <div className="lp2-final-txt">
-            <h2 className="lp2-h2">Pronto para transformar a sua <span className="accent">vida financeira?</span></h2>
-            <p className="lp-sub" style={{ margin: "10px 0 18px" }}>Comece gratuitamente e descubra como é fácil ter controlo do seu dinheiro.</p>
-            <div className="lp-cta">
-              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Criar conta gratuita <Icon name="chevR" size={16} color="#fff" /></button>
-              <button className="btn btn-ghost" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "precos")}>Ver planos <Icon name="chevR" size={15} /></button>
-            </div>
-            <StoreBadges />
+        {/* ============ CTA FINAL / PRÉ-FOOTER ============ */}
+        <section className="lp2-final">
+          <span className="lp2-final-tag">Comece hoje</span>
+          <h2 className="lp2-final-h2">Dê o próximo passo na sua organização financeira.</h2>
+          <p className="lp2-final-txt">Crie a sua conta gratuitamente e comece a gerir o seu dinheiro, os seus objetivos e o seu futuro num único lugar.</p>
+          <div className="lp-cta lp2-final-cta">
+            <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Criar conta gratuita <Icon name="chevR" size={16} color="#fff" /></button>
+            <a className="lp2-final-link" href="#funcionalidades" onClick={(e) => goSection(e, "funcionalidades")}>Conhecer funcionalidades <Icon name="chevR" size={15} color="#fff" /></a>
           </div>
-          <div className="lp2-final-logo" aria-hidden="true"><span>R+</span></div>
+          <ul className="lp2-final-points">
+            <li><Icon name="check" size={15} color="rgba(255,255,255,.78)" sw={2.4} /> Sem cartão de crédito</li>
+            <li><Icon name="check" size={15} color="rgba(255,255,255,.78)" sw={2.4} /> Configuração simples</li>
+            <li><Icon name="check" size={15} color="rgba(255,255,255,.78)" sw={2.4} /> Os seus dados permanecem protegidos</li>
+          </ul>
         </section>
       </div>
 
@@ -358,7 +430,8 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
         <div className="lp-footer-in lp2-footer">
           <div className="lp2-footer-brand">
             <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={30} /></a>
-            <p className="muted tiny" style={{ fontWeight: 600, maxWidth: 260, lineHeight: 1.5 }}>Gestão de finanças pessoais, simples e em português. Poupe mais, gaste melhor.</p>
+            <span className="lp2-footer-category">Aplicação de Gestão Financeira</span>
+            <p className="muted tiny" style={{ fontWeight: 600, maxWidth: 260, lineHeight: 1.5 }}>O Rende+ ajuda-o a organizar o dinheiro, acompanhar objetivos financeiros e tomar decisões com mais confiança.</p>
           </div>
           <div className="lp2-footer-col">
             <b>Produto</b>
@@ -380,6 +453,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
 
         <div className="lp2-footer-base lp2-footer-base-center">
           <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand size={26} /></a>
+          <span className="lp2-footer-slogan">O seu dinheiro. Os seus objetivos. O seu futuro.</span>
           <span className="muted tiny" style={{ fontWeight: 600 }}>© {new Date().getFullYear()} Rende+  Todos os direitos reservados.
           </span>
         </div>
