@@ -35,7 +35,7 @@ const BX = {
   arrowDown: "bx-down-arrow-alt",
   chevR: "bx-chevron-right",
   info: "bx-info-circle",
-  bank: "bx-landmark",
+  bank: "bx-buildings",
   link: "bx-link",
   camera: "bx-camera",
   sync: "bx-sync",
