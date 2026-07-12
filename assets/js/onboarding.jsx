@@ -219,9 +219,27 @@ function Onboarding({ onBack, onLogin }) {
         <div className="ob1-form">
           <div className="ob1-form-in">
             <div className="ob1-brand"><Brand /></div>
-            {onBack && <button className="ob1-back" onClick={onBack}><i className="bx bx-chevron-left"></i> Voltar ao início</button>}
-            <h1 className="ob1-h1">Criar conta</h1>
-            <p className="ob1-sub">Comece agora a organizar as suas finanças de forma simples e inteligente.</p>
+            {onBack && <button className="auth-back" onClick={onBack}><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
+            <h1 className="ob1-h1">Crie a sua conta</h1>
+            <p className="ob1-sub">Comece a organizar a sua vida financeira com o Rende+.</p>
+            <p className="ob1-sub-note">Registe-se gratuitamente e configure a sua experiência em poucos passos.</p>
+
+            <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" autoComplete="name" /></Field>
+            <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" autoComplete="email" /></Field>
+            <div className="ob-note tiny" style={{ marginBottom: 14 }}><Icon name="lock" size={13} color="var(--ink-3)" /> Por segurança, a palavra-passe é criada no fim, só depois de confirmares o teu email.</div>
+
+            <button type="button" className={"ob1-terms" + (f.termos ? " on" : "")} onClick={() => setF((s) => ({ ...s, termos: !s.termos }))}>
+              <span className="ob-check-box" aria-hidden="true">{f.termos && <i className="bx bx-check"></i>}</span>
+              <span>Ao criar uma conta, confirma que leu e aceita os <a href="termos.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Termos de Serviço</a> e a <a href="privacidade.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Política de Privacidade</a>.</span>
+            </button>
+
+            {err && <div className="alert bad" style={{ margin: "4px 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+
+            <button className="btn btn-primary ob1-cta" onClick={next}>Criar conta gratuita</button>
+
+            <div className="ob1-secure"><span className="ob1-secure-ico"><Icon name="shield" size={16} color="var(--accent)" /></span><div><b>Os seus dados estão protegidos connosco.</b><span>Nunca partilhamos as suas informações.</span></div></div>
+
+            <div className="ob1-sep"><span>Também pode continuar com</span></div>
 
             <div className="ob1-social">
               <button type="button" className="ob1-social-btn" title="Brevemente disponível" onClick={() => setErr("O início de sessão com Google chega em breve. Por agora, cria a tua conta com email.")}>
@@ -232,58 +250,20 @@ function Onboarding({ onBack, onLogin }) {
               </button>
             </div>
 
-            <div className="ob1-sep"><span>ou</span></div>
-
-            <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" autoComplete="name" /></Field>
-            <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" autoComplete="email" /></Field>
-            <div className="ob-note tiny" style={{ marginBottom: 14 }}><Icon name="lock" size={13} color="var(--ink-3)" /> Por segurança, a palavra-passe é criada no fim, só depois de confirmares o teu email.</div>
-
-            <button type="button" className={"ob1-terms" + (f.termos ? " on" : "")} onClick={() => setF((s) => ({ ...s, termos: !s.termos }))}>
-              <span className="ob-check-box" aria-hidden="true">{f.termos && <i className="bx bx-check"></i>}</span>
-              <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Termos de Serviço</a> e a <a href="privacidade.html" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}>Política de Privacidade</a></span>
-            </button>
-
-            {err && <div className="alert bad" style={{ margin: "4px 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
-
-            <button className="btn btn-primary ob1-cta" onClick={next}>Criar conta gratuita</button>
-
-            <div className="ob1-secure"><span className="ob1-secure-ico"><Icon name="shield" size={16} color="var(--accent)" /></span><div><b>Os seus dados estão protegidos connosco.</b><span>Nunca partilhamos as suas informações.</span></div></div>
-
             <p className="ob1-have">Já tem conta? <button onClick={onLogin}>Iniciar sessão</button></p>
-
-            <div className="ob1-trust">
-              {[["lock", "100% Seguro", "Os seus dados estão sempre protegidos"], ["sync", "Sincronização", "Aceda às suas finanças em qualquer dispositivo"], ["cloud", "Backup automático", "Os seus dados são sempre guardados"], ["shield", "Privacidade garantida", "Nunca partilhamos as suas informações"]].map(([ic, t, d]) => (
-                <div className="ob1-trust-item" key={t}><span><TrustIcon name={ic} /></span><div><b>{t}</b><small>{d}</small></div></div>
-              ))}
-            </div>
           </div>
         </div>
 
         <aside className="ob1-aside">
           <div className="ob1-aside-in">
-            <div className="ob1-feat-head">
-              <h2>Funcionalidades</h2>
-              <p>Tudo o que precisa para ter controlo total das suas finanças pessoais.</p>
-            </div>
-            <div className="ob1-feat-grid">
-              {[["bx-wallet", "Registo de despesas e receitas", "Adicione e categorize todas as suas movimentações de forma rápida e fácil."],
-                ["bx-target-lock", "Objetivos financeiros", "Defina metas, acompanhe o progresso e conquiste os seus sonhos."],
-                ["bx-calendar", "Agenda financeira", "Nunca mais perca um pagamento. Receba lembretes e mantenha-se em dia."],
-                ["bx-pie-chart-alt-2", "Relatórios e gráficos", "Visualize os seus gastos e receitas com relatórios intuitivos e poderosos."],
-                ["bx-credit-card", "Contas e cartões", "Gerencie todas as suas contas, cartões e saldos num só lugar."],
-                ["bx-share-alt", "Partilha familiar", "Partilhe objetivos e despesas com a sua família de forma segura."]].map(([ic, t, d]) => (
-                <div className="ob1-feat" key={t}><span className="ob1-feat-ico"><i className={"bx " + ic}></i></span><div><b>{t}</b><p>{d}</p></div></div>
+            <span className="lp2-tag">Comece gratuitamente</span>
+            <h2 className="login-aside-h1">Organize hoje a sua vida financeira.</h2>
+            <p className="login-aside-sub">Crie a sua conta e tenha acesso a ferramentas para acompanhar transações, objetivos, orçamento e despesas partilhadas.</p>
+            <ul className="lp2-checks">
+              {["Configuração simples.", "Sem cartão de crédito.", "Dados protegidos.", "Acesso em desktop e mobile."].map((t) => (
+                <li key={t}><Icon name="check" size={17} color="var(--accent)" sw={2.4} /> {t}</li>
               ))}
-            </div>
-            <div className="ob1-avail">
-              <h3>Disponível em qualquer lugar</h3>
-              <p>Aceda ao Rende+ onde estiver, quando precisar.</p>
-              <div className="ob1-badges">
-                <a href="#" onClick={(e) => e.preventDefault()} className="ob1-badge"><img src="assets/img/badges/apple-appstore-pt-preto.svg" alt="App Store" /></a>
-                <a href="#" onClick={(e) => e.preventDefault()} className="ob1-badge"><img src="assets/img/badges/google-play-pt.png" alt="Google Play" /></a>
-              </div>
-            </div>
-            <div className="ob1-aside-foot"><Brand size={26} /><span>O seu dinheiro. Os seus objetivos. O seu futuro.</span></div>
+            </ul>
           </div>
         </aside>
       </div>

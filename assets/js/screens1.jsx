@@ -109,7 +109,6 @@ function calcIdade(iso) {
 function Auth({ initialMode, onBack, onSignup }) {
   const fin = useFinance();
   const tr = useT();
-  const [lang, setLang] = useLang();
   const [remember, setRemember] = React.useState(true);
   const [mode, setMode] = React.useState(initialMode || (fin.account ? "login" : "signup"));
   const [f, setF] = React.useState(() => { const pais = BM.detectCountry(); const m = BM.currencyForCountry(pais); return { nome: "", email: "", password: "", password2: "", code: "", nascimento: "", cidade: "", pais, perfil: "Estudante", estado: "Solteiro(a)", habitacao: "Vive com colegas", moeda: m, multi: false, moedas: [m] }; });
@@ -206,10 +205,8 @@ function Auth({ initialMode, onBack, onSignup }) {
     finally { setBusy(false); }
   };
 
-  const LANG_NOME = { pt: "Português", en: "English", fr: "Français" };
-  const cycleLang = () => { const order = ["pt", "en", "fr"]; setLang(order[(order.indexOf(lang) + 1) % order.length]); };
-  const loginTitle = mode === "login" ? "Bem-vindo de volta! 👋" : titles[mode][0];
-  const loginSub = mode === "login" ? "Faça login para continuar a organizar e alcançar os seus objetivos financeiros." : titles[mode][1];
+  const loginTitle = mode === "login" ? "Bem-vindo de volta" : titles[mode][0];
+  const loginSub = mode === "login" ? "Inicie sessão para continuar a gerir a sua vida financeira." : titles[mode][1];
 
   return (
     <div className="login-wrap login-wrap-v2">
@@ -217,7 +214,7 @@ function Auth({ initialMode, onBack, onSignup }) {
         <div className="login-card">
           <div className="login-form-brand"><Brand /></div>
           <div className="login-brand-top"><Brand /></div>
-          {onBack && <button onClick={onBack} className="login-back" style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", color: "var(--ink-2)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--radius-pill)", margin: "6px 0 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>{tr("auth_back_home")}</button>}
+          {onBack && <button onClick={onBack} className="auth-back"><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
           <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-.02em", margin: "0 0 6px" }}>{loginTitle}</h2>
           <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500, lineHeight: 1.55 }}>{loginSub}</p>
 
@@ -308,7 +305,7 @@ function Auth({ initialMode, onBack, onSignup }) {
             <div className="login-row-remember">
               <button type="button" className={"login-remember" + (remember ? " on" : "")} onClick={() => setRemember((v) => !v)}>
                 <span className="login-remember-box" aria-hidden="true">{remember && <Icon name="check" size={13} color="#fff" />}</span>
-                <span>Lembrar-me</span>
+                <span>Manter sessão iniciada</span>
               </button>
               <button onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>{tr("auth_forgot_link")}</button>
             </div>
@@ -359,35 +356,16 @@ function Auth({ initialMode, onBack, onSignup }) {
       </div>
 
       <aside className="login-aside">
-        <div className="login-aside-lang">
-          <button type="button" className="login-lang-pill" onClick={cycleLang} aria-label="Mudar idioma">
-            <i className="bx bx-globe"></i> {LANG_NOME[lang] || "Português"} <i className="bx bx-chevron-down"></i>
-          </button>
-        </div>
         <div className="login-aside-body">
-          <h2 className="login-aside-h1">O seu dinheiro. Os seus objetivos. O seu futuro.<br /><span>Rende+</span></h2>
-          <p className="login-aside-sub">Uma forma simples e inteligente de gerir as suas finanças, controlar os seus gastos e alcançar os seus sonhos.</p>
-          <img className="login-aside-img" src="assets/img/login-devices.png" alt="Rende+ no computador e no telemóvel" />
-          <div className="login-aside-feats">
-            {[["shield", "Seguro e privado", "Os seus dados estão sempre protegidos com encriptação avançada."],
-              ["chart", "Relatórios inteligentes", "Visualize os seus gastos e receitas com gráficos intuitivos."],
-              ["target", "Objetivos reais", "Defina metas, acompanhe o progresso e conquiste os seus sonhos."],
-              ["wallet", "Acesso em todo o lado", "Use no computador ou no telemóvel. A sua conta, sempre consigo."]].map(([ic, t, d]) => (
-              <div className="login-aside-feat" key={t}>
-                <span className="login-aside-feat-ico"><Icon name={ic} size={17} color="var(--accent)" /></span>
-                <div><b>{t}</b><span>{d}</span></div>
-              </div>
+          <span className="lp2-tag">Aplicação de Gestão Financeira</span>
+          <h2 className="login-aside-h1">O seu dinheiro. Os seus objetivos. O seu futuro.</h2>
+          <p className="login-aside-sub">O Rende+ ajuda-o a organizar receitas, despesas, objetivos financeiros e o orçamento mensal num único lugar.</p>
+          <ul className="lp2-checks">
+            {["Organize receitas e despesas.", "Acompanhe os seus objetivos financeiros.", "Planeie o orçamento mensal.", "Partilhe despesas com outras pessoas."].map((t) => (
+              <li key={t}><Icon name="check" size={17} color="var(--accent)" sw={2.4} /> {t}</li>
             ))}
-          </div>
-        </div>
-        <div className="login-aside-foot">
-          <span>© {new Date().getFullYear()} Rende+. Todos os direitos reservados.</span>
-          <nav>
-            <a href="termos.html" target="_blank" rel="noopener">Termos de Serviço</a>
-            <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
-            <a href="#" onClick={(e) => e.preventDefault()}>Contactos</a>
-            <a href="#" onClick={(e) => e.preventDefault()}>Ajuda</a>
-          </nav>
+          </ul>
+          <img className="login-aside-img login-aside-img-compact" src="assets/img/login-devices.png" alt="Rende+ no computador e no telemóvel" />
         </div>
       </aside>
     </div>
