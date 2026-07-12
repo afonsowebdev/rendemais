@@ -1,5 +1,9 @@
 /* ===== App shell: routing, tema, tweaks, modais funcionais ===== */
 
+// Versão atual da app. Ao lançar uma versão nova, sobe este número E o version.json.
+const APP_VERSION = "1.0.0";
+window.APP_VERSION = APP_VERSION;
+
 // Hooks de idioma — fonte única no store global I18N. Qualquer ecrã chama useT().
 function useLang() {
   const [lang, setLang] = React.useState(I18N.getLang());
@@ -418,6 +422,21 @@ function Shell() {
     }
   }, [fin.session]);
 
+  // Verifica se há uma versão nova publicada (compara com o version.json do servidor).
+  const [novaVersao, setNovaVersao] = useState(null);
+  useEffect(() => {
+    let vivo = true;
+    const verificar = () => {
+      fetch("/version.json?t=" + Date.now(), { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (vivo && d && d.version && d.version !== APP_VERSION) setNovaVersao(d.version); })
+        .catch(() => {});
+    };
+    verificar();
+    const iv = setInterval(verificar, 5 * 60 * 1000); // volta a verificar a cada 5 min
+    return () => { vivo = false; clearInterval(iv); };
+  }, []);
+
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
@@ -528,6 +547,16 @@ function Shell() {
       <MobileNav route={route} go={go} onAdd={() => open(P.add || "despesa")} onMore={() => setMoreOpen(true)} />
       {moreOpen && <MoreSheet route={route} go={go} account={fin.account} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}
       {modal && <EntryModal type={modal.type} item={modal.item} onClose={() => setModal(null)} />}
+      <LockGate active={!!fin.session} />
+      {novaVersao && (
+        <div style={{ position: "fixed", left: "50%", bottom: 20, transform: "translateX(-50%)", zIndex: 9999, maxWidth: 440, width: "calc(100% - 32px)", background: "var(--navy)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.28)", padding: "13px 16px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 13.5, fontWeight: 600 }}>
+            <Icon name="spark" size={18} color="var(--accent)" />
+            Nova versão disponível ({novaVersao}).
+          </span>
+          <button className="btn btn-primary" style={{ padding: "8px 14px", fontSize: 13, border: "none", flex: "none" }} onClick={() => window.location.reload()}>Atualizar</button>
+        </div>
+      )}
       {panel}
     </div>
   );
