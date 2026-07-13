@@ -1927,7 +1927,7 @@ function NotifBell() {
   return (
     <div className="notif-wrap">
       <button className="icon-btn notif-btn" title="Notificações" aria-label="Abrir notificações" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <Icon name="bell" size={18} />
+        <Icon name="bell" size={20} />
         {count > 0 && <span className="notif-badge">{count > 9 ? "9+" : count}</span>}
       </button>
       {open && (
@@ -1953,7 +1953,10 @@ function NotifBell() {
 
             <div className="notif-list">
               {notifs.length === 0 ? (
-                <div className="notif-empty"><Icon name="check" size={20} color="var(--accent)" /><span>Estás em dia. Nada a tratar por agora.</span></div>
+                <div className="notif-empty">
+                  <span className="li-ico" style={{ width: 44, height: 44, background: "var(--accent-soft)" }}><Icon name="check" size={20} color="var(--accent)" /></span>
+                  <span>Estás em dia. Nada a tratar por agora.</span>
+                </div>
               ) : (
                 notifsMostradas.map((a) => {
                   const cor = a.sev === "urgent" ? "var(--neg)" : a.sev === "warn" ? "#e0792b" : "var(--accent)";

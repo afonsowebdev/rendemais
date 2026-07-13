@@ -124,7 +124,7 @@ function ProfileMenu({ account, go, onLogout }) {
   return (
     <div className="profile-menu" ref={ref}>
       <button type="button" className="profile-menu-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Abrir menu do perfil" title="Perfil">
-        <Avatar account={account} size={36} />
+        <Avatar account={account} size={30} />
         <i className="bx bx-chevron-down profile-menu-chev" aria-hidden="true"></i>
       </button>
       {open && (
@@ -157,7 +157,7 @@ function Topbar({ theme, setTheme, onLogout, go }) {
       <div className="topbar-actions">
         {notificacoesOn && <NotifBell />}
         <button className="icon-btn hide-mobile" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+          <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
         <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
       </div>
