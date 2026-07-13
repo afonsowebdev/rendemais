@@ -1227,31 +1227,204 @@ table.t {
 }
 
 /* ============================================================
-   MODAIS / PAINEIS
+   MODAIS — Design System Rende+
+   Um único padrão visual para todos os modais da app: cabeçalho com
+   ícone+título+subtítulo, corpo com campos consistentes (e 2 colunas
+   quando há espaço/relação entre campos), painel de info opcional,
+   rodapé com no máximo 2 ações (primária verde + secundária branca).
    ============================================================ */
-/* modal */
 .modal-bg {
   position: fixed;
   inset: 0;
-  background: rgba(8, 14, 24, .5);
-  backdrop-filter: blur(3px);
+  background: rgba(8, 14, 24, .55);
+  backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
   z-index: 100;
   padding: 20px;
+  animation: modal-bg-in .16s ease;
 }
 
 .modal {
   width: 100%;
   max-width: 460px;
   background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow-md, var(--shadow));
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 40px);
   max-height: calc(100dvh - 40px);
+  animation: modal-in .18s cubic-bezier(.2, .7, .3, 1);
+}
+
+.modal.modal-wide {
+  max-width: 620px;
+}
+
+@keyframes modal-bg-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-bg, .modal { animation: none; }
+}
+
+/* ---- Cabeçalho ---- */
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 22px 16px;
+  flex-shrink: 0;
+}
+
+.modal-head-ico {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+
+.modal-head-ico.neg {
+  background: color-mix(in srgb, var(--neg) 14%, transparent);
+  color: var(--neg);
+}
+
+.modal-head-txt {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.modal-title {
+  font-size: 18.5px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.modal-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.modal-close {
+  flex: none;
+  margin: -4px -4px 0 0;
+}
+
+/* ---- Corpo ---- */
+.modal-body {
+  padding: 2px 22px 22px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-body.modal-with-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 22px;
+  align-items: start;
+}
+
+.modal-section + .modal-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+
+.modal-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+/* Painel/caixa de resumo — usado quando faz sentido mostrar um resumo
+   ao vivo do que o utilizador está a preencher (ex.: divisão de despesa,
+   progresso de objetivo). Nunca mostra valores inventados. */
+.modal-info {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-info-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+}
+
+.modal-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.modal-info-row b {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---- Rodapé ---- */
+.modal-foot {
+  padding: 16px 22px 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
+
+.modal-foot .btn {
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  .modal-bg { padding: 0; align-items: flex-end; }
+  .modal { max-width: none; max-height: 92vh; max-height: 92dvh; border-radius: 20px 20px 0 0; }
+  .modal-body.modal-with-aside,
+  .modal-row-2 { grid-template-columns: 1fr; }
+  .modal-head { padding: 18px 18px 14px; }
+  .modal-body { padding: 2px 18px 18px; }
+  .modal-foot { padding: 14px 18px 18px; flex-direction: column-reverse; }
+  .modal-foot .btn { width: 100%; justify-content: center; }
 }
 
 /* ============================================================
@@ -1294,6 +1467,114 @@ table.t {
 
 .input::placeholder {
   color: var(--ink-3);
+}
+
+/* ---- Dentro de um modal, os campos ganham o visual "caixa" do Design
+   System (em vez do sublinhado usado no resto da app) ---- */
+.modal .field {
+  margin-bottom: 16px;
+  gap: 7px;
+}
+
+.modal .modal-row-2 {
+  margin-bottom: 16px;
+}
+
+.modal .modal-row-2 .field {
+  margin-bottom: 0;
+}
+
+.modal .modal-body > div > *:last-child {
+  margin-bottom: 0;
+}
+
+.modal .input,
+.modal .select,
+.modal textarea.input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+
+.modal textarea.input {
+  height: auto;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
+.modal select.input,
+.modal .select {
+  cursor: pointer;
+}
+
+.modal .input:hover,
+.modal .select:hover {
+  border-color: var(--ink-3);
+}
+
+.modal .input:focus,
+.modal .select:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.modal .input:disabled,
+.modal .select:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.modal .field.err .input,
+.modal .field.err .select {
+  border-color: var(--neg);
+}
+
+.modal .field.err .input:focus,
+.modal .field.err .select:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--neg) 16%, transparent);
+}
+
+.modal .field.ok .input,
+.modal .field.ok .select {
+  border-color: var(--accent);
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Ícone dentro do campo (ex.: valor, pesquisa) */
+.modal .field-ico-wrap {
+  position: relative;
+}
+
+.modal .field-ico-wrap .input {
+  padding-left: 36px;
+}
+
+.modal .field-ico-wrap .field-ico {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-3);
+  pointer-events: none;
+  display: grid;
+}
+
+/* Foco visível consistente para navegação por teclado dentro de modais */
+.modal .btn:focus-visible,
+.modal .icon-btn:focus-visible,
+.modal button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ===== Campo de data: adapta-se ao ecrã e com visual mais limpo ===== */
@@ -5871,17 +6152,19 @@ input.range::-moz-range-thumb {
    RENDE+ PREMIUM — Renovação visual (cantos retos, elegante, animado)
    =================================================================== */
 
-/* cantos retos nos elementos tipo cartão/botão que tinham raio fixo */
+/* cantos retos nos elementos tipo cartão/botão que tinham raio fixo (só na landing
+   page — estava sem âmbito e a forçar cantos retos em .modal/.alert/etc. em toda a
+   app autenticada; corrigido para não vazar para fora de .lp) */
 .lp-premium,
-.icon-btn,
+.lp .icon-btn,
 .lp-curr-chip,
 .lp-eyebrow,
-.alert,
-.modal,
-.sheet,
-.moresheet,
-.empty,
-.tweak-panel {
+.lp .alert,
+.lp .modal,
+.lp .sheet,
+.lp .moresheet,
+.lp .empty,
+.lp .tweak-panel {
   border-radius: 0 !important;
 }
 

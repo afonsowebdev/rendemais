@@ -172,25 +172,23 @@ function LembreteModal({ item, onClose, onSave }) {
     onSave({ titulo: f.titulo.trim(), valor: numOf(f.valor), data: f.data, aviso: +f.aviso, cat: f.cat, repete: !!f.repete });
   };
   return (
-    <Modal title={item ? "Editar lembrete" : "Novo lembrete"} onClose={onClose}
+    <Modal title={item ? "Editar lembrete" : "Novo lembrete"} sub="Cria um aviso para não te esqueceres de pagar." icon="bell" onClose={onClose}
       footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={guardar}><Icon name="check" size={14} color="#fff" /> Guardar</button></>}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <Field label="Nome"><input className="input" autoFocus value={f.titulo} onChange={set("titulo")} placeholder="Ex: Renda, Netflix…" /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Valor"><input className="input" inputMode="decimal" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
-          <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{catKeys.map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Data de vencimento"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
-          <Field label="Avisar antes">
-            <select className="select" value={f.aviso} onChange={set("aviso")}>
-              {[1, 2, 3, 5, 7].map((d) => <option key={d} value={d}>{d} dia{d > 1 ? "s" : ""} antes</option>)}
-            </select>
-          </Field>
-        </div>
-        <label className="prem-check"><input type="checkbox" checked={f.repete} onChange={(e) => setF((s) => ({ ...s, repete: e.target.checked }))} /> <span>Repetir todos os meses <span className="muted">(ao pagar, reagenda para o mês seguinte)</span></span></label>
-        {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+      <Field label="Nome"><input className="input" autoFocus value={f.titulo} onChange={set("titulo")} placeholder="Ex: Renda, Netflix…" /></Field>
+      <div className="modal-row-2">
+        <Field label="Valor" icon="coins"><input className="input" inputMode="decimal" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
+        <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{catKeys.map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
       </div>
+      <div className="modal-row-2">
+        <Field label="Data de vencimento"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
+        <Field label="Avisar antes">
+          <select className="select" value={f.aviso} onChange={set("aviso")}>
+            {[1, 2, 3, 5, 7].map((d) => <option key={d} value={d}>{d} dia{d > 1 ? "s" : ""} antes</option>)}
+          </select>
+        </Field>
+      </div>
+      <label className="prem-check"><input type="checkbox" checked={f.repete} onChange={(e) => setF((s) => ({ ...s, repete: e.target.checked }))} /> <span>Repetir todos os meses <span className="muted">(ao pagar, reagenda para o mês seguinte)</span></span></label>
+      {err && <div className="alert bad" style={{ padding: "9px 12px", marginTop: 14 }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
   );
 }
@@ -352,30 +350,28 @@ function GrupoModal({ grupo, onClose, onSave }) {
     onSave({ nome: nome.trim(), descricao: descricao.trim(), membros, convites, despesas: [] });
   };
   return (
-    <Modal title={editing ? "Editar grupo" : "Novo grupo"} onClose={onClose}
+    <Modal title={editing ? "Editar grupo" : "Novo grupo"} sub="Divide despesas com quem partilha contigo." icon="users" onClose={onClose}
       footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={guardar}><Icon name="check" size={14} color="#fff" /> {editing ? "Guardar" : "Criar grupo"}</button></>}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <Field label="Nome do grupo"><input className="input" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Casa do Porto, Viagem…" /></Field>
-        <Field label="Descrição" hint="opcional"><input className="input" value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Renda e contas da casa" /></Field>
-        {!editing && (
-          <Field label="Convidar por email" hint="Adiciona um de cada vez. Tu (Eu) já estás incluído.">
-            <div className="row" style={{ gap: 8 }}>
-              <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addConvidado(); } }} placeholder="email@exemplo.com" />
-              <button type="button" className="btn btn-soft" style={{ flex: "none" }} onClick={addConvidado}><Icon name="plus" size={14} /> Adicionar</button>
-            </div>
-          </Field>
-        )}
-        {!editing && convidados.length > 0 && (
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {convidados.map((c) => (
-              <span key={c.email} className="chip" style={{ gap: 7 }}>{c.nome}
-                <button type="button" onClick={() => setConvidados((a) => a.filter((x) => x.email !== c.email))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={13} color="var(--ink-3)" /></span></button>
-              </span>
-            ))}
+      <Field label="Nome do grupo"><input className="input" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Casa do Porto, Viagem…" /></Field>
+      <Field label="Descrição" hint="opcional"><input className="input" value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Renda e contas da casa" /></Field>
+      {!editing && (
+        <Field label="Convidar por email" hint="Adiciona um de cada vez. Tu (Eu) já estás incluído.">
+          <div className="row" style={{ gap: 8 }}>
+            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addConvidado(); } }} placeholder="email@exemplo.com" />
+            <button type="button" className="btn btn-soft" style={{ flex: "none" }} onClick={addConvidado}><Icon name="plus" size={14} /> Adicionar</button>
           </div>
-        )}
-        {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
-      </div>
+        </Field>
+      )}
+      {!editing && convidados.length > 0 && (
+        <div className="row" style={{ gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          {convidados.map((c) => (
+            <span key={c.email} className="chip" style={{ gap: 7 }}>{c.nome}
+              <button type="button" onClick={() => setConvidados((a) => a.filter((x) => x.email !== c.email))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={13} color="var(--ink-3)" /></span></button>
+            </span>
+          ))}
+        </div>
+      )}
+      {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
   );
 }
@@ -414,11 +410,11 @@ function lerAnexo(file) {
 }
 function AnexoViewer({ anexo, onClose }) {
   return (
-    <Modal title={anexo.nome || "Anexo"} onClose={onClose}
-      footer={<><a className="btn btn-soft" href={anexo.dados} download={anexo.nome || "anexo"}>Transferir</a><button className="btn btn-primary" onClick={onClose}>Fechar</button></>}>
+    <Modal title={anexo.nome || "Anexo"} sub="Documento anexado" icon="paperclip" onClose={onClose}
+      footer={<><a className="btn btn-ghost" href={anexo.dados} download={anexo.nome || "anexo"}><Icon name="download" size={14} /> Transferir</a><button className="btn btn-primary" onClick={onClose}>Fechar</button></>}>
       {/^image\//.test(anexo.tipo)
-        ? <img src={anexo.dados} alt={anexo.nome} style={{ width: "100%", borderRadius: 10, display: "block" }} />
-        : <iframe title={anexo.nome} src={anexo.dados} style={{ width: "100%", height: "60vh", border: "1px solid var(--border)", borderRadius: 10 }} />}
+        ? <img src={anexo.dados} alt={anexo.nome} style={{ width: "100%", borderRadius: "var(--radius-sm)", display: "block" }} />
+        : <iframe title={anexo.nome} src={anexo.dados} style={{ width: "100%", height: "60vh", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }} />}
     </Modal>
   );
 }
@@ -458,76 +454,88 @@ function DespesaPartilhadaModal({ grupo, onClose, onSave }) {
     const qz = {}; parts.forEach((p) => (qz[p] = Math.round((quotas[p] || 0) * 100) / 100));
     onSave({ id: BM.uid(), titulo: f.titulo.trim(), categoria: f.categoria, valor, data: f.data, vencimento: f.vencimento || "", pagador: f.pagador, participantes: parts, metodo, quotas: qz, estado: f.estado, obs: f.obs.trim(), anexos, pagamentos: {} });
   };
+  const okSplit = metodo === "percentagem" ? Math.abs(somaPct - 100) < 0.5 : metodo === "personalizado" ? Math.abs(diff) < 0.02 : true;
+  const aside = valor > 0 && parts.length > 0 && (
+    <>
+      <div className="modal-info-title">Resumo da divisão</div>
+      <div className="modal-info-row"><span>Valor total</span><b>{BM.eur(valor)}</b></div>
+      {parts.map((p) => <div className="modal-info-row" key={p}><span>{p}</span><b>{BM.eur(quotas[p] || 0)}</b></div>)}
+      {metodo !== "igual" && (
+        <div className="modal-info-row" style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+          <span>{metodo === "percentagem" ? "Soma" : "Diferença"}</span>
+          <b style={{ color: okSplit ? "var(--accent)" : "var(--neg)" }}>{metodo === "percentagem" ? Math.round(somaPct) + "%" : BM.eur(Math.abs(diff))}</b>
+        </div>
+      )}
+    </>
+  );
   return (
-    <Modal title="Nova despesa" sub={grupo.nome} onClose={onClose}
+    <Modal title="Nova despesa" sub={grupo.nome} icon="wallet" onClose={onClose} wide aside={aside}
       footer={<><button className="btn btn-ghost" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={guardar}><Icon name="check" size={14} color="#fff" /> Adicionar</button></>}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <Field label="Descrição"><input className="input" autoFocus value={f.titulo} onChange={set("titulo")} placeholder="Ex: Renda, Compras, Internet…" /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Categoria"><select className="select" value={f.categoria} onChange={set("categoria")}>{Object.keys(BM.cats).map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
-          <Field label="Valor"><input className="input" inputMode="decimal" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Data"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
-          <Field label="Vencimento" hint="opcional"><input className="input" type="date" value={f.vencimento} onChange={set("vencimento")} /></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Quem pagou"><select className="select" value={f.pagador} onChange={set("pagador")}>{pessoas.map((p) => <option key={p}>{p}</option>)}</select></Field>
-          <Field label="Estado"><select className="select" value={f.estado} onChange={set("estado")}>{ESTADOS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select></Field>
-        </div>
-        <Field label="Partilhar com">
-          <div className="prem-parts">
-            {pessoas.map((p) => <button type="button" key={p} className={"chip" + (parts.includes(p) ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => toggle(p)}>{p}</button>)}
-          </div>
-        </Field>
-        <Field label="Método de divisão">
-          <div className="pg-seg">
-            {[["igual", "Igual"], ["percentagem", "Percentagem"], ["personalizado", "Valor exato"]].map(([id, lbl]) => (
-              <button type="button" key={id} className={"pg-seg-b" + (metodo === id ? " on" : "")} onClick={() => setMetodo(id)}>{lbl}</button>
-            ))}
-          </div>
-        </Field>
-        {parts.length > 0 && metodo === "igual" && valor > 0 && (
-          <div className="muted tiny" style={{ fontWeight: 600 }}>Cada pessoa fica com {BM.eur(valor / parts.length)}.</div>
-        )}
-        {parts.length > 0 && metodo !== "igual" && (
-          <div className="pg-split">
-            {parts.map((p) => (
-              <div className="pg-split-row" key={p}>
-                <span className="prem-avatar sm">{inicial(p)}</span>
-                <span style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{p}</span>
-                {metodo === "percentagem"
-                  ? <span className="pg-split-in"><input className="input" inputMode="decimal" value={pcts[p] || ""} onChange={(e) => setPcts((s) => ({ ...s, [p]: e.target.value }))} placeholder="0" /><i>%</i></span>
-                  : <span className="pg-split-in"><input className="input" inputMode="decimal" value={vals[p] || ""} onChange={(e) => setVals((s) => ({ ...s, [p]: e.target.value }))} placeholder="0,00" /><i>{fin.curSym}</i></span>}
-                <span className="pg-split-q">{BM.eur(quotas[p] || 0)}</span>
-              </div>
-            ))}
-            <div className={"pg-split-sum" + ((metodo === "percentagem" ? Math.abs(somaPct - 100) < 0.5 : Math.abs(diff) < 0.02) ? " ok" : " bad")}>
-              {metodo === "percentagem"
-                ? "Soma: " + Math.round(somaPct) + "%" + (Math.abs(somaPct - 100) < 0.5 ? " ✓" : " · tem de dar 100%")
-                : "Soma: " + BM.eur(somaQuotas) + " / " + BM.eur(valor) + (Math.abs(diff) < 0.02 ? " ✓" : "")}
-            </div>
-          </div>
-        )}
-        <Field label="Observações" hint="opcional"><textarea className="input" rows={2} value={f.obs} onChange={set("obs")} placeholder="Notas sobre a despesa…" style={{ resize: "vertical", fontFamily: "inherit" }} /></Field>
-        <Field label="Anexar fatura" hint="imagem ou PDF">
-          <label className="pg-upload">
-            <input type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
-            <Icon name="plus" size={16} color="var(--accent)" /> {busy ? "A processar…" : "Escolher ficheiro(s)"}
-          </label>
-          {anexos.length > 0 && (
-            <div className="row" style={{ gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-              {anexos.map((a, i) => (
-                <span key={i} className="chip" style={{ gap: 7 }}><Icon name="receipt" size={12} /> {a.nome.length > 18 ? a.nome.slice(0, 16) + "…" : a.nome}
-                  <button type="button" onClick={() => setAnexos((arr) => arr.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={12} color="var(--ink-3)" /></span></button>
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="muted tiny" style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.5 }}>As imagens são reduzidas automaticamente e guardadas localmente. A leitura automática (OCR) chega numa fase futura.</div>
-        </Field>
-        {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+      <Field label="Descrição"><input className="input" autoFocus value={f.titulo} onChange={set("titulo")} placeholder="Ex: Renda, Compras, Internet…" /></Field>
+      <div className="modal-row-2">
+        <Field label="Categoria"><select className="select" value={f.categoria} onChange={set("categoria")}>{Object.keys(BM.cats).map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
+        <Field label="Valor" icon="coins"><input className="input" inputMode="decimal" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
       </div>
+      <div className="modal-row-2">
+        <Field label="Data"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
+        <Field label="Vencimento" hint="opcional"><input className="input" type="date" value={f.vencimento} onChange={set("vencimento")} /></Field>
+      </div>
+      <div className="modal-row-2">
+        <Field label="Quem pagou"><select className="select" value={f.pagador} onChange={set("pagador")}>{pessoas.map((p) => <option key={p}>{p}</option>)}</select></Field>
+        <Field label="Estado"><select className="select" value={f.estado} onChange={set("estado")}>{ESTADOS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select></Field>
+      </div>
+      <Field label="Partilhar com">
+        <div className="prem-parts">
+          {pessoas.map((p) => <button type="button" key={p} className={"chip" + (parts.includes(p) ? " sel" : "")} style={{ cursor: "pointer" }} onClick={() => toggle(p)}>{p}</button>)}
+        </div>
+      </Field>
+      <Field label="Método de divisão">
+        <div className="pg-seg">
+          {[["igual", "Igual"], ["percentagem", "Percentagem"], ["personalizado", "Valor exato"]].map(([id, lbl]) => (
+            <button type="button" key={id} className={"pg-seg-b" + (metodo === id ? " on" : "")} onClick={() => setMetodo(id)}>{lbl}</button>
+          ))}
+        </div>
+      </Field>
+      {parts.length > 0 && metodo === "igual" && valor > 0 && (
+        <div className="muted tiny" style={{ fontWeight: 600, marginBottom: 16 }}>Cada pessoa fica com {BM.eur(valor / parts.length)}.</div>
+      )}
+      {parts.length > 0 && metodo !== "igual" && (
+        <div className="pg-split" style={{ marginBottom: 16 }}>
+          {parts.map((p) => (
+            <div className="pg-split-row" key={p}>
+              <span className="prem-avatar sm">{inicial(p)}</span>
+              <span style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{p}</span>
+              {metodo === "percentagem"
+                ? <span className="pg-split-in"><input className="input" inputMode="decimal" value={pcts[p] || ""} onChange={(e) => setPcts((s) => ({ ...s, [p]: e.target.value }))} placeholder="0" /><i>%</i></span>
+                : <span className="pg-split-in"><input className="input" inputMode="decimal" value={vals[p] || ""} onChange={(e) => setVals((s) => ({ ...s, [p]: e.target.value }))} placeholder="0,00" /><i>{fin.curSym}</i></span>}
+              <span className="pg-split-q">{BM.eur(quotas[p] || 0)}</span>
+            </div>
+          ))}
+          <div className={"pg-split-sum" + (okSplit ? " ok" : " bad")}>
+            {metodo === "percentagem"
+              ? "Soma: " + Math.round(somaPct) + "%" + (okSplit ? " ✓" : " · tem de dar 100%")
+              : "Soma: " + BM.eur(somaQuotas) + " / " + BM.eur(valor) + (okSplit ? " ✓" : "")}
+          </div>
+        </div>
+      )}
+      <Field label="Observações" hint="opcional"><textarea className="input" rows={2} value={f.obs} onChange={set("obs")} placeholder="Notas sobre a despesa…" style={{ resize: "vertical", fontFamily: "inherit" }} /></Field>
+      <Field label="Anexar fatura" hint="imagem ou PDF">
+        <label className="pg-upload">
+          <input type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+          <Icon name="paperclip" size={16} color="var(--accent)" /> {busy ? "A processar…" : "Escolher ficheiro(s)"}
+        </label>
+        {anexos.length > 0 && (
+          <div className="row" style={{ gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+            {anexos.map((a, i) => (
+              <span key={i} className="chip" style={{ gap: 7 }}><Icon name="receipt" size={12} /> {a.nome.length > 18 ? a.nome.slice(0, 16) + "…" : a.nome}
+                <button type="button" onClick={() => setAnexos((arr) => arr.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "grid", color: "var(--ink-3)" }}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={12} color="var(--ink-3)" /></span></button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="muted tiny" style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.5 }}>As imagens são reduzidas automaticamente e guardadas localmente. A leitura automática (OCR) chega numa fase futura.</div>
+      </Field>
+      {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
   );
 }
@@ -1001,7 +1009,7 @@ function PartilhaInner() {
         {despModal && <DespesaPartilhadaModal grupo={aberto} onClose={() => setDespModal(null)} onSave={(d) => { prem.edit("grupos", aberto.id, { despesas: [...(aberto.despesas || []), d], mensagens: [...(aberto.mensagens || []), sysMsg("Eu adicionou a despesa " + d.titulo + " (" + BM.eur(d.valor) + ")")] }); setDespModal(null); }} />}
         {anexoView && <AnexoViewer anexo={anexoView} onClose={() => setAnexoView(null)} />}
         {remMembro && (
-          <Modal title="Remover membro" onClose={() => setRemMembro(null)}
+          <Modal title="Remover membro" sub="Esta ação não pode ser revertida." icon="trash" iconNeg onClose={() => setRemMembro(null)}
             footer={<><button className="btn btn-ghost" onClick={() => setRemMembro(null)}>Cancelar</button><button className="btn" style={{ background: "var(--neg)", color: "#fff", border: "none" }} onClick={() => { removerMembro(remMembro); setRemMembro(null); }}><Icon name="trash" size={14} color="#fff" /> Remover</button></>}>
             <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 }}>Remover <b>{remMembro}</b> do grupo? As despesas já registadas mantêm-se no histórico.</div>
           </Modal>
@@ -1455,7 +1463,7 @@ function SubModal({ mesAtual, sub, onClose, onSave }) {
 
   if (base === null) {
     return (
-      <Modal title="Adicionar recorrente" onClose={onClose}
+      <Modal title="Adicionar recorrente" sub="Escolhe um ponto de partida — ajustas tudo a seguir." icon="sync" onClose={onClose} wide
         footer={<button className="btn btn-ghost" onClick={onClose}>Cancelar</button>}>
         <p className="muted" style={{ fontSize: 13, marginBottom: 14, lineHeight: 1.5 }}>Escolhe um serviço (ajustas o valor a seguir), cria um à medida, ou regista uma despesa periódica (renda, água, seguro…).</p>
         <div className="sub-grid">
@@ -1480,27 +1488,26 @@ function SubModal({ mesAtual, sub, onClose, onSave }) {
 
   const catOpts = f.tipo === "despesa" ? Object.keys(BM.cats).map((k) => ({ k, nome: BM.cats[k].nome })) : Object.keys(SUB_CATS).map((k) => ({ k, nome: SUB_CATS[k].nome }));
   return (
-    <Modal title={editing ? (f.tipo === "despesa" ? "Editar despesa recorrente" : "Editar subscrição") : (base.nome || (f.tipo === "despesa" ? "Nova despesa recorrente" : "Nova subscrição"))} onClose={onClose}
+    <Modal title={editing ? (f.tipo === "despesa" ? "Editar despesa recorrente" : "Editar subscrição") : (base.nome || (f.tipo === "despesa" ? "Nova despesa recorrente" : "Nova subscrição"))}
+      sub={f.tipo === "despesa" ? "Um pagamento que se repete todos os meses." : "Um serviço cobrado periodicamente."} icon="sync" onClose={onClose} wide
       footer={<><button className="btn btn-ghost" onClick={() => (editing ? onClose() : setBase(null))}>{editing ? "Cancelar" : "Voltar"}</button><button className="btn btn-primary" onClick={guardar}><Icon name="check" size={14} color="#fff" /> {editing ? "Guardar" : "Adicionar"}</button></>}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Tipo"><select className="select" value={f.tipo} onChange={mudarTipo}><option value="subscricao">Subscrição (serviço)</option><option value="despesa">Despesa periódica</option></select></Field>
-          <Field label="Nome"><input className="input" value={f.nome} onChange={upd("nome")} placeholder={f.tipo === "despesa" ? "Ex: Renda" : "Ex: Netflix"} /></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Valor" hint={f.tipo === "despesa" ? "Podes ajustar em cada mês." : "Ajusta ao teu plano."}><input className="input" inputMode="decimal" value={f.valor} onChange={upd("valor")} placeholder="0,00" /></Field>
-          <Field label="Ciclo de cobrança"><select className="select" value={f.ciclo} onChange={upd("ciclo")}><option value="mensal">Mensal</option><option value="anual">Anual</option><option value="semanal">Semanal</option></select></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Categoria"><select className="select" value={f.categoria} onChange={upd("categoria")}>{catOpts.map((o) => <option key={o.k} value={o.k}>{o.nome}</option>)}</select></Field>
-          <Field label={f.tipo === "despesa" ? "Dia de pagamento" : "Dia de renovação"}><input className="input" type="number" min="1" max="28" value={f.dia} onChange={upd("dia")} /></Field>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Método de pagamento" hint="opcional"><input className="input" value={f.metodo} onChange={upd("metodo")} placeholder="Ex: Visa •• 42" /></Field>
-          <Field label="Estado"><select className="select" value={f.estado} onChange={upd("estado")}><option value="ativa">Ativa</option>{f.tipo !== "despesa" && <option value="trial">Trial (período gratuito)</option>}<option value="pausada">Pausada</option><option value="cancelada">Cancelada</option></select></Field>
-        </div>
-        {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
+      <div className="modal-row-2">
+        <Field label="Tipo"><select className="select" value={f.tipo} onChange={mudarTipo}><option value="subscricao">Subscrição (serviço)</option><option value="despesa">Despesa periódica</option></select></Field>
+        <Field label="Nome"><input className="input" value={f.nome} onChange={upd("nome")} placeholder={f.tipo === "despesa" ? "Ex: Renda" : "Ex: Netflix"} /></Field>
       </div>
+      <div className="modal-row-2">
+        <Field label="Valor" hint={f.tipo === "despesa" ? "Podes ajustar em cada mês." : "Ajusta ao teu plano."} icon="coins"><input className="input" inputMode="decimal" value={f.valor} onChange={upd("valor")} placeholder="0,00" /></Field>
+        <Field label="Ciclo de cobrança"><select className="select" value={f.ciclo} onChange={upd("ciclo")}><option value="mensal">Mensal</option><option value="anual">Anual</option><option value="semanal">Semanal</option></select></Field>
+      </div>
+      <div className="modal-row-2">
+        <Field label="Categoria"><select className="select" value={f.categoria} onChange={upd("categoria")}>{catOpts.map((o) => <option key={o.k} value={o.k}>{o.nome}</option>)}</select></Field>
+        <Field label={f.tipo === "despesa" ? "Dia de pagamento" : "Dia de renovação"}><input className="input" type="number" min="1" max="28" value={f.dia} onChange={upd("dia")} /></Field>
+      </div>
+      <div className="modal-row-2">
+        <Field label="Método de pagamento" hint="opcional"><input className="input" value={f.metodo} onChange={upd("metodo")} placeholder="Ex: Visa •• 42" /></Field>
+        <Field label="Estado"><select className="select" value={f.estado} onChange={upd("estado")}><option value="ativa">Ativa</option>{f.tipo !== "despesa" && <option value="trial">Trial (período gratuito)</option>}<option value="pausada">Pausada</option><option value="cancelada">Cancelada</option></select></Field>
+      </div>
+      {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
   );
 }

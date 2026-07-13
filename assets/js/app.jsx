@@ -218,18 +218,63 @@ function EntryModal({ type, item, onClose }) {
     reservar: "Guardar na poupança",
     perfil: "Editar perfil",
   };
+  const subs = {
+    despesa: "Regista um novo gasto na tua conta.",
+    rendimento: "Regista uma nova entrada de dinheiro.",
+    meta: "Define um novo objetivo de poupança.",
+    deposit: item?.nome,
+    orcamento: "Define um limite mensal de gastos.",
+    sync: "Sincronização verificada",
+    reservar: "Guarda uma parte do saldo deste mês.",
+    perfil: "Atualiza os teus dados pessoais.",
+  };
+  const icons = { despesa: "wallet", rendimento: "arrowsDown", meta: "target", deposit: "coins", orcamento: "chart", sync: "sync", reservar: "target", perfil: "user" };
+
+  // Painéis de resumo (aside) — só valores já calculados a partir do que está no
+  // formulário, nunca inventados. Só para os tipos onde um resumo ao vivo ajuda.
+  let aside = null;
+  if (type === "meta") {
+    const alvoN = num(f.alvo), atualN = num(f.atual);
+    const pct = alvoN > 0 ? Math.min(100, Math.round((atualN / alvoN) * 100)) : 0;
+    aside = (
+      <>
+        <div className="modal-info-title">Resumo</div>
+        <div className="modal-info-row"><span>Progresso inicial</span><b>{alvoN > 0 ? pct + "%" : "—"}</b></div>
+        <div className="modal-info-row"><span>Falta poupar</span><b>{BM.eur0(Math.max(0, alvoN - atualN))}</b></div>
+      </>
+    );
+  } else if (type === "orcamento") {
+    const v = num(f.valor);
+    aside = (
+      <>
+        <div className="modal-info-title">Resumo</div>
+        <div className="modal-info-row"><span>Média diária</span><b>{v > 0 ? BM.eur0(v / 30) : "—"}</b></div>
+        <div className="modal-info-row"><span>Média semanal</span><b>{v > 0 ? BM.eur0(v / 4.3) : "—"}</b></div>
+      </>
+    );
+  } else if (type === "deposit") {
+    const alvoN = +(item?.alvo || 0), atualN = +(item?.atual || 0), v = num(f.valor);
+    const novoTotal = atualN + v;
+    aside = (
+      <>
+        <div className="modal-info-title">Resumo</div>
+        <div className="modal-info-row"><span>Total após depósito</span><b>{BM.eur0(novoTotal)}</b></div>
+        {alvoN > 0 && <div className="modal-info-row"><span>Ainda falta</span><b>{BM.eur0(Math.max(0, alvoN - novoTotal))}</b></div>}
+      </>
+    );
+  }
 
   return (
-    <Modal title={titles[type]} sub={type === "deposit" ? item?.nome : type === "sync" ? "Sincronização verificada" : null} onClose={onClose}
+    <Modal title={titles[type]} sub={subs[type]} icon={icons[type]} onClose={onClose} aside={aside} wide={type === "sync" || type === "perfil"}
       footer={<>
         <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-primary" onClick={save}><Icon name="check" size={15} color="#fff" /> {type === "sync" ? "Importar" : type === "reservar" ? "Guardar" : "Guardar"}</button>
+        <button className="btn btn-primary" onClick={save}><Icon name="check" size={15} color="#fff" /> {type === "sync" ? "Importar" : "Guardar"}</button>
       </>}>
 
       {type === "despesa" && <>
         <Field label="Nome da despesa"><input className="input" autoFocus value={f.nome} onChange={set("nome")} placeholder="Ex: Compras supermercado" /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label={`Valor (${fin.curSym})`}><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
+        <div className="modal-row-2">
+          <Field label={`Valor (${fin.curSym})`} icon="coins"><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
           <Field label="Data de pagamento" hint="Quando a despesa é (ou foi) paga."><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
         </div>
         <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{catKeys.map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
@@ -246,8 +291,8 @@ function EntryModal({ type, item, onClose }) {
 
       {type === "rendimento" && <>
         <Field label="Fonte"><input className="input" autoFocus value={f.fonte} onChange={set("fonte")} placeholder="Ex: Bolsa de estudo" /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label={`Valor (${fin.curSym})`}><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
+        <div className="modal-row-2">
+          <Field label={`Valor (${fin.curSym})`} icon="coins"><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
           <Field label="Data"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
         </div>
         <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{incKeys.map((k) => <option key={k} value={k}>{k}</option>)}</select></Field>
@@ -261,9 +306,9 @@ function EntryModal({ type, item, onClose }) {
 
       {type === "meta" && <>
         <Field label="Nome da meta"><input className="input" autoFocus value={f.nome} onChange={set("nome")} placeholder="Ex: Fundo de emergência" /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label={`Objetivo (${fin.curSym})`}><input className="input" type="number" step="1" value={f.alvo} onChange={set("alvo")} placeholder="1000" /></Field>
-          <Field label={`Já poupado (${fin.curSym})`} hint="O que já tinhas — não desconta da receita."><input className="input" type="number" step="1" value={f.atual} onChange={set("atual")} placeholder="0" /></Field>
+        <div className="modal-row-2">
+          <Field label={`Objetivo (${fin.curSym})`} icon="target"><input className="input" type="number" step="1" value={f.alvo} onChange={set("alvo")} placeholder="1000" /></Field>
+          <Field label={`Já poupado (${fin.curSym})`} hint="O que já tinhas — não desconta da receita." icon="coins"><input className="input" type="number" step="1" value={f.atual} onChange={set("atual")} placeholder="0" /></Field>
         </div>
         <Field label="Cor">
           <div className="row" style={{ gap: 8 }}>
@@ -276,7 +321,7 @@ function EntryModal({ type, item, onClose }) {
       </>}
 
       {type === "deposit" && <>
-        <Field label={`Valor a depositar (${fin.curSym})`} hint={(item?.alvo || 0) > 0 ? `Em falta: ${BM.eur0((item?.alvo || 0) - (item?.atual || 0))}` : `Acumulado: ${BM.eur0(item?.atual || 0)}`}>
+        <Field label={`Valor a depositar (${fin.curSym})`} hint={(item?.alvo || 0) > 0 ? `Em falta: ${BM.eur0((item?.alvo || 0) - (item?.atual || 0))}` : `Acumulado: ${BM.eur0(item?.atual || 0)}`} icon="coins">
           <input className="input" autoFocus type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" />
         </Field>
         <label className="row" style={{ gap: 10, cursor: "pointer", fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, marginTop: 2, color: "var(--ink-2)" }}>
@@ -286,7 +331,7 @@ function EntryModal({ type, item, onClose }) {
       </>}
 
       {type === "orcamento" && <>
-        <Field label={`Limite de gastos por mês (${fin.curSym})`} hint="Deixa a 0 para remover o limite.">
+        <Field label={`Limite de gastos por mês (${fin.curSym})`} hint="Deixa a 0 para remover o limite." icon="coins">
           <input className="input" autoFocus type="number" step="1" value={f.valor} onChange={set("valor")} placeholder="850" />
         </Field>
       </>}
@@ -367,7 +412,7 @@ function EntryModal({ type, item, onClose }) {
           </div>
         </div>
         <Field label="Nome"><input className="input" value={f.nome} onChange={set("nome")} /></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div className="modal-row-2">
           <Field label="Data de nascimento" hint={nascBloqueado ? "Já não pode ser alterada." : "Podes corrigi-la até 7 dias depois de a definires."}>
             {nascBloqueado ? (
               <div className="input" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface-2)", cursor: "not-allowed", fontWeight: 700 }}>
@@ -388,7 +433,7 @@ function EntryModal({ type, item, onClose }) {
           <Field label="Cidade"><input className="input" value={f.cidade} onChange={set("cidade")} /></Field>
         </div>
         <Field label="Situação"><select className="select" value={f.perfil} onChange={set("perfil")}>{["Estudante", "Trabalhador", "Estudante e Trabalhador"].map((o) => <option key={o}>{o}</option>)}</select></Field>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div className="modal-row-2">
           <Field label="Estado civil"><select className="select" value={f.estado} onChange={set("estado")}>{["Solteiro(a)", "Casado(a)"].map((o) => <option key={o}>{o}</option>)}</select></Field>
           <Field label="Habitação"><select className="select" value={f.habitacao} onChange={set("habitacao")}>{["Vive sozinho(a)", "Vive com colegas", "Vive com familiares", "Vive com cônjuge"].map((o) => <option key={o}>{o}</option>)}</select></Field>
         </div>

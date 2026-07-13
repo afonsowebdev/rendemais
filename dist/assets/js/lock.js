@@ -249,17 +249,18 @@ function RLPinSetup({ onClose }) {
     window.RendeLock.setPin(a);
     onClose();
   };
+  const aside = /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "modal-info-title" }, "Como funciona"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)", lineHeight: 1.55 } }, "S\xF3 precisas de definir o PIN. No ecr\xE3 de bloqueio podes desbloquear com este PIN ", /* @__PURE__ */ React.createElement("b", null, "ou"), " com a ", /* @__PURE__ */ React.createElement("b", null, "palavra-passe da tua conta"), " (a mesma do in\xEDcio de sess\xE3o) \u2014 n\xE3o \xE9 preciso criar outra."));
   return /* @__PURE__ */ React.createElement(
     Modal,
     {
       title: "Definir PIN",
       sub: "Protege a app e as a\xE7\xF5es graves",
+      icon: "lock",
       onClose,
+      aside,
       footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: onClose }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: ok }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 15, color: "#fff" }), " Definir"))
     },
-    /* @__PURE__ */ React.createElement(Field, { label: "Novo PIN (4 d\xEDgitos)" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "password", inputMode: "numeric", maxLength: 4, autoFocus: true, value: a, onChange: (e) => setA(e.target.value.replace(/\D/g, "")), placeholder: "\u2022\u2022\u2022\u2022" })),
-    /* @__PURE__ */ React.createElement(Field, { label: "Confirmar PIN" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "password", inputMode: "numeric", maxLength: 4, value: b, onChange: (e) => setB(e.target.value.replace(/\D/g, "")), placeholder: "\u2022\u2022\u2022\u2022" })),
-    /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, alignItems: "flex-start", padding: "11px 13px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", border: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "lock", size: 16, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)", lineHeight: 1.5 } }, "S\xF3 precisas de definir o PIN. No ecr\xE3 de bloqueio podes desbloquear com este PIN ", /* @__PURE__ */ React.createElement("b", null, "ou"), " com a ", /* @__PURE__ */ React.createElement("b", null, "palavra-passe da tua conta"), " (a mesma do in\xEDcio de sess\xE3o) \u2014 n\xE3o \xE9 preciso criar outra.")),
+    /* @__PURE__ */ React.createElement("div", { className: "modal-row-2" }, /* @__PURE__ */ React.createElement(Field, { label: "Novo PIN (4 d\xEDgitos)" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "password", inputMode: "numeric", maxLength: 4, autoFocus: true, value: a, onChange: (e) => setA(e.target.value.replace(/\D/g, "")), placeholder: "\u2022\u2022\u2022\u2022" })), /* @__PURE__ */ React.createElement(Field, { label: "Confirmar PIN" }, /* @__PURE__ */ React.createElement("input", { className: "input", type: "password", inputMode: "numeric", maxLength: 4, value: b, onChange: (e) => setB(e.target.value.replace(/\D/g, "")), placeholder: "\u2022\u2022\u2022\u2022" }))),
     err && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { marginTop: 4, padding: "9px 12px" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, err))
   );
 }
@@ -298,6 +299,8 @@ function RLConfirmPin({ title, desc, onConfirm, onClose }) {
     Modal,
     {
       title,
+      sub: "Confirma\xE7\xE3o de seguran\xE7a",
+      icon: "shield",
       onClose,
       footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: onClose }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "btn", style: { background: "var(--neg)", color: "#fff", border: "none", opacity: busy ? 0.7 : 1 }, disabled: busy, onClick: confirm }, busy ? "A verificar\u2026" : "Confirmar"))
     },

@@ -206,19 +206,23 @@ function RLPinSetup({ onClose }) {
     if (a !== b) return setErr("Os PINs não coincidem.");
     window.RendeLock.setPin(a); onClose();
   };
+  const aside = (
+    <>
+      <div className="modal-info-title">Como funciona</div>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)", lineHeight: 1.55 }}>
+        Só precisas de definir o PIN. No ecrã de bloqueio podes desbloquear com este PIN <b>ou</b> com a <b>palavra-passe da tua conta</b> (a mesma do início de sessão) — não é preciso criar outra.
+      </div>
+    </>
+  );
   return (
-    <Modal title="Definir PIN" sub="Protege a app e as ações graves" onClose={onClose}
+    <Modal title="Definir PIN" sub="Protege a app e as ações graves" icon="lock" onClose={onClose} aside={aside}
       footer={<>
         <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" onClick={ok}><Icon name="check" size={15} color="#fff" /> Definir</button>
       </>}>
-      <Field label="Novo PIN (4 dígitos)"><input className="input" type="password" inputMode="numeric" maxLength={4} autoFocus value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
-      <Field label="Confirmar PIN"><input className="input" type="password" inputMode="numeric" maxLength={4} value={b} onChange={(e) => setB(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
-      <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "11px 13px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-        <Icon name="lock" size={16} color="var(--accent)" />
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)", lineHeight: 1.5 }}>
-          Só precisas de definir o PIN. No ecrã de bloqueio podes desbloquear com este PIN <b>ou</b> com a <b>palavra-passe da tua conta</b> (a mesma do início de sessão) — não é preciso criar outra.
-        </div>
+      <div className="modal-row-2">
+        <Field label="Novo PIN (4 dígitos)"><input className="input" type="password" inputMode="numeric" maxLength={4} autoFocus value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
+        <Field label="Confirmar PIN"><input className="input" type="password" inputMode="numeric" maxLength={4} value={b} onChange={(e) => setB(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
       </div>
       {err && <div className="alert bad" style={{ marginTop: 4, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
@@ -245,7 +249,7 @@ function RLConfirmPin({ title, desc, onConfirm, onClose }) {
     } finally { setBusy(false); }
   };
   return (
-    <Modal title={title} onClose={onClose}
+    <Modal title={title} sub="Confirmação de segurança" icon="shield" onClose={onClose}
       footer={<>
         <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
         <button className="btn" style={{ background: "var(--neg)", color: "#fff", border: "none", opacity: busy ? .7 : 1 }} disabled={busy} onClick={confirm}>{busy ? "A verificar…" : "Confirmar"}</button>

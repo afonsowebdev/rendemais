@@ -267,38 +267,52 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
     },
     /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 14 }),
     " Eliminar conta"
-  ))), /* @__PURE__ */ React.createElement(Section, { title: "Plano", icon: "spark" }, /* @__PURE__ */ React.createElement(Rowi, { label: ehPremium ? "Rende+ Premium" : "Plano gratuito", sub: ehPremium ? "Tens acesso a Lembretes, Recorrentes, Partilha e Previs\xE3o" : "Faz upgrade para desbloquear Lembretes, Recorrentes, Partilha e Previs\xE3o", last: true }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => go("premium") }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "#fff" }), " ", ehPremium ? "Gerir plano" : "Upgrade"))), /* @__PURE__ */ React.createElement("div", { className: "tiny", style: { fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)", marginTop: 4 } }, "Prefer\xEAncias"), /* @__PURE__ */ React.createElement(PerfilPreferencias, null), pinModal && /* @__PURE__ */ React.createElement(RLPinSetup, { onClose: () => setPinModal(false) }), confirmClear && /* @__PURE__ */ React.createElement("div", { className: "modal-bg", onClick: () => setConfirmClear(false) }, /* @__PURE__ */ React.createElement("div", { className: "modal", style: { maxWidth: 400 }, onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { style: { padding: "30px 26px", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 28, color: "var(--neg)" })), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" } }, "Limpar todos os dados?"), /* @__PURE__ */ React.createElement("div", { className: "muted", style: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 } }, "Vais remover todas as despesas, rendimentos e metas. A tua conta mant\xE9m-se, mas ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "esta a\xE7\xE3o n\xE3o pode ser revertida"), "."), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 10, marginTop: 24 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { flex: 1, justifyContent: "center" }, onClick: () => setConfirmClear(false) }, "Cancelar"), /* @__PURE__ */ React.createElement(
-    "button",
+  ))), /* @__PURE__ */ React.createElement(Section, { title: "Plano", icon: "spark" }, /* @__PURE__ */ React.createElement(Rowi, { label: ehPremium ? "Rende+ Premium" : "Plano gratuito", sub: ehPremium ? "Tens acesso a Lembretes, Recorrentes, Partilha e Previs\xE3o" : "Faz upgrade para desbloquear Lembretes, Recorrentes, Partilha e Previs\xE3o", last: true }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => go("premium") }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "#fff" }), " ", ehPremium ? "Gerir plano" : "Upgrade"))), /* @__PURE__ */ React.createElement("div", { className: "tiny", style: { fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)", marginTop: 4 } }, "Prefer\xEAncias"), /* @__PURE__ */ React.createElement(PerfilPreferencias, null), pinModal && /* @__PURE__ */ React.createElement(RLPinSetup, { onClose: () => setPinModal(false) }), confirmClear && /* @__PURE__ */ React.createElement(
+    Modal,
     {
-      className: "btn",
-      style: { flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none" },
-      onClick: () => {
+      title: "Limpar todos os dados?",
+      sub: "Esta a\xE7\xE3o n\xE3o pode ser revertida.",
+      icon: "trash",
+      iconNeg: true,
+      onClose: () => setConfirmClear(false),
+      footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: () => setConfirmClear(false) }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { className: "btn", style: { background: "var(--neg)", color: "#fff", border: "none" }, onClick: () => {
         setConfirmClear(false);
         fin.resetData();
-      }
+      } }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 15, color: "#fff" }), " Limpar"))
     },
-    /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 15, color: "#fff" }),
-    " Limpar"
-  ))))), confirmDelete && /* @__PURE__ */ React.createElement("div", { className: "modal-bg", onClick: () => !busyDel && setConfirmDelete(false) }, /* @__PURE__ */ React.createElement("div", { className: "modal", style: { maxWidth: 410 }, onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { style: { padding: "30px 26px", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 28, color: "var(--neg)" })), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" } }, "Eliminar a tua conta?"), /* @__PURE__ */ React.createElement("div", { className: "muted", style: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 } }, "Vais apagar a conta ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, a.email), " e ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "todos"), " os dados \u2014 despesas, rendimentos, metas, contas e categorias. Esta a\xE7\xE3o ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "n\xE3o pode ser revertida"), ". Se voltares a criar conta com este email, come\xE7a tudo do zero."), delErr && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { marginTop: 14, padding: "9px 12px", textAlign: "left" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, delErr)), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 10, marginTop: 24 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", disabled: busyDel, style: { flex: 1, justifyContent: "center" }, onClick: () => setConfirmDelete(false) }, "Cancelar"), /* @__PURE__ */ React.createElement(
-    "button",
+    /* @__PURE__ */ React.createElement("div", { className: "muted", style: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 } }, "Vais remover todas as despesas, rendimentos e metas. A tua conta mant\xE9m-se, mas ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "esta a\xE7\xE3o n\xE3o pode ser revertida"), ".")
+  ), confirmDelete && /* @__PURE__ */ React.createElement(
+    Modal,
     {
-      className: "btn",
-      disabled: busyDel,
-      style: { flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none", opacity: busyDel ? 0.8 : 1, cursor: busyDel ? "wait" : "pointer" },
-      onClick: async () => {
-        setBusyDel(true);
-        setDelErr("");
-        try {
-          await fin.eliminarConta();
-        } catch (e) {
-          setDelErr(e.message || "N\xE3o foi poss\xEDvel eliminar a conta.");
-          setBusyDel(false);
-        }
-      }
+      title: "Eliminar a tua conta?",
+      sub: "Esta a\xE7\xE3o n\xE3o pode ser revertida.",
+      icon: "trash",
+      iconNeg: true,
+      onClose: () => !busyDel && setConfirmDelete(false),
+      footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", disabled: busyDel, onClick: () => setConfirmDelete(false) }, "Cancelar"), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          className: "btn",
+          disabled: busyDel,
+          style: { background: "var(--neg)", color: "#fff", border: "none", opacity: busyDel ? 0.8 : 1, cursor: busyDel ? "wait" : "pointer" },
+          onClick: async () => {
+            setBusyDel(true);
+            setDelErr("");
+            try {
+              await fin.eliminarConta();
+            } catch (e) {
+              setDelErr(e.message || "N\xE3o foi poss\xEDvel eliminar a conta.");
+              setBusyDel(false);
+            }
+          }
+        },
+        /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 15, color: "#fff" }),
+        " ",
+        busyDel ? "A eliminar\u2026" : "Eliminar conta"
+      ))
     },
-    /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 15, color: "#fff" }),
-    " ",
-    busyDel ? "A eliminar\u2026" : "Eliminar conta"
-  ))))), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { textAlign: "center", marginTop: 4, fontWeight: 600 } }, "Rende+ \xB7 vers\xE3o ", window.APP_VERSION || "1.0.0"));
+    /* @__PURE__ */ React.createElement("div", { className: "muted", style: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 } }, "Vais apagar a conta ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, a.email), " e ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "todos"), " os dados \u2014 despesas, rendimentos, metas, contas e categorias. Esta a\xE7\xE3o ", /* @__PURE__ */ React.createElement("strong", { style: { color: "var(--ink)" } }, "n\xE3o pode ser revertida"), ". Se voltares a criar conta com este email, come\xE7a tudo do zero."),
+    delErr && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { marginTop: 14, padding: "9px 12px" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, delErr))
+  ), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { textAlign: "center", marginTop: 4, fontWeight: 600 } }, "Rende+ \xB7 vers\xE3o ", window.APP_VERSION || "1.0.0"));
 }
 Object.assign(window, { Perfil, Poupanca, Relatorios, Historico, Definicoes });

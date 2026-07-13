@@ -74,7 +74,9 @@ const BX = {
   calendarCheck: "bx-calendar-check",
   chat: "bx-message-rounded-dots",
   send: "bx-send",
-  bot: "bx-bot"
+  bot: "bx-bot",
+  paperclip: "bx-paperclip",
+  download: "bx-download"
 };
 function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
   const P = {

@@ -752,50 +752,33 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
       {pinModal && <RLPinSetup onClose={() => setPinModal(false)} />}
 
       {confirmClear && (
-        <div className="modal-bg" onClick={() => setConfirmClear(false)}>
-          <div className="modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: "30px 26px", textAlign: "center" }}>
-              <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
-                <Icon name="trash" size={28} color="var(--neg)" />
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" }}>Limpar todos os dados?</div>
-              <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
-                Vais remover todas as despesas, rendimentos e metas. A tua conta mantém-se, mas <strong style={{ color: "var(--ink)" }}>esta ação não pode ser revertida</strong>.
-              </div>
-              <div className="row" style={{ gap: 10, marginTop: 24 }}>
-                <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmClear(false)}>Cancelar</button>
-                <button className="btn" style={{ flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none" }}
-                  onClick={() => { setConfirmClear(false); fin.resetData(); }}>
-                  <Icon name="trash" size={15} color="#fff" /> Limpar
-                </button>
-              </div>
-            </div>
+        <Modal title="Limpar todos os dados?" sub="Esta ação não pode ser revertida." icon="trash" iconNeg onClose={() => setConfirmClear(false)}
+          footer={<>
+            <button className="btn btn-ghost" onClick={() => setConfirmClear(false)}>Cancelar</button>
+            <button className="btn" style={{ background: "var(--neg)", color: "#fff", border: "none" }} onClick={() => { setConfirmClear(false); fin.resetData(); }}>
+              <Icon name="trash" size={15} color="#fff" /> Limpar
+            </button>
+          </>}>
+          <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 }}>
+            Vais remover todas as despesas, rendimentos e metas. A tua conta mantém-se, mas <strong style={{ color: "var(--ink)" }}>esta ação não pode ser revertida</strong>.
           </div>
-        </div>
+        </Modal>
       )}
 
       {confirmDelete && (
-        <div className="modal-bg" onClick={() => !busyDel && setConfirmDelete(false)}>
-          <div className="modal" style={{ maxWidth: 410 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: "30px 26px", textAlign: "center" }}>
-              <div style={{ width: 66, height: 66, borderRadius: "50%", display: "grid", placeItems: "center", margin: "0 auto 18px", background: "color-mix(in srgb, var(--neg) 13%, transparent)" }}>
-                <Icon name="trash" size={28} color="var(--neg)" />
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: "-.01em" }}>Eliminar a tua conta?</div>
-              <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, marginTop: 9 }}>
-                Vais apagar a conta <strong style={{ color: "var(--ink)" }}>{a.email}</strong> e <strong style={{ color: "var(--ink)" }}>todos</strong> os dados — despesas, rendimentos, metas, contas e categorias. Esta ação <strong style={{ color: "var(--ink)" }}>não pode ser revertida</strong>. Se voltares a criar conta com este email, começa tudo do zero.
-              </div>
-              {delErr && <div className="alert bad" style={{ marginTop: 14, padding: "9px 12px", textAlign: "left" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{delErr}</span></div>}
-              <div className="row" style={{ gap: 10, marginTop: 24 }}>
-                <button className="btn btn-soft" disabled={busyDel} style={{ flex: 1, justifyContent: "center" }} onClick={() => setConfirmDelete(false)}>Cancelar</button>
-                <button className="btn" disabled={busyDel} style={{ flex: 1, justifyContent: "center", background: "var(--neg)", color: "#fff", border: "none", opacity: busyDel ? .8 : 1, cursor: busyDel ? "wait" : "pointer" }}
-                  onClick={async () => { setBusyDel(true); setDelErr(""); try { await fin.eliminarConta(); } catch (e) { setDelErr(e.message || "Não foi possível eliminar a conta."); setBusyDel(false); } }}>
-                  <Icon name="trash" size={15} color="#fff" /> {busyDel ? "A eliminar…" : "Eliminar conta"}
-                </button>
-              </div>
-            </div>
+        <Modal title="Eliminar a tua conta?" sub="Esta ação não pode ser revertida." icon="trash" iconNeg onClose={() => !busyDel && setConfirmDelete(false)}
+          footer={<>
+            <button className="btn btn-ghost" disabled={busyDel} onClick={() => setConfirmDelete(false)}>Cancelar</button>
+            <button className="btn" disabled={busyDel} style={{ background: "var(--neg)", color: "#fff", border: "none", opacity: busyDel ? .8 : 1, cursor: busyDel ? "wait" : "pointer" }}
+              onClick={async () => { setBusyDel(true); setDelErr(""); try { await fin.eliminarConta(); } catch (e) { setDelErr(e.message || "Não foi possível eliminar a conta."); setBusyDel(false); } }}>
+              <Icon name="trash" size={15} color="#fff" /> {busyDel ? "A eliminar…" : "Eliminar conta"}
+            </button>
+          </>}>
+          <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 }}>
+            Vais apagar a conta <strong style={{ color: "var(--ink)" }}>{a.email}</strong> e <strong style={{ color: "var(--ink)" }}>todos</strong> os dados — despesas, rendimentos, metas, contas e categorias. Esta ação <strong style={{ color: "var(--ink)" }}>não pode ser revertida</strong>. Se voltares a criar conta com este email, começa tudo do zero.
           </div>
-        </div>
+          {delErr && <div className="alert bad" style={{ marginTop: 14, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{delErr}</span></div>}
+        </Modal>
       )}
 
       <div className="tiny muted" style={{ textAlign: "center", marginTop: 4, fontWeight: 600 }}>Rende+ · versão {window.APP_VERSION || "1.0.0"}</div>

@@ -55,7 +55,7 @@ const API = (function () {
 
     let resp;
     try {
-      resp = await fetch(BASE + "/api/assistente/chat", { method: "POST", headers, body: JSON.stringify({ mensagens }), signal });
+      resp = await fetch(BASE + "/api/assistant/chat", { method: "POST", headers, body: JSON.stringify({ mensagens }), signal });
     } catch (e) {
       if (e.name !== "AbortError" && onError) onError(e);
       return;

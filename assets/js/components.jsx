@@ -321,23 +321,49 @@ function EmptyState({ icon, title, msg, action }) {
   );
 }
 
-function Field({ label, children, hint }) {
-  return <div className="field"><label>{label}</label>{children}{hint && <span className="tiny muted" style={{ fontWeight: 600 }}>{hint}</span>}</div>;
+/* `err`/`ok` aceitam `true` (só estiliza a borda) ou uma string (mostra também uma
+   mensagem). `icon` mostra um ícone dentro do campo — só usar quando fizer sentido
+   (ex.: valor, pesquisa). Nada disto altera a lógica de validação já existente,
+   é só a forma como o resultado (válido/inválido) é apresentado. */
+function Field({ label, children, hint, err, ok, icon }) {
+  const errMsg = typeof err === "string" ? err : null;
+  return (
+    <div className={"field" + (err ? " err" : ok ? " ok" : "")}>
+      {label && <label>{label}</label>}
+      {icon ? <div className="field-ico-wrap"><span className="field-ico"><Icon name={icon} size={15} /></span>{children}</div> : children}
+      {errMsg ? <span className="field-hint" style={{ color: "var(--neg)" }}>{errMsg}</span> : hint ? <span className="field-hint">{hint}</span> : null}
+    </div>
+  );
 }
 
-function Modal({ title, sub, onClose, children, footer, wide }) {
+/* Cabeçalho com ícone+título+subtítulo+fechar, corpo com scroll próprio, rodapé com
+   no máximo 2 ações — o mesmo molde para todos os modais da app (ver styles.css,
+   secção "MODAIS — Design System Rende+"). `aside` é opcional: quando passado, o
+   corpo ganha uma segunda coluna com um painel de resumo (ex.: divisão de despesa). */
+function Modal({ title, sub, icon, iconNeg, onClose, children, footer, wide, aside, "aria-label": ariaLabel }) {
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
     <div className="modal-bg" onClick={onClose}>
-      <div className="modal" style={wide ? { maxWidth: 560 } : null} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{title}</div>
-            {sub && <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{sub}</div>}
+      <div className={"modal" + (wide ? " modal-wide" : "")} role="dialog" aria-modal="true" aria-label={ariaLabel || title} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          {icon && <span className={"modal-head-ico" + (iconNeg ? " neg" : "")}><Icon name={icon} size={20} /></span>}
+          <div className="modal-head-txt">
+            <div className="modal-title">{title}</div>
+            {sub && <div className="modal-sub">{sub}</div>}
           </div>
-          <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={onClose}><span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span></button>
+          <button type="button" className="icon-btn modal-close" style={{ width: 32, height: 32 }} onClick={onClose} aria-label="Fechar">
+            <span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span>
+          </button>
         </div>
-        <div style={{ padding: 20, overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>{children}</div>
-        {footer && <div style={{ padding: "14px 20px 20px", display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0, borderTop: "1px solid var(--border)" }}>{footer}</div>}
+        <div className={"modal-body" + (aside ? " modal-with-aside" : "")}>
+          <div>{children}</div>
+          {aside && <div className="modal-info">{aside}</div>}
+        </div>
+        {footer && <div className="modal-foot">{footer}</div>}
       </div>
     </div>
   );
