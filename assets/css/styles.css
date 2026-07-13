@@ -370,25 +370,11 @@ button {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 32px;
+  min-height: 64px;
+  padding: 12px 28px;
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-}
-
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -.02em;
-  margin: 0;
-}
-
-.page-sub {
-  font-size: 13px;
-  color: var(--ink-2);
-  margin: 2px 0 0;
-  font-weight: 500;
 }
 
 .topbar-actions {
@@ -398,18 +384,58 @@ button {
   gap: 10px;
 }
 
+/* Área de introdução da página (saudação/título + seletor de mês), logo abaixo do header */
+.page-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 28px 32px 0;
+}
+
+.page-title {
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  margin: 0;
+}
+
+.page-sub {
+  font-size: 15px;
+  color: var(--ink-2);
+  margin: 7px 0 0;
+  font-weight: 400;
+}
+
+.page-intro-month {
+  flex: none;
+}
+
+.month-seg {
+  height: 42px;
+  align-items: center;
+}
+
+.month-seg button {
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
 /* Botão de perfil do header interno (avatar + nome + dropdown) */
 .profile-menu {
   position: relative;
 }
 
 .profile-menu-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 10px 0 5px;
-  border-radius: var(--radius-pill);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 11px;
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--ink);
@@ -420,19 +446,24 @@ button {
   background: var(--surface-2);
 }
 
-.profile-menu-name {
-  font-size: 13px;
-  font-weight: 700;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.profile-menu-btn:active {
+  transform: scale(.96);
 }
 
-.profile-menu-btn i {
-  font-size: 16px;
-  color: var(--ink-3);
+.profile-menu-chev {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
   line-height: 0;
+  color: var(--ink-3);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
 }
 
 .profile-menu-pop {
@@ -643,6 +674,18 @@ button {
 .icon-btn:hover {
   color: var(--ink);
   background: var(--surface-2);
+}
+
+.icon-btn:active {
+  background: var(--surface-2);
+  transform: scale(.96);
+}
+
+.icon-btn:focus-visible,
+.profile-menu-btn:focus-visible,
+.seg button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ============================================================
@@ -1357,25 +1400,35 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
-  .topbar .page-sub {
-    display: none;
-  }
-
   .main {
     padding-bottom: 90px;
   }
 
   .topbar {
-    padding: 14px 16px;
-    gap: 10px;
+    padding: 12px 16px;
+    min-height: 60px;
+  }
+
+  .page-intro {
+    padding: 20px 16px 0;
+    align-items: flex-start;
   }
 
   .page-title {
-    font-size: 19px;
+    font-size: 22px;
   }
 
   .page-sub {
-    font-size: 12px;
+    font-size: 13px;
+  }
+
+  .page-intro-month {
+    width: 100%;
+  }
+
+  .page-intro-month .month-seg {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .topbar-actions {
@@ -5392,25 +5445,35 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
-  .topbar .page-sub {
-    display: none;
-  }
-
   .main {
     padding-bottom: 90px;
   }
 
   .topbar {
-    padding: 14px 16px;
-    gap: 10px;
+    padding: 12px 16px;
+    min-height: 60px;
+  }
+
+  .page-intro {
+    padding: 20px 16px 0;
+    align-items: flex-start;
   }
 
   .page-title {
-    font-size: 19px;
+    font-size: 22px;
   }
 
   .page-sub {
-    font-size: 12px;
+    font-size: 13px;
+  }
+
+  .page-intro-month {
+    width: 100%;
+  }
+
+  .page-intro-month .month-seg {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .topbar-actions {

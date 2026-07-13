@@ -308,7 +308,6 @@ function Shell() {
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
-  const toggleOcultar = () => setTweak("ocultar", !ocultar);
   useEffect(() => {
     const r = document.documentElement;
     r.setAttribute("data-theme", theme);
@@ -344,7 +343,7 @@ function Shell() {
     (_a = document.querySelector(".main")) == null ? void 0 : _a.scrollTo(0, 0);
   };
   const open = (type, item) => setModal({ type, item });
-  const panel = /* @__PURE__ */ React.createElement(TweaksPanel, null, /* @__PURE__ */ React.createElement(TweakSection, { label: "Tema" }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Modo escuro", value: t.dark, onChange: (v) => setTweak("dark", v) }), /* @__PURE__ */ React.createElement(TweakColor, { label: "Cor de acento", value: t.accent, options: ["#14a06b", "#0f6fff", "#7a5ae0", "#0f2540", "#e0792b"], onChange: (v) => setTweak("accent", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Tipografia" }), /* @__PURE__ */ React.createElement(TweakSelect, { label: "Tipo de letra", value: t.font, options: ["Inter", "Manrope", "Poppins", "Plus Jakarta Sans", "Montserrat", "Comfortaa", "Quicksand"], onChange: (v) => setTweak("font", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Layout" }), /* @__PURE__ */ React.createElement(TweakRadio, { label: "Densidade", value: t.density, options: ["compact", "regular", "comfy"], onChange: (v) => setTweak("density", v) }), /* @__PURE__ */ React.createElement(TweakSlider, { label: "Cantos", value: t.radius, min: 4, max: 24, step: 2, unit: "px", onChange: (v) => setTweak("radius", v) }));
+  const panel = /* @__PURE__ */ React.createElement(TweaksPanel, null, /* @__PURE__ */ React.createElement(TweakSection, { label: "Tema" }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Modo escuro", value: t.dark, onChange: (v) => setTweak("dark", v) }), /* @__PURE__ */ React.createElement(TweakColor, { label: "Cor de acento", value: t.accent, options: ["#14a06b", "#0f6fff", "#7a5ae0", "#0f2540", "#e0792b"], onChange: (v) => setTweak("accent", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Tipografia" }), /* @__PURE__ */ React.createElement(TweakSelect, { label: "Tipo de letra", value: t.font, options: ["Inter", "Manrope", "Poppins", "Plus Jakarta Sans", "Montserrat", "Comfortaa", "Quicksand"], onChange: (v) => setTweak("font", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Layout" }), /* @__PURE__ */ React.createElement(TweakRadio, { label: "Densidade", value: t.density, options: ["compact", "regular", "comfy"], onChange: (v) => setTweak("density", v) }), /* @__PURE__ */ React.createElement(TweakSlider, { label: "Cantos", value: t.radius, min: 4, max: 24, step: 2, unit: "px", onChange: (v) => setTweak("radius", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Privacidade" }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Ocultar valores", value: ocultar, onChange: (v) => setTweak("ocultar", v) }));
   if (!fin.session) {
     if (authView === "signup") return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Onboarding, { onBack: () => setAuthView(null), onLogin: () => setAuthView("login") }), panel);
     if (authView) return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Auth, { initialMode: authView, onBack: () => setAuthView(null), onSignup: () => setAuthView("signup") }), panel);
@@ -367,7 +366,7 @@ function Shell() {
   const pageTitle = TITULOS[route] || "Painel";
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
-    dashboard: "Acompanhe a sua situa\xE7\xE3o financeira e as principais atividades do m\xEAs.",
+    dashboard: "Acompanhe a sua vida financeira em tempo real.",
     transacoes: "Receitas, despesas e movimentos \xB7 " + fin.monthLabel,
     objetivos: tr("sub_poupanca"),
     agenda: "Lembretes, recorrentes e pagamentos futuros.",
@@ -378,19 +377,13 @@ function Shell() {
     perfil: tr("sub_perfil")
   };
   const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
-  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(
-    Topbar,
+  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(Topbar, { theme, setTheme, onLogout: fin.logout, go }), /* @__PURE__ */ React.createElement(
+    PageIntro,
     {
+      route,
+      account: fin.account,
       title: pageTitle,
       sub: subByRoute[route],
-      theme,
-      setTheme,
-      onLogout: fin.logout,
-      go,
-      ocultar,
-      onToggleOcultar: toggleOcultar,
-      onAdd: P.add ? () => open(P.add) : null,
-      addLabel: P.add ? tr("add_" + P.add) : null,
       monthNav: showMonthNav ? /* @__PURE__ */ React.createElement(
         MonthNav,
         {

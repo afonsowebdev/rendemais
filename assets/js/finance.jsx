@@ -423,7 +423,7 @@ function FinanceProvider({ children }) {
     return { despMes, rendMes, totalGasto, totalRec, fixas, variaveis, poupado, saldo, poupancaPct, poupancaPlano, planoTotal, poupadoMes, poupancaSeparada, disponivel, catBreak, incBreak, series, metaSeries, historico };
   }, [data, month]);
 
-  const monthLabel = (() => { const [y, m] = month.split("-").map(Number); return `${BM.MESES[m - 1]} ${y}`; })();
+  const monthLabel = (() => { const [y, m] = month.split("-").map(Number); return `${MESES_NOME[m - 1]} de ${y}`; })();
   const realMonth = BM.todayISO().slice(0, 7);
   const isCurrentMonth = month >= realMonth;
   const shiftMonth = (delta) => {

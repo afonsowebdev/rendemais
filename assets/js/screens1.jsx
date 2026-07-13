@@ -625,9 +625,14 @@ function Transacoes({ open }) {
   return (
     <>
       <div className="content" style={{ paddingBottom: 0 }}>
-        <div className="pg-tabs" style={{ width: "fit-content" }}>
-          <button type="button" className={"pg-tab" + (tab === "despesas" ? " on" : "")} onClick={() => setTab("despesas")}><Icon name="wallet" size={15} /> Despesas</button>
-          <button type="button" className={"pg-tab" + (tab === "rendimentos" ? " on" : "")} onClick={() => setTab("rendimentos")}><Icon name="arrowsDown" size={15} /> Receitas</button>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <div className="pg-tabs" style={{ width: "fit-content" }}>
+            <button type="button" className={"pg-tab" + (tab === "despesas" ? " on" : "")} onClick={() => setTab("despesas")}><Icon name="wallet" size={15} /> Despesas</button>
+            <button type="button" className={"pg-tab" + (tab === "rendimentos" ? " on" : "")} onClick={() => setTab("rendimentos")}><Icon name="arrowsDown" size={15} /> Receitas</button>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => open(tab === "despesas" ? "despesa" : "rendimento")}>
+            <Icon name="plus" size={16} color="#fff" /> <span className="hide-mobile">{tab === "despesas" ? "Nova despesa" : "Novo rendimento"}</span>
+          </button>
         </div>
       </div>
       {tab === "despesas" ? <Despesas open={open} /> : <Rendimentos open={open} />}

@@ -1926,7 +1926,7 @@ function NotifBell() {
 
   return (
     <div className="notif-wrap">
-      <button className="icon-btn notif-btn" title="Notificações" aria-label={count > 0 ? `Notificações (${count} por ler)` : "Notificações"} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <button className="icon-btn notif-btn" title="Notificações" aria-label="Abrir notificações" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <Icon name="bell" size={18} />
         {count > 0 && <span className="notif-badge">{count > 9 ? "9+" : count}</span>}
       </button>

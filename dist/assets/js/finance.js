@@ -508,7 +508,7 @@ function FinanceProvider({ children }) {
   }, [data, month]);
   const monthLabel = (() => {
     const [y, m] = month.split("-").map(Number);
-    return `${BM.MESES[m - 1]} ${y}`;
+    return `${MESES_NOME[m - 1]} de ${y}`;
   })();
   const realMonth = BM.todayISO().slice(0, 7);
   const isCurrentMonth = month >= realMonth;

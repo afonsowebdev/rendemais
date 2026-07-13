@@ -87,10 +87,12 @@ function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday })
       {!isCurrent && onToday && (
         <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={onToday}>{tr("month_current")}</button>
       )}
-      <div className="seg" style={{ padding: 2 }}>
-        <button onClick={onPrev} style={{ padding: "6px 9px" }}><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
-        <span style={{ display: "grid", placeItems: "center", padding: "0 12px", fontSize: 13, fontWeight: 700, minWidth: 96 }}>{label}</span>
-        <button onClick={canNext ? onNext : undefined} disabled={!canNext} title={canNext ? "" : tr("month_at_current")}
+      <div className="seg month-seg">
+        <button onClick={onPrev} aria-label="Mês anterior" style={{ padding: "6px 9px" }}><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
+        <span className="row" style={{ gap: 6, padding: "0 10px", fontSize: 13, fontWeight: 600, minWidth: 108, justifyContent: "center" }}>
+          <Icon name="cal" size={14} color="var(--ink-3)" />{label}
+        </span>
+        <button onClick={canNext ? onNext : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}
           style={{ padding: "6px 9px", opacity: canNext ? 1 : 0.35, cursor: canNext ? "pointer" : "not-allowed" }}><Icon name="chevR" size={15} /></button>
       </div>
     </div>
@@ -119,13 +121,11 @@ function useDropdownClose() {
 function ProfileMenu({ account, go, onLogout }) {
   const tr = useT();
   const [open, setOpen, ref] = useDropdownClose();
-  const primeiroNome = (account?.nome || "").split(" ")[0] || tr("lbl_my_account");
   return (
     <div className="profile-menu" ref={ref}>
-      <button type="button" className="profile-menu-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Abrir menu de conta">
-        <Avatar account={account} size={30} />
-        <span className="profile-menu-name hide-mobile">{primeiroNome}</span>
-        <i className="bx bx-chevron-down hide-mobile" aria-hidden="true"></i>
+      <button type="button" className="profile-menu-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Abrir menu do perfil" title="Perfil">
+        <Avatar account={account} size={36} />
+        <i className="bx bx-chevron-down profile-menu-chev" aria-hidden="true"></i>
       </button>
       {open && (
         <div className="profile-menu-pop" role="menu" aria-label="Conta">
@@ -146,38 +146,38 @@ function ProfileMenu({ account, go, onLogout }) {
   );
 }
 
-function Topbar({ title, sub, theme, setTheme, onLogout, onAdd, addLabel, monthNav, ocultar, onToggleOcultar, go }) {
-  const tr = useT();
+/* Header interno: apenas 3 controlos (notificações, tema, perfil), alinhados à direita.
+   Título/subtítulo, seletor de mês e ações da página vivem agora no PageIntro, abaixo. */
+function Topbar({ theme, setTheme, onLogout, go }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
   return (
     <div className="topbar">
-      <div className="row" style={{ gap: 11, minWidth: 0 }}>
-        <div className="mobile-brand brand-mark" style={{ width: 34, height: 34, borderRadius: 10 }}><span className="brand-mark-txt" style={{ fontSize: 17 }}>R</span></div>
-        <div style={{ minWidth: 0 }}>
-          <h1 className="page-title">{title}</h1>
-          {sub && <p className="page-sub">{sub}</p>}
-        </div>
-      </div>
       <div className="topbar-actions">
-        {monthNav}
-        {onAdd && (
-          <button className="btn btn-primary" onClick={onAdd}>
-            <Icon name="plus" size={16} color="#fff" /> <span className="hide-mobile">{addLabel || tr("add_generic")}</span>
-          </button>
-        )}
-        {onToggleOcultar && (
-          <button className="icon-btn" onClick={onToggleOcultar} title={ocultar ? "Mostrar valores" : "Ocultar valores"} aria-pressed={ocultar}>
-            <Icon name={ocultar ? "eyeOff" : "eye"} size={18} />
-          </button>
-        )}
         {notificacoesOn && <NotifBell />}
         <button className="icon-btn hide-mobile" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
         </button>
         <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
       </div>
+    </div>
+  );
+}
+
+/* Área de introdução da página, imediatamente abaixo do header: saudação (no Painel) ou
+   título da página (nas restantes rotas) à esquerda, seletor de mês à direita quando aplicável. */
+function PageIntro({ route, account, title, sub, monthNav }) {
+  const isDashboard = route === "dashboard";
+  const primeiroNome = (account?.nome || "").trim().split(" ")[0];
+  const saudacao = primeiroNome ? `Olá, ${primeiroNome}` : "Olá";
+  return (
+    <div className="page-intro">
+      <div style={{ minWidth: 0 }}>
+        <h1 className="page-title">{isDashboard ? saudacao : title}</h1>
+        {sub && <p className="page-sub">{sub}</p>}
+      </div>
+      {monthNav && <div className="page-intro-month">{monthNav}</div>}
     </div>
   );
 }

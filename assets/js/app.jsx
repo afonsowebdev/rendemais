@@ -461,7 +461,6 @@ function Shell() {
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
-  const toggleOcultar = () => setTweak("ocultar", !ocultar);
 
   useEffect(() => {
     const r = document.documentElement;
@@ -506,6 +505,8 @@ function Shell() {
       <TweakSection label="Layout" />
       <TweakRadio label="Densidade" value={t.density} options={["compact", "regular", "comfy"]} onChange={(v) => setTweak("density", v)} />
       <TweakSlider label="Cantos" value={t.radius} min={4} max={24} step={2} unit="px" onChange={(v) => setTweak("radius", v)} />
+      <TweakSection label="Privacidade" />
+      <TweakToggle label="Ocultar valores" value={ocultar} onChange={(v) => setTweak("ocultar", v)} />
     </TweaksPanel>
   );
 
@@ -528,7 +529,7 @@ function Shell() {
   // portão de plano: quem tem premium ativo usa as funcionalidades; os outros veem o Paywall
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
-    dashboard: "Acompanhe a sua situação financeira e as principais atividades do mês.",
+    dashboard: "Acompanhe a sua vida financeira em tempo real.",
     transacoes: "Receitas, despesas e movimentos · " + fin.monthLabel,
     objetivos: tr("sub_poupanca"),
     agenda: "Lembretes, recorrentes e pagamentos futuros.",
@@ -550,9 +551,8 @@ function Shell() {
       )}
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
-        <Topbar title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go}
-          ocultar={ocultar} onToggleOcultar={toggleOcultar}
-          onAdd={P.add ? () => open(P.add) : null} addLabel={P.add ? tr("add_" + P.add) : null}
+        <Topbar theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} />
+        <PageIntro route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]}
           monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
             canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
