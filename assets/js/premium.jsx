@@ -1991,10 +1991,115 @@ function NotifBell() {
   );
 }
 
+/* ---------------- Assistente Financeiro Rende+ (balão flutuante, Premium) ----------------
+   O backend aplica o system prompt e cruza os dados reais da conta autenticada — o frontend
+   envia apenas o histórico da conversa (API.assistenteChat, em streaming) e mostra o texto
+   que vai chegando. Nunca inventa dados: qualquer número mostrado vem sempre da resposta do
+   assistente, nunca é calculado ou simulado aqui. */
+function AssistenteFinanceiro({ go }) {
+  const fin = useFinance();
+  const ehPremium = !!(fin.account && fin.account.plano === "premium");
+  const [open, setOpen] = React.useState(false);
+  const [mensagens, setMensagens] = React.useState([]); // [{ role: "user"|"assistant", texto }]
+  const [input, setInput] = React.useState("");
+  const [enviando, setEnviando] = React.useState(false);
+  const [erro, setErro] = React.useState("");
+  const scrollRef = React.useRef(null);
+  const abortRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [mensagens, open]);
+
+  React.useEffect(() => () => { if (abortRef.current) abortRef.current.abort(); }, []);
+
+  if (!fin.session) return null;
+
+  const enviar = () => {
+    const texto = input.trim();
+    if (!texto || enviando) return;
+    setErro("");
+    const historico = [...mensagens, { role: "user", texto }];
+    setMensagens([...historico, { role: "assistant", texto: "" }]);
+    setInput("");
+    setEnviando(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    API.assistenteChat(historico, {
+      signal: controller.signal,
+      onDelta: (delta) => {
+        setMensagens((ms) => {
+          const copia = [...ms];
+          const ultima = copia[copia.length - 1];
+          copia[copia.length - 1] = { ...ultima, texto: ultima.texto + delta };
+          return copia;
+        });
+      },
+      onDone: () => setEnviando(false),
+      onError: (e) => { setErro((e && e.message) || "Não foi possível obter resposta do assistente."); setEnviando(false); },
+    });
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
+  };
+
+  return (
+    <>
+      <button type="button" className="assist-fab" aria-label={open ? "Fechar assistente" : "Abrir Assistente Financeiro"} title="Assistente Financeiro"
+        onClick={() => (ehPremium ? setOpen((v) => !v) : go("premium"))}>
+        {open ? <span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={22} color="#fff" sw={2} /></span> : <Icon name="chat" size={22} color="#fff" />}
+      </button>
+
+      {open && ehPremium && (
+        <div className="assist-panel" role="dialog" aria-label="Assistente Financeiro Rende+">
+          <div className="assist-head">
+            <div className="row" style={{ gap: 10 }}>
+              <span className="assist-head-ico"><Icon name="bot" size={18} color="var(--accent)" /></span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>Assistente Financeiro Rende+</div>
+                <div className="tiny muted" style={{ fontWeight: 600 }}>Baseado nos seus dados reais</div>
+              </div>
+            </div>
+            <button type="button" className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setOpen(false)} aria-label="Fechar assistente">
+              <span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span>
+            </button>
+          </div>
+
+          <div className="assist-body" ref={scrollRef}>
+            {mensagens.length === 0 ? (
+              <div className="assist-empty">
+                <Icon name="bot" size={28} color="var(--ink-3)" />
+                <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13.5 }}>Como estão as suas finanças?</div>
+                <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, lineHeight: 1.5 }}>Pergunte sobre receitas, despesas, orçamento ou objetivos.</div>
+              </div>
+            ) : (
+              mensagens.map((m, i) => (
+                <div key={i} className={"assist-msg " + m.role}>
+                  {m.texto ? m.texto : (m.role === "assistant" && enviando && i === mensagens.length - 1 ? <span className="assist-typing"><i /><i /><i /></span> : "")}
+                </div>
+              ))
+            )}
+            {erro && <div className="alert bad" style={{ padding: "9px 12px", margin: "4px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{erro}</span></div>}
+          </div>
+
+          <div className="assist-foot">
+            <textarea className="assist-input" rows={1} placeholder="Escreva a sua pergunta…" value={input} disabled={enviando}
+              onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} />
+            <button type="button" className="icon-btn assist-send" onClick={enviar} disabled={enviando || !input.trim()} aria-label="Enviar mensagem">
+              <Icon name="send" size={17} color="#fff" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function PremiumBadge() {
   const prem = usePremium();
   if (!prem.get().premium) return null;
   return <span className="prem-tag"><Icon name="spark" size={11} color="#fff" /> Premium</span>;
 }
 
-Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge });
+Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge, AssistenteFinanceiro });

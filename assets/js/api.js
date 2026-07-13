@@ -41,10 +41,66 @@ const API = (function () {
     return dados;
   }
 
+  // Assistente Financeiro: pedido em streaming (Server-Sent Events).
+  // O backend aplica o system prompt e junta os dados financeiros da conta autenticada —
+  // o frontend envia apenas o histórico de mensagens da conversa.
+  // Cada evento SSE é uma linha "data: {...}\n\n" com um dos formatos:
+  //   {"delta":"texto parcial"}  — pedaço de texto a acrescentar
+  //   {"done":true}              — fim da resposta
+  //   {"error":"mensagem"}       — erro a meio do streaming
+  async function assistenteChat(mensagens, { onDelta, onDone, onError, signal } = {}) {
+    const headers = { "Content-Type": "application/json" };
+    const token = getToken();
+    if (token) headers["Authorization"] = "Bearer " + token;
+
+    let resp;
+    try {
+      resp = await fetch(BASE + "/api/assistente/chat", { method: "POST", headers, body: JSON.stringify({ mensagens }), signal });
+    } catch (e) {
+      if (e.name !== "AbortError" && onError) onError(e);
+      return;
+    }
+
+    if (!resp.ok || !resp.body) {
+      let msg = "Erro " + (resp.status || "");
+      try { const j = await resp.json(); if (j && j.erro) msg = j.erro; } catch (_) {}
+      if (onError) onError(new Error(msg));
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const blocos = buffer.split("\n\n");
+        buffer = blocos.pop() || "";
+        for (const bloco of blocos) {
+          const linha = bloco.split("\n").find((l) => l.startsWith("data:"));
+          if (!linha) continue;
+          const jsonTxt = linha.slice(5).trim();
+          if (!jsonTxt) continue;
+          let payload;
+          try { payload = JSON.parse(jsonTxt); } catch (_) { continue; }
+          if (payload.error) { if (onError) onError(new Error(payload.error)); return; }
+          if (payload.delta) onDelta && onDelta(payload.delta);
+          if (payload.done) { onDone && onDone(); return; }
+        }
+      }
+      onDone && onDone();
+    } catch (e) {
+      if (e.name !== "AbortError" && onError) onError(e);
+    }
+  }
+
   return {
     BASE,
     getToken,
     setToken,
+    assistenteChat,
     // autenticação
     registar: (corpo) => req("POST", "/api/auth/registar", corpo),
     verificarEmail: (corpo) => req("POST", "/api/auth/verificar-email", corpo),
