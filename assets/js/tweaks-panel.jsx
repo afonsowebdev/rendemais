@@ -204,8 +204,14 @@ function useTweaks(defaults) {
 // The close button posts __edit_mode_dismissed so the host's toolbar toggle
 // flips off in lockstep; the host echoes __deactivate_edit_mode back which
 // is what actually hides the panel.
-function TweaksPanel({ title = 'Tweaks', children }) {
-  const [open, setOpen] = React.useState(false);
+/* `open`/`onOpenChange` são opcionais: sem eles, o painel só ativa via postMessage
+   (integração com a ferramenta de edição externa, comportamento original inalterado).
+   Com eles, outro ponto da app (ex.: Definições → Aparência) pode abrir este mesmo
+   painel diretamente — é a mesma personalização, só com mais um sítio para a abrir. */
+function TweaksPanel({ title = 'Tweaks', children, open: openProp, onOpenChange }) {
+  const [openState, setOpenState] = React.useState(false);
+  const open = openProp != null ? (openProp || openState) : openState;
+  const setOpen = (v) => { setOpenState(v); if (onOpenChange) onOpenChange(v); };
   const dragRef = React.useRef(null);
   const offsetRef = React.useRef({ x: 16, y: 16 });
   const PAD = 16;

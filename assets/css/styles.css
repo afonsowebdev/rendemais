@@ -90,6 +90,22 @@
   --shadow-md: 0 4px 14px rgba(0, 0, 0, .28), 0 20px 46px -18px rgba(0, 0, 0, .5);
 }
 
+/* ---- CONTRASTE ALTO (Definições → Aparência) — reforça texto e bordas, mantém as
+   restantes cores do tema; liga-se via [data-contraste] em html, independente do tema. ---- */
+[data-theme="light"][data-contraste="true"] {
+  --ink-2: #1c2636;
+  --ink-3: #38455e;
+  --border: #b9c2d1;
+  --border-strong: #97a2b6;
+}
+
+[data-theme="dark"][data-contraste="true"] {
+  --ink-2: #f2f6fb;
+  --ink-3: #d5deeb;
+  --border: #4c5e80;
+  --border-strong: #6178a3;
+}
+
 /* ============================================================
    BASE — reset, variaveis e tipografia
    ============================================================ */
@@ -242,6 +258,22 @@ button {
   letter-spacing: .04em;
   text-transform: uppercase;
   margin-top: 4px;
+}
+
+/* Rótulo de grupo na navegação lateral (ex.: "Geral") — separa visualmente os itens
+   em secções, para não ficarem todos colados uns aos outros. */
+.nav-label {
+  padding: 16px 12px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--navy-ink);
+  opacity: .42;
+}
+
+.nav-label:first-of-type {
+  padding-top: 2px;
 }
 
 .nav-item {

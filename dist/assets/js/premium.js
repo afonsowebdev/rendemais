@@ -1390,6 +1390,46 @@ function gerarNotificacoes(prem, dados, account) {
       out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" \xB7 ") + "." });
     }
   }
+  (s.grupos || []).forEach((g) => {
+    const net = balancos(g);
+    const meuSaldo = net["Eu"] || 0;
+    if (meuSaldo < -0.01) {
+      out.push({
+        chave: "part:divida:" + g.id + ":" + mes,
+        cat: "partilha",
+        sev: "warn",
+        icon: "users",
+        titulo: "Tens d\xEDvidas no grupo " + g.nome,
+        texto: "Deves " + BM.eur(-meuSaldo) + " \xE0s despesas partilhadas deste grupo."
+      });
+    }
+    (g.despesas || []).filter((e) => e.vencimento).forEach((e) => {
+      const d = daysUntil(e.vencimento);
+      if (d <= 3) {
+        out.push({
+          chave: "part:venc:" + g.id + ":" + e.id,
+          cat: "partilha",
+          sev: d <= 0 ? "urgent" : "warn",
+          icon: "users",
+          titulo: "Despesa do grupo " + g.nome + " por pagar",
+          texto: e.titulo + " \xB7 " + quandoTxt(d),
+          valor: e.valor,
+          d
+        });
+      }
+    });
+    const pendentes = (g.convites || []).filter((c) => c.estado === "pendente").length;
+    if (pendentes > 0) {
+      out.push({
+        chave: "part:conv:" + g.id,
+        cat: "partilha",
+        sev: "info",
+        icon: "users",
+        titulo: pendentes + (pendentes === 1 ? " convite pendente" : " convites pendentes"),
+        texto: "No grupo " + g.nome + ", ainda por aceitar."
+      });
+    }
+  });
   const ordSev = { urgent: 0, warn: 1, info: 2 };
   return out.sort((a, b) => ordSev[a.sev] - ordSev[b.sev] || (a.d == null ? 99 : a.d) - (b.d == null ? 99 : b.d));
 }

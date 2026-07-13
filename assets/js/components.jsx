@@ -36,16 +36,27 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
 
 function Sidebar({ route, go, account, collapsed, onToggle }) {
   const tr = useT();
-  // Navegação principal única — nomes diretos em PT (ver nota em app.jsx/TITULOS).
-  const nav = [
-    { id: "dashboard", label: "Painel", icon: "grid" },
-    { id: "transacoes", label: "Transações", icon: "transfer" },
-    { id: "objetivos", label: "Objetivos", icon: "target" },
-    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
-    { id: "partilha", label: "Partilha", icon: "users" },
-    { id: "contas", label: "Contas", icon: "wallet" },
-    { id: "relatorios", label: "Relatórios", icon: "report" },
-    { id: "config", label: "Definições", icon: "gear" },
+  // Navegação principal, agrupada em secções — nomes diretos em PT (ver nota em
+  // app.jsx/TITULOS). Os grupos servem só para dar respiro visual; não mudam rotas.
+  const groups = [
+    {
+      label: "Geral",
+      items: [
+        { id: "dashboard", label: "Painel", icon: "grid" },
+        { id: "transacoes", label: "Transações", icon: "transfer" },
+        { id: "objetivos", label: "Objetivos", icon: "target" },
+        { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
+      ],
+    },
+    {
+      label: "Outros",
+      items: [
+        { id: "partilha", label: "Partilha", icon: "users" },
+        { id: "contas", label: "Contas", icon: "wallet" },
+        { id: "relatorios", label: "Relatórios", icon: "report" },
+        { id: "config", label: "Definições", icon: "gear" },
+      ],
+    },
   ];
   const ehPremium = !!(account && account.plano === "premium");
   const Item = (n) => {
@@ -64,7 +75,12 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
           <Brand nameColor="#fff" />
         </button>
       </div>
-      {nav.map(Item)}
+      {groups.map((g) => (
+        <React.Fragment key={g.label}>
+          <div className="nav-label">{g.label}</div>
+          {g.items.map(Item)}
+        </React.Fragment>
+      ))}
       <div className="sidebar-foot">
         {!ehPremium && (
           <button className="sb-plan-pill" onClick={() => go("premium")} title="Desbloqueia o Rende+ Premium">

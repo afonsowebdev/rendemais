@@ -131,8 +131,13 @@ function useTweaks(defaults) {
   }, []);
   return [values, setTweak];
 }
-function TweaksPanel({ title = "Tweaks", children }) {
-  const [open, setOpen] = React.useState(false);
+function TweaksPanel({ title = "Tweaks", children, open: openProp, onOpenChange }) {
+  const [openState, setOpenState] = React.useState(false);
+  const open = openProp != null ? openProp || openState : openState;
+  const setOpen = (v) => {
+    setOpenState(v);
+    if (onOpenChange) onOpenChange(v);
+  };
   const dragRef = React.useRef(null);
   const offsetRef = React.useRef({ x: 16, y: 16 });
   const PAD = 16;

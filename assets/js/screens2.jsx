@@ -96,9 +96,9 @@ function Poupanca({ open }) {
    já existente (médias, receitas vs. despesas, categorias, análise automática) e
    integra a tabela do Histórico (mesma fonte de dados, fin.historico) — o Histórico
    deixa de ter entrada própria no menu, mas o componente continua 100% intacto e
-   acessível aqui. Os restantes separadores ficam "Em breve": a análise cruzada por
-   período/conta/categoria pedida fica para uma etapa futura, sem inventar dados. */
-function Relatorios() {
+   acessível aqui. Receitas/Despesas/Objetivos/Orçamento usam os mesmos seletores já
+   calculados em useFinance() — sem dados inventados. */
+function Relatorios({ open }) {
   const [tab, setTab] = React.useState("geral");
   const TABS = [["geral", "Visão geral"], ["receitas", "Receitas"], ["despesas", "Despesas"], ["objetivos", "Objetivos"], ["orcamento", "Orçamento"]];
   return (
@@ -110,16 +110,16 @@ function Relatorios() {
           ))}
         </div>
       </div>
-      {tab === "geral" ? (
+      {tab === "geral" && (
         <>
           <RelatoriosVisaoGeral />
           <Historico />
         </>
-      ) : (
-        <div className="content">
-          <EmptyState icon="report" title="Em breve" msg="Esta análise está a ser preparada e vai ficar disponível numa próxima atualização." />
-        </div>
       )}
+      {tab === "receitas" && <RelatoriosReceitas />}
+      {tab === "despesas" && <RelatoriosDespesas />}
+      {tab === "objetivos" && <RelatoriosObjetivos />}
+      {tab === "orcamento" && <RelatoriosOrcamento open={open} />}
     </>
   );
 }
@@ -186,6 +186,160 @@ function RelatoriosVisaoGeral() {
           <Alert kind="ok" icon="history" title={`${hist.length} ${hist.length === 1 ? "mês registado" : "meses registados"}`}>Continua a registar para análises mais precisas.</Alert>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* Separadores de Relatórios: Receitas, Despesas, Objetivos e Orçamento.
+   Reaproveitam 100% os seletores já calculados em useFinance() (catBreak, incBreak,
+   series, historico, metaSeries) — nenhum valor é inventado ou simulado. */
+function RelatoriosReceitas() {
+  const fin = useFinance();
+  if (fin.historico.length === 0) {
+    return <div className="content"><EmptyState icon="arrowsDown" title="Sem receitas registadas"
+      msg="Assim que registares rendimentos, aparecem aqui as tuas fontes e a evolução mensal." /></div>;
+  }
+  const mediaRec = Math.round(fin.historico.reduce((s, h) => s + h.rec, 0) / fin.historico.length);
+  const recSpark = fin.series.map((s) => s.rec);
+  const variacao = fin.series.length >= 2 ? fin.series[fin.series.length - 1].rec - fin.series[fin.series.length - 2].rec : 0;
+  return (
+    <div className="content">
+      <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <Kpi label="Recebido este mês" value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
+        <Kpi label="Média mensal (6 meses)" value={BM.eur0(mediaRec)} icon="chart" color="var(--c-habitacao)" />
+        <Kpi label="Fontes ativas este mês" value={String(fin.incBreak.length)} icon="wallet" color="var(--c-educacao)" sub={variacao !== 0 ? (variacao > 0 ? "+" : "") + BM.eur0(variacao) + " vs. mês anterior" : undefined} />
+      </div>
+      <div className="card card-pad">
+        <div className="section-title" style={{ marginBottom: 14 }}>Receitas por fonte <span className="muted tiny" style={{ fontWeight: 600 }}>· {fin.monthLabel}</span></div>
+        {fin.incBreak.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>Sem receitas neste mês.</div> : (
+          <BarBreakdown data={fin.incBreak} money={BM.eur0} labelOf={(c) => c.nome} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RelatoriosDespesas() {
+  const fin = useFinance();
+  if (fin.historico.length === 0) {
+    return <div className="content"><EmptyState icon="wallet" title="Sem despesas registadas"
+      msg="Assim que registares despesas, aparece aqui a divisão por categoria e a evolução mensal." /></div>;
+  }
+  const mediaGasto = Math.round(fin.historico.reduce((s, h) => s + h.gasto, 0) / fin.historico.length);
+  const gastoSpark = fin.series.map((s) => s.gasto);
+  const pctFixas = fin.totalGasto > 0 ? Math.round((fin.fixas / fin.totalGasto) * 100) : 0;
+  return (
+    <div className="content">
+      <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <Kpi label="Gasto este mês" value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
+        <Kpi label="Média mensal (6 meses)" value={BM.eur0(mediaGasto)} icon="chart" color="var(--c-habitacao)" />
+        <Kpi label="Despesas fixas" value={pctFixas + "%"} icon="home" color="var(--c-educacao)" sub={BM.eur0(fin.fixas) + " de " + BM.eur0(fin.totalGasto)} />
+      </div>
+      <div className="card card-pad">
+        <div className="section-title" style={{ marginBottom: 14 }}>Despesas por categoria <span className="muted tiny" style={{ fontWeight: 600 }}>· {fin.monthLabel}</span></div>
+        {fin.catBreak.length === 0 ? <div className="muted tiny" style={{ fontWeight: 600 }}>Sem despesas neste mês.</div> : (
+          <BarBreakdown data={fin.catBreak} money={BM.eur0} labelOf={(c) => c.nome} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RelatoriosObjetivos() {
+  const fin = useFinance();
+  const metas = fin.metaSeries;
+  if (metas.length === 0) {
+    return <div className="content"><EmptyState icon="target" title="Ainda sem objetivos"
+      msg="Cria um objetivo de poupança para acompanhares aqui o progresso ao longo do tempo." /></div>;
+  }
+  const abertas = metas.filter((m) => !m.fechada);
+  const totalAtual = metas.reduce((s, m) => s + m.atual, 0);
+  const totalAlvo = metas.filter((m) => m.alvo > 0).reduce((s, m) => s + m.alvo, 0);
+  const pctGlobal = totalAlvo > 0 ? Math.round((totalAtual / totalAlvo) * 100) : 0;
+  return (
+    <div className="content">
+      <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <Kpi label="Total poupado em objetivos" value={BM.eur0(totalAtual)} icon="target" color="var(--accent)" />
+        <Kpi label="Objetivos ativos" value={String(abertas.length)} icon="flag" color="var(--c-habitacao)" sub={metas.length - abertas.length > 0 ? (metas.length - abertas.length) + " concluído(s)" : undefined} />
+        <Kpi label="Progresso global" value={totalAlvo > 0 ? pctGlobal + "%" : "—"} icon="chart" color="var(--c-educacao)" sub={totalAlvo > 0 ? "Faltam " + BM.eur0(Math.max(0, totalAlvo - totalAtual)) : "Sem valor-alvo definido"} />
+      </div>
+      <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div className="section-title">Progresso por objetivo</div>
+        {metas.map((m) => {
+          const isOpen = !(m.alvo > 0);
+          const p = isOpen ? null : Math.round((m.atual / m.alvo) * 100);
+          return (
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ justifyContent: "space-between", marginBottom: 7 }}>
+                  <span className="row" style={{ gap: 8, fontSize: 13.5, fontWeight: 700 }}>
+                    <span className="dot" style={{ background: m.cor }} />{m.nome}{m.fechada && <span className="chip" style={{ padding: "2px 8px" }}>Concluída</span>}
+                  </span>
+                  <span className="tnum tiny muted" style={{ fontWeight: 700 }}>{BM.eur0(m.atual)}{!isOpen && " / " + BM.eur0(m.alvo)}</span>
+                </div>
+                {isOpen ? <div className="bar" style={{ opacity: .5 }}><i style={{ width: "100%", background: m.cor }} /></div> : <Progress value={m.atual} max={m.alvo} color={m.cor} />}
+              </div>
+              <Sparkline data={m.points.some((v) => v > 0) ? m.points : [0, 0]} w={92} h={32} color={m.cor} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RelatoriosOrcamento({ open }) {
+  const fin = useFinance();
+  const orc = fin.data.orcamento;
+  if (!orc) {
+    return <div className="content"><EmptyState icon="wallet" title="Sem orçamento definido"
+      msg="Define um orçamento mensal para acompanhares aqui quanto já gastaste, quanto falta e como te tens saído nos últimos meses."
+      action={<button className="btn btn-primary" onClick={() => open("orcamento")}><Icon name="edit" size={16} color="#fff" /> Definir orçamento</button>} /></div>;
+  }
+  const pct = Math.round((fin.totalGasto / orc) * 100);
+  const restante = Math.max(0, orc - fin.totalGasto);
+  const hoje = new Date();
+  const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  const diasRestantes = Math.max(1, diasNoMes - hoje.getDate() + 1);
+  const mediaDiaria = restante / diasRestantes;
+  const comparaveis = fin.historico.filter((h) => !h.atual);
+  const dentroOrc = comparaveis.filter((h) => h.gasto <= orc).length;
+  return (
+    <div className="content">
+      <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <Kpi label="Orçamento mensal" value={BM.eur0(orc)} icon="wallet" color="var(--accent)" sub={pct + "% utilizado"} />
+        <Kpi label="Restante este mês" value={BM.eur0(restante)} icon="bolt" color={pct >= 100 ? "var(--neg)" : "var(--c-habitacao)"} />
+        <Kpi label="Média diária recomendada" value={BM.eur0(mediaDiaria)} icon="cal" color="var(--c-educacao)" sub={diasRestantes + " dia(s) até ao fim do mês"} />
+      </div>
+      <div className="card card-pad">
+        <div className="section-head" style={{ marginBottom: 10 }}>
+          <div className="section-title">Utilização deste mês</div>
+          <button className="btn btn-ghost" style={{ padding: "6px 12px" }} onClick={() => open("orcamento")}><Icon name="edit" size={14} /> Editar</button>
+        </div>
+        <Progress value={fin.totalGasto} max={orc} color={pct > 80 ? "var(--warn)" : "var(--accent)"} />
+        <div className="tiny muted" style={{ marginTop: 9, fontWeight: 600 }}>{BM.eur0(fin.totalGasto)} de {BM.eur0(orc)} gastos até agora.</div>
+      </div>
+      {comparaveis.length > 0 && (
+        <div className="card card-pad">
+          <div className="section-title" style={{ marginBottom: 4 }}>Histórico face ao orçamento atual</div>
+          <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>Com o orçamento de {BM.eur0(orc)}, terias ficado dentro do limite em {dentroOrc} de {comparaveis.length} mês(es) anteriores.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {comparaveis.slice(0, 6).map((h) => {
+              const p = Math.min(999, Math.round((h.gasto / orc) * 100));
+              const over = h.gasto > orc;
+              return (
+                <div key={h.key}>
+                  <div className="row" style={{ justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700 }}>{h.label}</span>
+                    <span className="tnum tiny" style={{ fontWeight: 700, color: over ? "var(--neg)" : "var(--ink-2)" }}>{BM.eur0(h.gasto)} · {p}%</span>
+                  </div>
+                  <div className="bar"><i style={{ width: Math.min(100, p) + "%", background: over ? "var(--neg)" : "var(--accent)" }} /></div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -431,7 +585,7 @@ function Perfil({ open, go }) {
    ações já existentes noutros ecrãs (Perfil, PerfilPreferencias, Previsão, Paywall) —
    nenhum toggle novo é criado sem função real; o que ainda não tem mecanismo próprio
    fica marcado "Em breve". */
-function Definicoes({ theme, setTheme, open, go }) {
+function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setContraste }) {
   const fin = useFinance();
   const a = fin.account || {};
   // Bloqueio por PIN (window.RendeLock — camada local do dispositivo)
@@ -487,11 +641,11 @@ function Definicoes({ theme, setTheme, open, go }) {
         <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
           <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
         </Rowi>
-        <Rowi label="Cor de acento, tipo de letra e cantos" sub="Personalização avançada disponível no botão flutuante de personalização">
-          <Soon />
+        <Rowi label="Cor de acento, tipo de letra e cantos" sub="Personalização avançada do visual da app">
+          <button className="btn btn-ghost" onClick={onOpenTweaks}><Icon name="edit" size={14} /> Personalizar</button>
         </Rowi>
-        <Rowi label="Contraste alto" sub="Aumenta o contraste para melhor legibilidade" last>
-          <Soon />
+        <Rowi label="Contraste alto" sub="Reforça o texto e os contornos para melhor legibilidade" last>
+          <Toggle on={!!contraste} onClick={() => setContraste(!contraste)} />
         </Rowi>
       </Section>
 
@@ -530,8 +684,8 @@ function Definicoes({ theme, setTheme, open, go }) {
         <Rowi label="Resumo semanal" sub="Editar em Preferências, mais abaixo">
           <span className="chip">{a.resumoSemanal !== false ? "Ativo" : "Desativado"}</span>
         </Rowi>
-        <Rowi label="Notificações de Partilha" sub="Avisos de despesas e pagamentos em grupos" last>
-          <Soon />
+        <Rowi label="Notificações de Partilha" sub="Dívidas, despesas de grupo a vencer e convites pendentes" last>
+          <span className="chip">{a.notificacoes !== false ? "Ativas" : "Desativadas"}</span>
         </Rowi>
       </Section>
 

@@ -24,22 +24,32 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
 }
 function Sidebar({ route, go, account, collapsed, onToggle }) {
   const tr = useT();
-  const nav = [
-    { id: "dashboard", label: "Painel", icon: "grid" },
-    { id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" },
-    { id: "objetivos", label: "Objetivos", icon: "target" },
-    { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
-    { id: "partilha", label: "Partilha", icon: "users" },
-    { id: "contas", label: "Contas", icon: "wallet" },
-    { id: "relatorios", label: "Relat\xF3rios", icon: "report" },
-    { id: "config", label: "Defini\xE7\xF5es", icon: "gear" }
+  const groups = [
+    {
+      label: "Geral",
+      items: [
+        { id: "dashboard", label: "Painel", icon: "grid" },
+        { id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" },
+        { id: "objetivos", label: "Objetivos", icon: "target" },
+        { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" }
+      ]
+    },
+    {
+      label: "Outros",
+      items: [
+        { id: "partilha", label: "Partilha", icon: "users" },
+        { id: "contas", label: "Contas", icon: "wallet" },
+        { id: "relatorios", label: "Relat\xF3rios", icon: "report" },
+        { id: "config", label: "Defini\xE7\xF5es", icon: "gear" }
+      ]
+    }
   ];
   const ehPremium = !!(account && account.plano === "premium");
   const Item = (n) => {
     const active = route === n.id;
     return /* @__PURE__ */ React.createElement("button", { key: n.id, className: "nav-item" + (active ? " active" : ""), onClick: () => go(n.id), title: n.label, "aria-current": active ? "page" : void 0 }, /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }), /* @__PURE__ */ React.createElement("span", null, n.label));
   };
-  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, { nameColor: "#fff" }))), nav.map(Item), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
+  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, { nameColor: "#fff" }))), groups.map((g) => /* @__PURE__ */ React.createElement(React.Fragment, { key: g.label }, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, g.label), g.items.map(Item))), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
 }
 function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday }) {
   const tr = useT();

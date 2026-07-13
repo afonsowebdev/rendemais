@@ -412,6 +412,7 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
+  const [tweaksOpen, setTweaksOpen] = useState(false); // abre o painel de personalização a partir de Definições
   const [sbCollapsed, setSbCollapsed] = useState(() => { try { return localStorage.getItem("rende_sb") === "1"; } catch (e) { return false; } });
   const toggleSidebar = () => setSbCollapsed((v) => { const n = !v; try { localStorage.setItem("rende_sb", n ? "1" : "0"); } catch (e) {} return n; });
   const [lang, setLang] = useLang();
@@ -461,19 +462,21 @@ function Shell() {
   const theme = t.dark ? "dark" : "light";
   const setTheme = (v) => setTweak("dark", v === "dark");
   const ocultar = !!t.ocultar;
+  const contraste = !!t.contraste;
 
   useEffect(() => {
     const r = document.documentElement;
     r.setAttribute("data-theme", theme);
     r.setAttribute("data-density", t.density);
     r.setAttribute("data-ocultar", ocultar ? "true" : "false");
+    r.setAttribute("data-contraste", contraste ? "true" : "false");
     r.style.setProperty("--accent", t.accent);
     const stack = `"${t.font}", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     r.style.setProperty("--font-ui", stack);
     document.body.style.fontFamily = stack;
     r.style.setProperty("--radius", t.radius + "px");
     r.style.setProperty("--radius-sm", Math.max(6, t.radius - 6) + "px");
-  }, [theme, t.accent, t.font, t.radius, t.density, ocultar]);
+  }, [theme, t.accent, t.font, t.radius, t.density, ocultar, contraste]);
 
   // Chegada com uma âncora de secção (ex.: /#funcionalidades, /#sobre):
   // faz scroll suave até à secção e limpa o "#" do endereço (URL fica limpo).
@@ -496,7 +499,7 @@ function Shell() {
   const open = (type, item) => setModal({ type, item });
 
   const panel = (
-    <TweaksPanel>
+    <TweaksPanel open={tweaksOpen} onOpenChange={setTweaksOpen}>
       <TweakSection label="Tema" />
       <TweakToggle label="Modo escuro" value={t.dark} onChange={(v) => setTweak("dark", v)} />
       <TweakColor label="Cor de acento" value={t.accent} options={["#14a06b", "#0f6fff", "#7a5ae0", "#0f2540", "#e0792b"]} onChange={(v) => setTweak("accent", v)} />
@@ -505,6 +508,7 @@ function Shell() {
       <TweakSection label="Layout" />
       <TweakRadio label="Densidade" value={t.density} options={["compact", "regular", "comfy"]} onChange={(v) => setTweak("density", v)} />
       <TweakSlider label="Cantos" value={t.radius} min={4} max={24} step={2} unit="px" onChange={(v) => setTweak("radius", v)} />
+      <TweakToggle label="Contraste alto" value={contraste} onChange={(v) => setTweak("contraste", v)} />
       <TweakSection label="Privacidade" />
       <TweakToggle label="Ocultar valores" value={ocultar} onChange={(v) => setTweak("ocultar", v)} />
     </TweaksPanel>
@@ -561,9 +565,9 @@ function Shell() {
         {route === "agenda" && (ehPremium ? <AgendaFinanceira /> : <Paywall />)}
         {route === "partilha" && (ehPremium ? <Partilha /> : <Paywall />)}
         {route === "contas" && <Contas open={open} />}
-        {route === "relatorios" && <Relatorios />}
+        {route === "relatorios" && <Relatorios open={open} />}
         {route === "perfil" && <Perfil open={open} go={go} />}
-        {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} go={go} />}
+        {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} go={go} onOpenTweaks={() => setTweaksOpen(true)} contraste={contraste} setContraste={(v) => setTweak("contraste", v)} />}
         {route === "previsao" && (ehPremium ? <Previsao /> : <Paywall />)}
         {route === "premium" && <Paywall />}
       </div>
