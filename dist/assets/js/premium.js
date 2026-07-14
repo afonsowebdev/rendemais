@@ -1530,10 +1530,101 @@ function NotifBell() {
     return /* @__PURE__ */ React.createElement("div", { className: "notif-item", key: a.chave }, /* @__PURE__ */ React.createElement("span", { className: "notif-item-ico", style: { background: "color-mix(in srgb, " + cor + " 14%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: a.icon || "bell", size: 16, color: cor })), /* @__PURE__ */ React.createElement("div", { className: "notif-item-txt" }, /* @__PURE__ */ React.createElement("b", null, a.titulo), /* @__PURE__ */ React.createElement("span", { className: "notif-item-sub" }, a.texto, a.valor != null && a.cat === "pagamento" ? " \xB7 " + BM.eur(a.valor) : "")), a.acao === "pagar" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { padding: "6px 11px", fontSize: 12, flex: "none" }, onClick: () => resolverAlerta(prem, a, fin) }, "Pagar"));
   }), !verTodas && notifs.length > LIMITE && /* @__PURE__ */ React.createElement("button", { type: "button", className: "notif-ver-todas", onClick: () => setVerTodas(true) }, "Ver todas (", notifs.length, ")")), /* @__PURE__ */ React.createElement("div", { className: "notif-foot" }, /* @__PURE__ */ React.createElement("button", { className: "notif-switch" + (cfg.ativo ? " on" : ""), onClick: () => setCfg({ ativo: !cfg.ativo }), title: "Ligar/desligar avisos" }, /* @__PURE__ */ React.createElement("span", { className: "notif-switch-dot" })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 600, flex: 1 } }, "Avisos ", cfg.ativo ? "ativos" : "desligados"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "var(--ink-3)", fontWeight: 600 } }, "Avisar"), /* @__PURE__ */ React.createElement("select", { className: "select", style: { width: "auto", padding: "5px 8px", fontSize: 12.5 }, value: cfg.aviso, onChange: (e) => setCfg({ aviso: +e.target.value }) }, [1, 3, 5, 7].map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n, " dia", n > 1 ? "s" : "", " antes")))))));
 }
-function AssistenteFinanceiro({ go }) {
+const horaAtual = () => (/* @__PURE__ */ new Date()).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+function gerarInsights(fin, prem) {
+  const out = [];
+  const despesas = fin.data && fin.data.despesas || [];
+  const seriesArr = fin.series || [];
+  const mesAnterior = seriesArr.length >= 2 ? seriesArr[seriesArr.length - 2] : null;
+  if (mesAnterior && fin.catBreak && fin.catBreak.length > 0) {
+    const porCatAnterior = {};
+    despesas.filter((d) => BM.monthKey(d.data) === mesAnterior.key).forEach((d) => {
+      porCatAnterior[d.cat] = (porCatAnterior[d.cat] || 0) + (+d.valor || 0);
+    });
+    let maiorAumento = null;
+    fin.catBreak.forEach((c) => {
+      const anteriorValor = porCatAnterior[c.key] || 0;
+      if (anteriorValor > 0 && c.valor >= 20 && c.valor > anteriorValor * 1.15) {
+        const pct = Math.round((c.valor - anteriorValor) / anteriorValor * 100);
+        if (!maiorAumento || pct > maiorAumento.pct) maiorAumento = { nome: c.nome, valor: c.valor, anteriorValor, pct };
+      }
+    });
+    if (maiorAumento) {
+      out.push({ icon: "wallet", estado: "atencao", titulo: "A categoria " + maiorAumento.nome + " aumentou", texto: "Subiu " + maiorAumento.pct + "% face ao m\xEAs anterior (" + BM.eur0(maiorAumento.anteriorValor) + " para " + BM.eur0(maiorAumento.valor) + ")." });
+    }
+  }
+  if (mesAnterior) {
+    const atual = seriesArr[seriesArr.length - 1];
+    const saldoAtual = atual.rec - atual.gasto;
+    const saldoAnterior = mesAnterior.rec - mesAnterior.gasto;
+    if (atual.rec > 0 && saldoAnterior >= 0 && saldoAtual > saldoAnterior) {
+      out.push({ icon: "target", estado: "positivo", titulo: "Est\xE1 a poupar mais este m\xEAs", texto: "O seu saldo dispon\xEDvel \xE9 " + BM.eur0(saldoAtual - saldoAnterior) + " superior ao do m\xEAs anterior." });
+    }
+  }
+  const metaProxima = (fin.data.metas || []).filter((m) => !m.fechada && m.alvo > 0 && m.atual / m.alvo >= 0.8).sort((a, b) => b.atual / b.alvo - a.atual / a.alvo)[0];
+  if (metaProxima) {
+    const pct = Math.round(metaProxima.atual / metaProxima.alvo * 100);
+    out.push({ icon: "target", estado: "positivo", titulo: "O objetivo " + metaProxima.nome + " est\xE1 pr\xF3ximo da conclus\xE3o", texto: "J\xE1 alcan\xE7ou " + pct + "% do valor definido." });
+  }
+  if (prem) {
+    const s = prem.get();
+    const proximos = (s.lembretes || []).filter((l) => !l.pago).map((l) => ({ titulo: l.titulo, d: daysUntil(l.data) })).filter((a) => a.d <= 7 && a.d >= 0);
+    if (proximos.length > 0) {
+      out.push({
+        icon: "calendarCheck",
+        estado: "atencao",
+        titulo: proximos.length === 1 ? "Existe um pagamento importante esta semana" : "Existem " + proximos.length + " pagamentos importantes esta semana",
+        texto: proximos.slice(0, 3).map((a) => a.titulo).join(", ") + "."
+      });
+    }
+  }
+  return out;
+}
+const SECOES_RESPOSTA = [
+  { chave: "resumo", labels: ["resumo"] },
+  { chave: "indicadores", labels: ["indicadores", "dados"] },
+  { chave: "observacao", labels: ["observa\xE7\xE3o", "observacao"] },
+  { chave: "sugestao", labels: ["sugest\xE3o", "sugestao"] },
+  { chave: "acao", labels: ["a\xE7\xE3o recomendada", "acao recomendada", "a\xE7\xE3o", "acao"] }
+];
+function parseRespostaAssistente(texto) {
+  if (!texto) return null;
+  const secoes = {};
+  let atual = null;
+  let encontrouAlguma = false;
+  texto.split("\n").forEach((linhaOriginal) => {
+    const linha = linhaOriginal.trim();
+    const semDoisPontos = linha.replace(/:\s*$/, "").toLowerCase();
+    const match = linha.length < 40 && SECOES_RESPOSTA.find((s) => s.labels.includes(semDoisPontos));
+    if (match) {
+      atual = match.chave;
+      secoes[atual] = secoes[atual] || "";
+      encontrouAlguma = true;
+      return;
+    }
+    if (atual) secoes[atual] = (secoes[atual] ? secoes[atual] + "\n" : "") + linhaOriginal;
+  });
+  if (!encontrouAlguma) return null;
+  Object.keys(secoes).forEach((k) => secoes[k] = secoes[k].trim());
+  return secoes;
+}
+function acaoParaBotao(texto, { go, open }) {
+  if (!texto) return null;
+  const t = texto.toLowerCase();
+  if (t.includes("or\xE7amento") || t.includes("orcamento")) return { label: "Criar or\xE7amento", onClick: () => open("orcamento") };
+  if (t.includes("objetivo")) return { label: "Abrir objetivos", onClick: () => go("objetivos") };
+  if (t.includes("relat\xF3rio") || t.includes("relatorio")) return { label: "Ver relat\xF3rio", onClick: () => go("relatorios") };
+  if (t.includes("transa\xE7") || t.includes("transac")) return { label: "Abrir transa\xE7\xF5es", onClick: () => go("transacoes") };
+  return null;
+}
+function RespostaCard({ secoes, hora, go, open }) {
+  const botao = acaoParaBotao(secoes.acao, { go, open });
+  const bloco = (chave, label) => secoes[chave] && /* @__PURE__ */ React.createElement("div", { className: "assist-resp-section" }, /* @__PURE__ */ React.createElement("div", { className: "assist-resp-label" }, label), /* @__PURE__ */ React.createElement("div", { className: "assist-resp-text" }, secoes[chave]));
+  return /* @__PURE__ */ React.createElement("div", { className: "assist-msg assistant assist-resp-card" }, bloco("resumo", "Resumo"), bloco("indicadores", "Indicadores"), bloco("observacao", "Observa\xE7\xE3o"), bloco("sugestao", "Sugest\xE3o"), secoes.acao && /* @__PURE__ */ React.createElement("div", { className: "assist-resp-section" }, /* @__PURE__ */ React.createElement("div", { className: "assist-resp-label" }, "A\xE7\xE3o recomendada"), /* @__PURE__ */ React.createElement("div", { className: "assist-resp-text" }, secoes.acao), botao && /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-soft", style: { marginTop: 10 }, onClick: botao.onClick }, botao.label)), hora && /* @__PURE__ */ React.createElement("span", { className: "assist-msg-hora" }, hora));
+}
+function AssistenteRendePage({ go, open }) {
   const fin = useFinance();
-  const ehPremium = !!(fin.account && fin.account.plano === "premium");
-  const [open, setOpen] = React.useState(false);
+  const prem = usePremium();
   const [mensagens, setMensagens] = React.useState([]);
   const [input, setInput] = React.useState("");
   const [enviando, setEnviando] = React.useState(false);
@@ -1542,22 +1633,21 @@ function AssistenteFinanceiro({ go }) {
   const abortRef = React.useRef(null);
   React.useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [mensagens, open]);
+  }, [mensagens]);
   React.useEffect(() => () => {
     if (abortRef.current) abortRef.current.abort();
   }, []);
-  if (!fin.session) return null;
-  const enviar = () => {
-    const texto = input.trim();
+  const enviarTexto = (texto) => {
+    texto = (texto || "").trim();
     if (!texto || enviando) return;
     setErro("");
-    const historico = [...mensagens, { role: "user", texto }];
-    setMensagens([...historico, { role: "assistant", texto: "" }]);
+    const historico = [...mensagens, { role: "user", texto, hora: horaAtual() }];
+    setMensagens([...historico, { role: "assistant", texto: "", hora: horaAtual() }]);
     setInput("");
     setEnviando(true);
     const controller = new AbortController();
     abortRef.current = controller;
-    API.assistenteChat(historico, {
+    API.assistenteChat(historico.map((m) => ({ role: m.role, texto: m.texto })), {
       signal: controller.signal,
       onDelta: (delta) => {
         setMensagens((ms) => {
@@ -1574,23 +1664,42 @@ function AssistenteFinanceiro({ go }) {
       }
     });
   };
+  const enviar = () => enviarTexto(input);
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       enviar();
     }
   };
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "assist-fab",
-      "aria-label": open ? "Fechar assistente" : "Abrir Assistente Financeiro",
-      title: "Assistente Financeiro",
-      onClick: () => ehPremium ? setOpen((v) => !v) : go("premium")
-    },
-    open ? /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(45deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 22, color: "#fff", sw: 2 })) : /* @__PURE__ */ React.createElement(Icon, { name: "chat", size: 22, color: "#fff" })
-  ), open && ehPremium && /* @__PURE__ */ React.createElement("div", { className: "assist-panel", role: "dialog", "aria-label": "Assistente Financeiro Rende+" }, /* @__PURE__ */ React.createElement("div", { className: "assist-head" }, /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "assist-head-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: "bot", size: 18, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 14 } }, "Assistente Financeiro Rende+"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600 } }, "Baseado nos seus dados reais"))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn", style: { width: 32, height: 32 }, onClick: () => setOpen(false), "aria-label": "Fechar assistente" }, /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(45deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 17, sw: 2, color: "var(--ink-2)" })))), /* @__PURE__ */ React.createElement("div", { className: "assist-body", ref: scrollRef }, mensagens.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "assist-empty" }, /* @__PURE__ */ React.createElement(Icon, { name: "bot", size: 28, color: "var(--ink-3)" }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, fontWeight: 700, fontSize: 13.5 } }, "Como est\xE3o as suas finan\xE7as?"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { marginTop: 4, fontWeight: 600, lineHeight: 1.5 } }, "Pergunte sobre receitas, despesas, or\xE7amento ou objetivos.")) : mensagens.map((m, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "assist-msg " + m.role }, m.texto ? m.texto : m.role === "assistant" && enviando && i === mensagens.length - 1 ? /* @__PURE__ */ React.createElement("span", { className: "assist-typing" }, /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null)) : "")), erro && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { padding: "9px 12px", margin: "4px" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, erro))), /* @__PURE__ */ React.createElement("div", { className: "assist-foot" }, /* @__PURE__ */ React.createElement(
+  const limpar = () => {
+    if (abortRef.current) abortRef.current.abort();
+    setMensagens([]);
+    setErro("");
+    setEnviando(false);
+  };
+  const insights = gerarInsights(fin, prem);
+  const ACOES_RAPIDAS = [
+    { icon: "report", titulo: "Resumo financeiro", desc: "Uma vis\xE3o geral da sua situa\xE7\xE3o atual.", pergunta: "Como est\xE3o as minhas finan\xE7as este m\xEAs?" },
+    { icon: "wallet", titulo: "Analisar despesas", desc: "Onde est\xE1 a gastar mais dinheiro.", pergunta: "Onde gastei mais este m\xEAs?" },
+    { icon: "target", titulo: "Ver objetivos", desc: "Progresso dos seus objetivos de poupan\xE7a.", pergunta: "Qual \xE9 o progresso dos meus objetivos?" },
+    { icon: "bolt", titulo: "Prever fim do m\xEAs", desc: "Quanto ainda pode gastar com seguran\xE7a.", pergunta: "Quanto ainda posso gastar at\xE9 ao fim do m\xEAs?" },
+    { icon: "chart", titulo: "Rever or\xE7amento", desc: "Se est\xE1 dentro do limite definido.", pergunta: "Estou dentro do or\xE7amento definido?" },
+    { icon: "calendarCheck", titulo: "Agenda financeira", desc: "Os seus pr\xF3ximos pagamentos.", pergunta: "Quais s\xE3o os meus pr\xF3ximos pagamentos?" }
+  ];
+  const SUGESTOES = [
+    "Onde gastei mais este m\xEAs?",
+    "Quanto ainda posso gastar este m\xEAs?",
+    "Como posso atingir o meu objetivo mais rapidamente?",
+    "Qual foi a minha maior despesa?",
+    "Como posso melhorar o meu or\xE7amento?"
+  ];
+  return /* @__PURE__ */ React.createElement("div", { className: "content assist-page" }, /* @__PURE__ */ React.createElement("div", { className: "assist-col-left" }, /* @__PURE__ */ React.createElement("div", { className: "assist-left-head" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { className: "assist-left-title" }, "Assistente Rende+"), /* @__PURE__ */ React.createElement("p", { className: "assist-left-sub" }, "O seu assistente inteligente para compreender e organizar melhor as suas finan\xE7as.")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", disabled: true, title: "Hist\xF3rico de conversas \u2014 em breve" }, /* @__PURE__ */ React.createElement(Icon, { name: "history", size: 14 }), " Hist\xF3rico")), /* @__PURE__ */ React.createElement("div", { className: "assist-section" }, /* @__PURE__ */ React.createElement("div", { className: "assist-section-title" }, "A\xE7\xF5es r\xE1pidas"), /* @__PURE__ */ React.createElement("div", { className: "assist-cards-grid" }, ACOES_RAPIDAS.map((a) => /* @__PURE__ */ React.createElement("button", { type: "button", key: a.titulo, className: "assist-action-card", onClick: () => enviarTexto(a.pergunta) }, /* @__PURE__ */ React.createElement("span", { className: "assist-action-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: a.icon, size: 18, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("span", { className: "assist-action-txt" }, /* @__PURE__ */ React.createElement("b", null, a.titulo), /* @__PURE__ */ React.createElement("span", null, a.desc)))))), /* @__PURE__ */ React.createElement("div", { className: "assist-section" }, /* @__PURE__ */ React.createElement("div", { className: "assist-section-title" }, "Insights para si"), insights.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "assist-insight-empty" }, "Ainda n\xE3o h\xE1 dados suficientes para gerar insights. Continue a registar as suas receitas e despesas.") : /* @__PURE__ */ React.createElement("div", { className: "assist-insights-list" }, insights.map((ins, i) => /* @__PURE__ */ React.createElement("div", { className: "assist-insight " + ins.estado, key: i }, /* @__PURE__ */ React.createElement("span", { className: "assist-insight-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: ins.icon, size: 16 })), /* @__PURE__ */ React.createElement("div", { className: "assist-insight-txt" }, /* @__PURE__ */ React.createElement("b", null, ins.titulo), /* @__PURE__ */ React.createElement("span", null, ins.texto)))))), /* @__PURE__ */ React.createElement("div", { className: "assist-section" }, /* @__PURE__ */ React.createElement("div", { className: "assist-section-title" }, "Fa\xE7a uma pergunta"), /* @__PURE__ */ React.createElement("div", { className: "assist-suggest-list" }, SUGESTOES.map((s) => /* @__PURE__ */ React.createElement("button", { type: "button", key: s, className: "assist-suggest-chip", onClick: () => enviarTexto(s) }, s))))), /* @__PURE__ */ React.createElement("div", { className: "assist-col-right" }, /* @__PURE__ */ React.createElement("div", { className: "assist-chat-head" }, /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "assist-head-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: "bot", size: 18, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 14.5 } }, "Assistente Rende+"), /* @__PURE__ */ React.createElement("span", { className: "assist-online" }, /* @__PURE__ */ React.createElement("span", { className: "assist-online-dot" }), " Online"))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: limpar, disabled: mensagens.length === 0 }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 14 }), " Limpar conversa")), /* @__PURE__ */ React.createElement("div", { className: "assist-chat-body", ref: scrollRef }, mensagens.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "assist-empty" }, /* @__PURE__ */ React.createElement(Icon, { name: "bot", size: 28, color: "var(--ink-3)" }), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, fontWeight: 700, fontSize: 13.5 } }, "Como posso ajudar hoje?"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { marginTop: 4, fontWeight: 600, lineHeight: 1.5 } }, "Escolha uma a\xE7\xE3o r\xE1pida, uma sugest\xE3o, ou escreva a sua pergunta.")) : mensagens.map((m, i) => {
+    const isLast = i === mensagens.length - 1;
+    const podeEstruturar = m.role === "assistant" && !(isLast && enviando);
+    const estruturada = podeEstruturar ? parseRespostaAssistente(m.texto) : null;
+    if (estruturada) return /* @__PURE__ */ React.createElement(RespostaCard, { key: i, secoes: estruturada, hora: m.hora, go, open });
+    return /* @__PURE__ */ React.createElement("div", { key: i, className: "assist-msg " + m.role }, /* @__PURE__ */ React.createElement("div", null, m.texto ? m.texto : m.role === "assistant" && isLast && enviando ? /* @__PURE__ */ React.createElement("span", { className: "assist-typing" }, /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null)) : ""), m.hora && /* @__PURE__ */ React.createElement("span", { className: "assist-msg-hora" }, m.hora));
+  }), erro && /* @__PURE__ */ React.createElement("div", { className: "alert bad", style: { padding: "9px 12px", margin: "4px 0" } }, /* @__PURE__ */ React.createElement(Icon, { name: "info", size: 16, color: "var(--neg)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 700 } }, erro))), /* @__PURE__ */ React.createElement("div", { className: "assist-foot" }, /* @__PURE__ */ React.createElement(
     "textarea",
     {
       className: "assist-input",
@@ -1608,4 +1717,4 @@ function PremiumBadge() {
   if (!prem.get().premium) return null;
   return /* @__PURE__ */ React.createElement("span", { className: "prem-tag" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 11, color: "#fff" }), " Premium");
 }
-Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge, AssistenteFinanceiro });
+Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge, AssistenteRendePage });

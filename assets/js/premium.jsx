@@ -2025,41 +2025,160 @@ function NotifBell() {
   );
 }
 
-/* ---------------- Assistente Financeiro Rende+ (balão flutuante, Premium) ----------------
+/* ---------------- Assistente Rende+ (página dedicada, Premium) ----------------
    O backend aplica o system prompt e cruza os dados reais da conta autenticada — o frontend
-   envia apenas o histórico da conversa (API.assistenteChat, em streaming) e mostra o texto
-   que vai chegando. Nunca inventa dados: qualquer número mostrado vem sempre da resposta do
-   assistente, nunca é calculado ou simulado aqui. */
-function AssistenteFinanceiro({ go }) {
+   envia apenas o histórico da conversa (API.assistenteChat, em streaming, inalterado) e mostra
+   o texto que vai chegando. Nunca inventa dados: qualquer número mostrado vem sempre da
+   resposta do assistente ou de cálculos reais já existentes (gerarInsights), nunca simulado. */
+const horaAtual = () => new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+
+/* Insights reais, calculados a partir dos dados já existentes (fin/prem) — só entra na lista
+   o que for verdadeiro para a conta em causa; sem tendência real, sem insight. */
+function gerarInsights(fin, prem) {
+  const out = [];
+  const despesas = (fin.data && fin.data.despesas) || [];
+  const seriesArr = fin.series || [];
+  const mesAnterior = seriesArr.length >= 2 ? seriesArr[seriesArr.length - 2] : null;
+
+  if (mesAnterior && fin.catBreak && fin.catBreak.length > 0) {
+    // Categoria com o maior aumento percentual face ao mês anterior (não é sempre a
+    // categoria com mais gasto no total — é a que mais subiu).
+    const porCatAnterior = {};
+    despesas.filter((d) => BM.monthKey(d.data) === mesAnterior.key).forEach((d) => { porCatAnterior[d.cat] = (porCatAnterior[d.cat] || 0) + (+d.valor || 0); });
+    let maiorAumento = null;
+    fin.catBreak.forEach((c) => {
+      const anteriorValor = porCatAnterior[c.key] || 0;
+      if (anteriorValor > 0 && c.valor >= 20 && c.valor > anteriorValor * 1.15) {
+        const pct = Math.round(((c.valor - anteriorValor) / anteriorValor) * 100);
+        if (!maiorAumento || pct > maiorAumento.pct) maiorAumento = { nome: c.nome, valor: c.valor, anteriorValor, pct };
+      }
+    });
+    if (maiorAumento) {
+      out.push({ icon: "wallet", estado: "atencao", titulo: "A categoria " + maiorAumento.nome + " aumentou", texto: "Subiu " + maiorAumento.pct + "% face ao mês anterior (" + BM.eur0(maiorAumento.anteriorValor) + " para " + BM.eur0(maiorAumento.valor) + ")." });
+    }
+  }
+
+  if (mesAnterior) {
+    const atual = seriesArr[seriesArr.length - 1];
+    const saldoAtual = atual.rec - atual.gasto;
+    const saldoAnterior = mesAnterior.rec - mesAnterior.gasto;
+    if (atual.rec > 0 && saldoAnterior >= 0 && saldoAtual > saldoAnterior) {
+      out.push({ icon: "target", estado: "positivo", titulo: "Está a poupar mais este mês", texto: "O seu saldo disponível é " + BM.eur0(saldoAtual - saldoAnterior) + " superior ao do mês anterior." });
+    }
+  }
+
+  const metaProxima = (fin.data.metas || []).filter((m) => !m.fechada && m.alvo > 0 && m.atual / m.alvo >= 0.8)
+    .sort((a, b) => (b.atual / b.alvo) - (a.atual / a.alvo))[0];
+  if (metaProxima) {
+    const pct = Math.round((metaProxima.atual / metaProxima.alvo) * 100);
+    out.push({ icon: "target", estado: "positivo", titulo: "O objetivo " + metaProxima.nome + " está próximo da conclusão", texto: "Já alcançou " + pct + "% do valor definido." });
+  }
+
+  if (prem) {
+    // Janela fixa de 7 dias, independente da preferência de aviso das notificações
+    // (essa é sobre quando notificar; este insight é sempre "esta semana").
+    const s = prem.get();
+    const proximos = (s.lembretes || []).filter((l) => !l.pago).map((l) => ({ titulo: l.titulo, d: daysUntil(l.data) })).filter((a) => a.d <= 7 && a.d >= 0);
+    if (proximos.length > 0) {
+      out.push({
+        icon: "calendarCheck", estado: "atencao",
+        titulo: proximos.length === 1 ? "Existe um pagamento importante esta semana" : "Existem " + proximos.length + " pagamentos importantes esta semana",
+        texto: proximos.slice(0, 3).map((a) => a.titulo).join(", ") + ".",
+      });
+    }
+  }
+
+  return out;
+}
+
+/* Reconhece secções em texto simples (sem markdown) para organizar a resposta em cartão:
+   Resumo / Indicadores (ou Dados) / Observação / Sugestão / Ação recomendada. Se o texto não
+   tiver esta estrutura (ex.: uma resposta curta), devolve null e mostra-se como texto simples. */
+const SECOES_RESPOSTA = [
+  { chave: "resumo", labels: ["resumo"] },
+  { chave: "indicadores", labels: ["indicadores", "dados"] },
+  { chave: "observacao", labels: ["observação", "observacao"] },
+  { chave: "sugestao", labels: ["sugestão", "sugestao"] },
+  { chave: "acao", labels: ["ação recomendada", "acao recomendada", "ação", "acao"] },
+];
+function parseRespostaAssistente(texto) {
+  if (!texto) return null;
+  const secoes = {};
+  let atual = null;
+  let encontrouAlguma = false;
+  texto.split("\n").forEach((linhaOriginal) => {
+    const linha = linhaOriginal.trim();
+    const semDoisPontos = linha.replace(/:\s*$/, "").toLowerCase();
+    const match = linha.length < 40 && SECOES_RESPOSTA.find((s) => s.labels.includes(semDoisPontos));
+    if (match) { atual = match.chave; secoes[atual] = secoes[atual] || ""; encontrouAlguma = true; return; }
+    if (atual) secoes[atual] = (secoes[atual] ? secoes[atual] + "\n" : "") + linhaOriginal;
+  });
+  if (!encontrouAlguma) return null;
+  Object.keys(secoes).forEach((k) => (secoes[k] = secoes[k].trim()));
+  return secoes;
+}
+/* Botão de atalho por baixo de "Ação recomendada" — nunca aplica nada sozinho, só navega para
+   o sítio certo; a confirmação da ação em si continua a ser sempre manual do utilizador. */
+function acaoParaBotao(texto, { go, open }) {
+  if (!texto) return null;
+  const t = texto.toLowerCase();
+  if (t.includes("orçamento") || t.includes("orcamento")) return { label: "Criar orçamento", onClick: () => open("orcamento") };
+  if (t.includes("objetivo")) return { label: "Abrir objetivos", onClick: () => go("objetivos") };
+  if (t.includes("relatório") || t.includes("relatorio")) return { label: "Ver relatório", onClick: () => go("relatorios") };
+  if (t.includes("transaç") || t.includes("transac")) return { label: "Abrir transações", onClick: () => go("transacoes") };
+  return null;
+}
+
+function RespostaCard({ secoes, hora, go, open }) {
+  const botao = acaoParaBotao(secoes.acao, { go, open });
+  const bloco = (chave, label) => secoes[chave] && (
+    <div className="assist-resp-section">
+      <div className="assist-resp-label">{label}</div>
+      <div className="assist-resp-text">{secoes[chave]}</div>
+    </div>
+  );
+  return (
+    <div className="assist-msg assistant assist-resp-card">
+      {bloco("resumo", "Resumo")}
+      {bloco("indicadores", "Indicadores")}
+      {bloco("observacao", "Observação")}
+      {bloco("sugestao", "Sugestão")}
+      {secoes.acao && (
+        <div className="assist-resp-section">
+          <div className="assist-resp-label">Ação recomendada</div>
+          <div className="assist-resp-text">{secoes.acao}</div>
+          {botao && <button type="button" className="btn btn-soft" style={{ marginTop: 10 }} onClick={botao.onClick}>{botao.label}</button>}
+        </div>
+      )}
+      {hora && <span className="assist-msg-hora">{hora}</span>}
+    </div>
+  );
+}
+
+function AssistenteRendePage({ go, open }) {
   const fin = useFinance();
-  const ehPremium = !!(fin.account && fin.account.plano === "premium");
-  const [open, setOpen] = React.useState(false);
-  const [mensagens, setMensagens] = React.useState([]); // [{ role: "user"|"assistant", texto }]
+  const prem = usePremium();
+  const [mensagens, setMensagens] = React.useState([]); // [{ role, texto, hora }]
   const [input, setInput] = React.useState("");
   const [enviando, setEnviando] = React.useState(false);
   const [erro, setErro] = React.useState("");
   const scrollRef = React.useRef(null);
   const abortRef = React.useRef(null);
 
-  React.useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [mensagens, open]);
-
+  React.useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [mensagens]);
   React.useEffect(() => () => { if (abortRef.current) abortRef.current.abort(); }, []);
 
-  if (!fin.session) return null;
-
-  const enviar = () => {
-    const texto = input.trim();
+  const enviarTexto = (texto) => {
+    texto = (texto || "").trim();
     if (!texto || enviando) return;
     setErro("");
-    const historico = [...mensagens, { role: "user", texto }];
-    setMensagens([...historico, { role: "assistant", texto: "" }]);
+    const historico = [...mensagens, { role: "user", texto, hora: horaAtual() }];
+    setMensagens([...historico, { role: "assistant", texto: "", hora: horaAtual() }]);
     setInput("");
     setEnviando(true);
     const controller = new AbortController();
     abortRef.current = controller;
-    API.assistenteChat(historico, {
+    API.assistenteChat(historico.map((m) => ({ role: m.role, texto: m.texto })), {
       signal: controller.signal,
       onDelta: (delta) => {
         setMensagens((ms) => {
@@ -2073,60 +2192,120 @@ function AssistenteFinanceiro({ go }) {
       onError: (e) => { setErro((e && e.message) || "Não foi possível obter resposta do assistente."); setEnviando(false); },
     });
   };
+  const enviar = () => enviarTexto(input);
+  const onKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } };
+  const limpar = () => { if (abortRef.current) abortRef.current.abort(); setMensagens([]); setErro(""); setEnviando(false); };
 
-  const onKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
-  };
+  const insights = gerarInsights(fin, prem);
+
+  const ACOES_RAPIDAS = [
+    { icon: "report", titulo: "Resumo financeiro", desc: "Uma visão geral da sua situação atual.", pergunta: "Como estão as minhas finanças este mês?" },
+    { icon: "wallet", titulo: "Analisar despesas", desc: "Onde está a gastar mais dinheiro.", pergunta: "Onde gastei mais este mês?" },
+    { icon: "target", titulo: "Ver objetivos", desc: "Progresso dos seus objetivos de poupança.", pergunta: "Qual é o progresso dos meus objetivos?" },
+    { icon: "bolt", titulo: "Prever fim do mês", desc: "Quanto ainda pode gastar com segurança.", pergunta: "Quanto ainda posso gastar até ao fim do mês?" },
+    { icon: "chart", titulo: "Rever orçamento", desc: "Se está dentro do limite definido.", pergunta: "Estou dentro do orçamento definido?" },
+    { icon: "calendarCheck", titulo: "Agenda financeira", desc: "Os seus próximos pagamentos.", pergunta: "Quais são os meus próximos pagamentos?" },
+  ];
+  const SUGESTOES = [
+    "Onde gastei mais este mês?",
+    "Quanto ainda posso gastar este mês?",
+    "Como posso atingir o meu objetivo mais rapidamente?",
+    "Qual foi a minha maior despesa?",
+    "Como posso melhorar o meu orçamento?",
+  ];
 
   return (
-    <>
-      <button type="button" className="assist-fab" aria-label={open ? "Fechar assistente" : "Abrir Assistente Financeiro"} title="Assistente Financeiro"
-        onClick={() => (ehPremium ? setOpen((v) => !v) : go("premium"))}>
-        {open ? <span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={22} color="#fff" sw={2} /></span> : <Icon name="chat" size={22} color="#fff" />}
-      </button>
-
-      {open && ehPremium && (
-        <div className="assist-panel" role="dialog" aria-label="Assistente Financeiro Rende+">
-          <div className="assist-head">
-            <div className="row" style={{ gap: 10 }}>
-              <span className="assist-head-ico"><Icon name="bot" size={18} color="var(--accent)" /></span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Assistente Financeiro Rende+</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>Baseado nos seus dados reais</div>
-              </div>
-            </div>
-            <button type="button" className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setOpen(false)} aria-label="Fechar assistente">
-              <span style={{ transform: "rotate(45deg)", display: "grid" }}><Icon name="plus" size={17} sw={2} color="var(--ink-2)" /></span>
-            </button>
+    <div className="content assist-page">
+      <div className="assist-col-left">
+        <div className="assist-left-head">
+          <div>
+            <h1 className="assist-left-title">Assistente Rende+</h1>
+            <p className="assist-left-sub">O seu assistente inteligente para compreender e organizar melhor as suas finanças.</p>
           </div>
+          <button type="button" className="btn btn-ghost" disabled title="Histórico de conversas — em breve"><Icon name="history" size={14} /> Histórico</button>
+        </div>
 
-          <div className="assist-body" ref={scrollRef}>
-            {mensagens.length === 0 ? (
-              <div className="assist-empty">
-                <Icon name="bot" size={28} color="var(--ink-3)" />
-                <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13.5 }}>Como estão as suas finanças?</div>
-                <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, lineHeight: 1.5 }}>Pergunte sobre receitas, despesas, orçamento ou objetivos.</div>
-              </div>
-            ) : (
-              mensagens.map((m, i) => (
-                <div key={i} className={"assist-msg " + m.role}>
-                  {m.texto ? m.texto : (m.role === "assistant" && enviando && i === mensagens.length - 1 ? <span className="assist-typing"><i /><i /><i /></span> : "")}
-                </div>
-              ))
-            )}
-            {erro && <div className="alert bad" style={{ padding: "9px 12px", margin: "4px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{erro}</span></div>}
-          </div>
-
-          <div className="assist-foot">
-            <textarea className="assist-input" rows={1} placeholder="Escreva a sua pergunta…" value={input} disabled={enviando}
-              onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} />
-            <button type="button" className="icon-btn assist-send" onClick={enviar} disabled={enviando || !input.trim()} aria-label="Enviar mensagem">
-              <Icon name="send" size={17} color="#fff" />
-            </button>
+        <div className="assist-section">
+          <div className="assist-section-title">Ações rápidas</div>
+          <div className="assist-cards-grid">
+            {ACOES_RAPIDAS.map((a) => (
+              <button type="button" key={a.titulo} className="assist-action-card" onClick={() => enviarTexto(a.pergunta)}>
+                <span className="assist-action-ico"><Icon name={a.icon} size={18} color="var(--accent)" /></span>
+                <span className="assist-action-txt"><b>{a.titulo}</b><span>{a.desc}</span></span>
+              </button>
+            ))}
           </div>
         </div>
-      )}
-    </>
+
+        <div className="assist-section">
+          <div className="assist-section-title">Insights para si</div>
+          {insights.length === 0 ? (
+            <div className="assist-insight-empty">Ainda não há dados suficientes para gerar insights. Continue a registar as suas receitas e despesas.</div>
+          ) : (
+            <div className="assist-insights-list">
+              {insights.map((ins, i) => (
+                <div className={"assist-insight " + ins.estado} key={i}>
+                  <span className="assist-insight-ico"><Icon name={ins.icon} size={16} /></span>
+                  <div className="assist-insight-txt"><b>{ins.titulo}</b><span>{ins.texto}</span></div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="assist-section">
+          <div className="assist-section-title">Faça uma pergunta</div>
+          <div className="assist-suggest-list">
+            {SUGESTOES.map((s) => <button type="button" key={s} className="assist-suggest-chip" onClick={() => enviarTexto(s)}>{s}</button>)}
+          </div>
+        </div>
+      </div>
+
+      <div className="assist-col-right">
+        <div className="assist-chat-head">
+          <div className="row" style={{ gap: 10 }}>
+            <span className="assist-head-ico"><Icon name="bot" size={18} color="var(--accent)" /></span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14.5 }}>Assistente Rende+</div>
+              <span className="assist-online"><span className="assist-online-dot" /> Online</span>
+            </div>
+          </div>
+          <button type="button" className="btn btn-ghost" onClick={limpar} disabled={mensagens.length === 0}><Icon name="trash" size={14} /> Limpar conversa</button>
+        </div>
+
+        <div className="assist-chat-body" ref={scrollRef}>
+          {mensagens.length === 0 ? (
+            <div className="assist-empty">
+              <Icon name="bot" size={28} color="var(--ink-3)" />
+              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13.5 }}>Como posso ajudar hoje?</div>
+              <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, lineHeight: 1.5 }}>Escolha uma ação rápida, uma sugestão, ou escreva a sua pergunta.</div>
+            </div>
+          ) : (
+            mensagens.map((m, i) => {
+              const isLast = i === mensagens.length - 1;
+              const podeEstruturar = m.role === "assistant" && !(isLast && enviando);
+              const estruturada = podeEstruturar ? parseRespostaAssistente(m.texto) : null;
+              if (estruturada) return <RespostaCard key={i} secoes={estruturada} hora={m.hora} go={go} open={open} />;
+              return (
+                <div key={i} className={"assist-msg " + m.role}>
+                  <div>{m.texto ? m.texto : (m.role === "assistant" && isLast && enviando ? <span className="assist-typing"><i /><i /><i /></span> : "")}</div>
+                  {m.hora && <span className="assist-msg-hora">{m.hora}</span>}
+                </div>
+              );
+            })
+          )}
+          {erro && <div className="alert bad" style={{ padding: "9px 12px", margin: "4px 0" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{erro}</span></div>}
+        </div>
+
+        <div className="assist-foot">
+          <textarea className="assist-input" rows={1} placeholder="Escreva a sua pergunta…" value={input} disabled={enviando}
+            onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} />
+          <button type="button" className="icon-btn assist-send" onClick={enviar} disabled={enviando || !input.trim()} aria-label="Enviar mensagem">
+            <Icon name="send" size={17} color="#fff" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2136,4 +2315,4 @@ function PremiumBadge() {
   return <span className="prem-tag"><Icon name="spark" size={11} color="#fff" /> Premium</span>;
 }
 
-Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge, AssistenteFinanceiro });
+Object.assign(window, { PremiumStore, usePremium, Paywall, PremiumGate, Lembretes, Recorrentes, AgendaFinanceira, Partilha, Previsao, PremiumBadge, AssistenteRendePage });

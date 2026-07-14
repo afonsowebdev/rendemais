@@ -43,6 +43,7 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
       label: "Geral",
       items: [
         { id: "dashboard", label: "Painel", icon: "grid" },
+        { id: "assistente", label: "Assistente Rende+", icon: "bot" },
         { id: "transacoes", label: "Transações", icon: "transfer" },
         { id: "objetivos", label: "Objetivos", icon: "target" },
         { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
@@ -230,6 +231,7 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const premItems = [
+    { id: "assistente", label: "Assistente Rende+", icon: "bot" },
     { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
     { id: "partilha", label: "Partilha", icon: "users" },
     { id: "previsao", label: "Previsão", icon: "chart" },

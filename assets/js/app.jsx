@@ -30,6 +30,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 
 const PAGES = {
   dashboard: { title: "Painel", add: "despesa" },
+  assistente: { title: "Assistente Rende+", add: null },
   transacoes: { title: "Transações", add: "despesa" },
   objetivos: { title: "Objetivos", add: "meta" },
   agenda: { title: "Agenda Financeira", add: null },
@@ -601,10 +602,13 @@ function Shell() {
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
         <Topbar theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} />
-        <PageIntro route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]}
-          monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
-            canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
+        {route !== "assistente" && (
+          <PageIntro route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]}
+            monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
+              canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
+        )}
         {route === "dashboard" && <Dashboard go={go} open={open} />}
+        {route === "assistente" && (ehPremium ? <AssistenteRendePage go={go} open={open} /> : <Paywall />)}
         {route === "transacoes" && <Transacoes open={open} />}
         {route === "objetivos" && <Poupanca open={open} />}
         {route === "agenda" && (ehPremium ? <AgendaFinanceira /> : <Paywall />)}
@@ -620,7 +624,6 @@ function Shell() {
       {moreOpen && <MoreSheet route={route} go={go} account={fin.account} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}
       {modal && <EntryModal type={modal.type} item={modal.item} onClose={() => setModal(null)} />}
       <LockGate active={!!fin.session} />
-      <AssistenteFinanceiro go={go} />
       {novaVersao && (
         <div style={{ position: "fixed", left: "50%", bottom: 20, transform: "translateX(-50%)", zIndex: 9999, maxWidth: 440, width: "calc(100% - 32px)", background: "var(--navy)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.28)", padding: "13px 16px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 13.5, fontWeight: 600 }}>
