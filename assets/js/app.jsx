@@ -575,7 +575,9 @@ function Shell() {
     agenda: "Agenda Financeira", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium",
     contas: tr("lbl_accounts"), relatorios: tr("lbl_reports"), config: tr("lbl_settings"), perfil: tr("lbl_profile"),
   };
-  const pageTitle = TITULOS[route] || "Painel";
+  // A página do Assistente já mostra o próprio título/subtítulo (coluna esquerda) —
+  // não duplicar no header partilhado.
+  const pageTitle = route === "assistente" ? null : (TITULOS[route] || "Painel");
   // portão de plano: quem tem premium ativo usa as funcionalidades; os outros veem o Paywall
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
@@ -601,12 +603,9 @@ function Shell() {
       )}
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <div className="main">
-        <Topbar theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} />
-        {route !== "assistente" && (
-          <PageIntro route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]}
-            monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
-              canNext={!fin.isCurrentMonth} isCurrent={fin.isCurrentMonth} onToday={fin.goToday} /> : null} />
-        )}
+        <Topbar route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} />
+        <PageIntro monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
+          canNext={!fin.isCurrentMonth} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
         {route === "assistente" && (ehPremium ? <AssistenteRendePage go={go} open={open} /> : <Paywall />)}
         {route === "transacoes" && <Transacoes open={open} />}

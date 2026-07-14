@@ -50,21 +50,11 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
     const active = route === n.id;
     return /* @__PURE__ */ React.createElement("button", { key: n.id, className: "nav-item" + (active ? " active" : ""), onClick: () => go(n.id), title: n.label, "aria-current": active ? "page" : void 0 }, /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }), /* @__PURE__ */ React.createElement("span", null, n.label));
   };
-  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, { nameColor: "#fff" }))), groups.map((g) => /* @__PURE__ */ React.createElement(React.Fragment, { key: g.label }, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, g.label), g.items.map(Item))), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
+  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, null))), groups.map((g) => /* @__PURE__ */ React.createElement(React.Fragment, { key: g.label }, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, g.label), g.items.map(Item))), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
 }
-function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday }) {
+function MonthNav({ label, onPrev, onNext, canNext = true }) {
   const tr = useT();
-  return /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 8 } }, !isCurrent && onToday && /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { padding: "7px 12px" }, onClick: onToday }, tr("month_current")), /* @__PURE__ */ React.createElement("div", { className: "seg month-seg" }, /* @__PURE__ */ React.createElement("button", { onClick: onPrev, "aria-label": "M\xEAs anterior", style: { padding: "6px 9px" } }, /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(180deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 15 }))), /* @__PURE__ */ React.createElement("span", { className: "row", style: { gap: 6, padding: "0 10px", fontSize: 13, fontWeight: 600, minWidth: 108, justifyContent: "center" } }, /* @__PURE__ */ React.createElement(Icon, { name: "cal", size: 14, color: "var(--ink-3)" }), label), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      onClick: canNext ? onNext : void 0,
-      disabled: !canNext,
-      "aria-label": "M\xEAs seguinte",
-      title: canNext ? "" : tr("month_at_current"),
-      style: { padding: "6px 9px", opacity: canNext ? 1 : 0.35, cursor: canNext ? "pointer" : "not-allowed" }
-    },
-    /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 15 })
-  )));
+  return /* @__PURE__ */ React.createElement("div", { className: "seg month-seg" }, /* @__PURE__ */ React.createElement("button", { onClick: onPrev, "aria-label": "M\xEAs anterior" }, /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(180deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 15 }))), /* @__PURE__ */ React.createElement("span", { className: "row month-seg-label" }, /* @__PURE__ */ React.createElement(Icon, { name: "cal", size: 14, color: "var(--ink-3)" }), label), /* @__PURE__ */ React.createElement("button", { onClick: canNext ? onNext : void 0, disabled: !canNext, "aria-label": "M\xEAs seguinte", title: canNext ? "" : tr("month_at_current") }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 15 })));
 }
 function useDropdownClose() {
   const [open, setOpen] = React.useState(false);
@@ -106,17 +96,19 @@ function ProfileMenu({ account, go, onLogout }) {
     onLogout();
   } }, /* @__PURE__ */ React.createElement(Icon, { name: "logout", size: 16 }), " ", tr("logout_full"))));
 }
-function Topbar({ theme, setTheme, onLogout, go }) {
+function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
-  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, null), /* @__PURE__ */ React.createElement("button", { className: "icon-btn hide-mobile", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
-}
-function PageIntro({ route, account, title, sub, monthNav }) {
   const isDashboard = route === "dashboard";
   const primeiroNome = ((account == null ? void 0 : account.nome) || "").trim().split(" ")[0];
   const saudacao = primeiroNome ? `Ol\xE1, ${primeiroNome}` : "Ol\xE1";
-  return /* @__PURE__ */ React.createElement("div", { className: "page-intro" }, /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, isDashboard ? saudacao : title), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), monthNav && /* @__PURE__ */ React.createElement("div", { className: "page-intro-month" }, monthNav));
+  const tituloMostrado = isDashboard ? saudacao : title;
+  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, tituloMostrado && /* @__PURE__ */ React.createElement("div", { className: "topbar-title", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, tituloMostrado), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, null), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
+}
+function PageIntro({ monthNav }) {
+  if (!monthNav) return null;
+  return /* @__PURE__ */ React.createElement("div", { className: "page-intro" }, /* @__PURE__ */ React.createElement("div", { className: "page-intro-month" }, monthNav));
 }
 function MobileNav({ route, go, onAdd, onMore }) {
   const tr = useT();

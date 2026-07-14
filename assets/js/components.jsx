@@ -73,7 +73,7 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
     <aside className="sidebar">
       <div style={{ padding: "4px 8px 22px" }}>
         <button onClick={() => go("dashboard")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }} title={tr("go_dashboard")}>
-          <Brand nameColor="#fff" />
+          <Brand />
         </button>
       </div>
       {groups.map((g) => (
@@ -97,21 +97,17 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
   );
 }
 
-function MonthNav({ label, onPrev, onNext, canNext = true, isCurrent, onToday }) {
+function MonthNav({ label, onPrev, onNext, canNext = true }) {
   const tr = useT();
   return (
-    <div className="row" style={{ gap: 8 }}>
-      {!isCurrent && onToday && (
-        <button className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={onToday}>{tr("month_current")}</button>
-      )}
-      <div className="seg month-seg">
-        <button onClick={onPrev} aria-label="Mês anterior" style={{ padding: "6px 9px" }}><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
-        <span className="row" style={{ gap: 6, padding: "0 10px", fontSize: 13, fontWeight: 600, minWidth: 108, justifyContent: "center" }}>
-          <Icon name="cal" size={14} color="var(--ink-3)" />{label}
-        </span>
-        <button onClick={canNext ? onNext : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}
-          style={{ padding: "6px 9px", opacity: canNext ? 1 : 0.35, cursor: canNext ? "pointer" : "not-allowed" }}><Icon name="chevR" size={15} /></button>
-      </div>
+    <div className="seg month-seg">
+      <button onClick={onPrev} aria-label="Mês anterior"><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
+      <span className="row month-seg-label">
+        <Icon name="cal" size={14} color="var(--ink-3)" />{label}
+      </span>
+      <button onClick={canNext ? onNext : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}>
+        <Icon name="chevR" size={15} />
+      </button>
     </div>
   );
 }
@@ -163,17 +159,28 @@ function ProfileMenu({ account, go, onLogout }) {
   );
 }
 
-/* Header interno: apenas 3 controlos (notificações, tema, perfil), alinhados à direita.
-   Título/subtítulo, seletor de mês e ações da página vivem agora no PageIntro, abaixo. */
-function Topbar({ theme, setTheme, onLogout, go }) {
+/* Header interno: saudação (no Painel) ou título da página à esquerda — sempre no mesmo
+   local do cabeçalho, nunca separado do conteúdo — e notificações/tema/perfil à direita.
+   O seletor de mês vive à parte, na PageIntro logo abaixo, quando a rota o usa. */
+function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
+  const isDashboard = route === "dashboard";
+  const primeiroNome = (account?.nome || "").trim().split(" ")[0];
+  const saudacao = primeiroNome ? `Olá, ${primeiroNome}` : "Olá";
+  const tituloMostrado = isDashboard ? saudacao : title;
   return (
     <div className="topbar">
+      {tituloMostrado && (
+        <div className="topbar-title" style={{ minWidth: 0 }}>
+          <h1 className="page-title">{tituloMostrado}</h1>
+          {sub && <p className="page-sub">{sub}</p>}
+        </div>
+      )}
       <div className="topbar-actions">
         {notificacoesOn && <NotifBell />}
-        <button className="icon-btn hide-mobile" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
+        <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
         <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
@@ -182,19 +189,13 @@ function Topbar({ theme, setTheme, onLogout, go }) {
   );
 }
 
-/* Área de introdução da página, imediatamente abaixo do header: saudação (no Painel) ou
-   título da página (nas restantes rotas) à esquerda, seletor de mês à direita quando aplicável. */
-function PageIntro({ route, account, title, sub, monthNav }) {
-  const isDashboard = route === "dashboard";
-  const primeiroNome = (account?.nome || "").trim().split(" ")[0];
-  const saudacao = primeiroNome ? `Olá, ${primeiroNome}` : "Olá";
+/* Seletor de mês, logo abaixo do header, alinhado à direita — só nas rotas com dados
+   mensais (Painel/Transações/Relatórios). Sem título/saudação aqui: isso já vive no header. */
+function PageIntro({ monthNav }) {
+  if (!monthNav) return null;
   return (
     <div className="page-intro">
-      <div style={{ minWidth: 0 }}>
-        <h1 className="page-title">{isDashboard ? saudacao : title}</h1>
-        {sub && <p className="page-sub">{sub}</p>}
-      </div>
-      {monthNav && <div className="page-intro-month">{monthNav}</div>}
+      <div className="page-intro-month">{monthNav}</div>
     </div>
   );
 }
