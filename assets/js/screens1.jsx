@@ -480,7 +480,7 @@ function Dashboard({ go, open }) {
             </div>
           )}
         </div>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           <button type="button" className="btn btn-soft" onClick={() => open("meta")}><Icon name="target" size={15} /> Novo objetivo</button>
           <button type="button" className="btn btn-soft" onClick={() => setNovoEvento(true)}><Icon name="cal" size={15} /> Novo evento</button>
           {ehPremium && <button type="button" className="btn btn-soft" onClick={() => go("partilha")}><Icon name="users" size={15} /> Novo grupo</button>}

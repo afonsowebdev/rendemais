@@ -436,6 +436,7 @@ button {
   justify-content: space-between;
   gap: 16px;
   min-height: 76px;
+  flex-shrink: 0;
   padding: 14px 32px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -1900,7 +1901,7 @@ input.range::-moz-range-thumb {
     gap: 7px;
   }
 
-  .topbar .hide-mobile {
+  .hide-mobile {
     display: none !important;
   }
 
@@ -6023,7 +6024,7 @@ input.range::-moz-range-thumb {
     gap: 7px;
   }
 
-  .topbar .hide-mobile {
+  .hide-mobile {
     display: none !important;
   }
 
