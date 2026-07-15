@@ -1856,6 +1856,11 @@ input.range::-moz-range-thumb {
     grid-area: burger;
   }
 
+  /* Ícone de mudar tema escondido no header mobile — continua acessível em "Mais". */
+  .topbar-theme-btn {
+    display: none;
+  }
+
   .mobile-brand {
     grid-area: brand;
     justify-content: center;
@@ -1943,7 +1948,10 @@ input.range::-moz-range-thumb {
     grid-template-columns: 1fr !important;
   }
 
-  /* bottom tab bar — fundo em SVG com entalhe central (notch) desenhado para o botão "+" */
+  /* bottom tab bar — fundo em SVG com entalhe central (notch) desenhado para o botão "+".
+     Fundo translúcido + blur (efeito "vidro fosco") em vez de um bloco opaco: o conteúdo
+     da página continua visível (desfocado) por baixo quando se faz scroll, sem parecer
+     um corte abrupto contra um retângulo sólido. */
   .mobilenav {
     display: block;
     position: fixed;
@@ -1952,6 +1960,8 @@ input.range::-moz-range-thumb {
     right: 0;
     bottom: 0;
     height: calc(78px + env(safe-area-inset-bottom, 0px));
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
   }
 
   .mobilenav-bg {
@@ -1960,15 +1970,19 @@ input.range::-moz-range-thumb {
     width: 100%;
     height: 100%;
     z-index: 0;
-    filter: drop-shadow(0 -8px 24px rgba(8, 22, 16, .12));
+    filter: drop-shadow(0 -2px 12px rgba(8, 22, 16, .08));
   }
 
   .mobilenav-bg path {
-    fill: var(--surface);
+    fill: color-mix(in srgb, var(--surface) 68%, transparent);
   }
 
   [data-theme="dark"] .mobilenav-bg {
-    filter: drop-shadow(0 -8px 24px rgba(0, 0, 0, .38));
+    filter: drop-shadow(0 -2px 12px rgba(0, 0, 0, .3));
+  }
+
+  [data-theme="dark"] .mobilenav-bg path {
+    fill: color-mix(in srgb, var(--surface) 60%, transparent);
   }
 
   .mobilenav-row {
@@ -6108,6 +6122,11 @@ input.range::-moz-range-thumb {
   .icon-btn.topbar-hamburger {
     display: flex;
     grid-area: burger;
+  }
+
+  /* Ícone de mudar tema escondido no header mobile — continua acessível em "Mais". */
+  .topbar-theme-btn {
+    display: none;
   }
 
   .mobile-brand {
