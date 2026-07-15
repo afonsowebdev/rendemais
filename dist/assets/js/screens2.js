@@ -1,20 +1,158 @@
+function estimarConclusaoMeta(meta, serieMeta) {
+  if (meta.fechada || !(meta.alvo > 0)) return null;
+  const falta = meta.alvo - meta.atual;
+  if (falta <= 0) return { meses: 0, mediaMensal: 0, label: "Conclu\xEDdo" };
+  const pts = serieMeta && serieMeta.points || [];
+  if (pts.length < 2) return null;
+  const deltas = [];
+  for (let i = 1; i < pts.length; i++) deltas.push(pts[i] - pts[i - 1]);
+  const media = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+  if (media <= 0.01) return null;
+  const meses = Math.max(1, Math.ceil(falta / media));
+  const hoje = /* @__PURE__ */ new Date();
+  const dt = new Date(hoje.getFullYear(), hoje.getMonth() + meses, 1);
+  return { meses, mediaMensal: media, label: BM.MESES[dt.getMonth()] + " " + dt.getFullYear() };
+}
+function gerarDicaObjetivos(abertas, metaSeries) {
+  let pior = null;
+  abertas.forEach((m) => {
+    const serie = metaSeries.find((s) => s.id === m.id);
+    const est2 = estimarConclusaoMeta(m, serie);
+    if (est2 && est2.meses > 0 && (!pior || est2.meses > pior.est.meses)) pior = { meta: m, est: est2 };
+  });
+  if (!pior) return null;
+  const { meta, est } = pior;
+  const falta = meta.alvo - meta.atual;
+  const novosMeses = Math.max(1, Math.ceil(falta / (est.mediaMensal + 100)));
+  const ganho = est.meses - novosMeses;
+  if (ganho <= 0) return null;
+  return `Se aumentar a sua poupan\xE7a mensal em ${BM.eur0(100)}, consegue atingir "${meta.nome}" aproximadamente ${ganho} ${ganho === 1 ? "m\xEAs" : "meses"} mais cedo.`;
+}
+const GOAL_FILTROS = [["todos", "Todos"], ["progresso", "Em progresso"], ["concluidos", "Conclu\xEDdos"], ["suspensos", "Suspensos"]];
 function Poupanca({ open }) {
   const fin = useFinance();
   const metas = fin.data.metas;
+  const [filtro, setFiltro] = React.useState("todos");
+  const [filtrosVisiveis, setFiltrosVisiveis] = React.useState(true);
+  const [menuId, setMenuId] = React.useState(null);
+  const [detalheId, setDetalheId] = React.useState(null);
+  React.useEffect(() => {
+    if (!menuId) return;
+    const h = (e) => {
+      if (!e.target.closest || !e.target.closest(".ph-menu-wrap")) setMenuId(null);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [menuId]);
   const totalAlvo = metas.reduce((s, m) => s + (+m.alvo || 0), 0);
   const totalAtual = metas.reduce((s, m) => s + (+m.atual || 0), 0);
   const pct = totalAlvo > 0 ? Math.round(totalAtual / totalAlvo * 100) : 0;
+  const concluidas = metas.filter((m) => m.fechada);
+  const abertas = metas.filter((m) => !m.fechada);
+  const estimativas = metas.map((m) => ({ meta: m, est: estimarConclusaoMeta(m, fin.metaSeries.find((s) => s.id === m.id)) })).filter((x) => x.est && x.est.meses > 0);
+  const prazoMedioMeses = estimativas.length ? Math.round(estimativas.reduce((s, x) => s + x.est.meses, 0) / estimativas.length) : null;
+  const dica = gerarDicaObjetivos(abertas, fin.metaSeries);
+  const proximosAVencer = estimativas.filter((x) => !x.meta.fechada).sort((a, b) => a.est.meses - b.est.meses).slice(0, 3);
+  const metasFiltradas = metas.filter((m) => {
+    if (filtro === "progresso") return !m.fechada;
+    if (filtro === "concluidos") return m.fechada;
+    if (filtro === "suspensos") return false;
+    return true;
+  });
   const mesLabel = (key) => {
     const [y, mo] = (key || "").split("-").map(Number);
     return mo ? BM.MESES[mo - 1] + " " + y : "";
   };
-  return /* @__PURE__ */ React.createElement("div", { className: "content" }, /* @__PURE__ */ React.createElement("div", { className: "grid", style: { gridTemplateColumns: "1fr 1fr 1fr" } }, /* @__PURE__ */ React.createElement(Kpi, { label: "Total poupado", value: BM.eur0(totalAtual), icon: "target", color: "var(--accent)", sub: `Em ${metas.length} ${metas.length === 1 ? "meta" : "metas"}` }), /* @__PURE__ */ React.createElement(Kpi, { label: "Objetivo total", value: BM.eur0(totalAlvo), icon: "flag", color: "var(--c-habitacao)", sub: "Soma de todas as metas" }), /* @__PURE__ */ React.createElement(Kpi, { label: "Progresso global", value: pct + "%", icon: "chart", color: "var(--c-educacao)", sub: totalAlvo > 0 ? `Faltam ${BM.eur0(totalAlvo - totalAtual)}` : "Sem metas ainda" })), /* @__PURE__ */ React.createElement("div", { className: "grid", style: { gridTemplateColumns: "1fr 1fr 1fr" } }, metas.map((m) => {
+  const paceTxt = (m, serie, est) => {
+    if (m.fechada) return "Objetivo conclu\xEDdo";
+    if (!(m.alvo > 0)) return "Poupan\xE7a sem objetivo fixo";
+    if (est && est.mediaMensal > 0) return "Poupa em m\xE9dia " + BM.eur0(est.mediaMensal) + "/m\xEAs";
+    return "Ainda sem ritmo de poupan\xE7a para estimar";
+  };
+  const detalhe = detalheId ? metas.find((m) => m.id === detalheId) : null;
+  return /* @__PURE__ */ React.createElement("div", { className: "content goals-page" }, /* @__PURE__ */ React.createElement("div", { className: "goals-main" }, /* @__PURE__ */ React.createElement("div", { className: "goals-header" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { className: "goals-title" }, "Objetivos"), /* @__PURE__ */ React.createElement("p", { className: "goals-sub" }, "Acompanhe o progresso dos seus objetivos financeiros e mantenha-se focado nas suas metas.")), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 10, flex: "none" } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: () => setFiltrosVisiveis((v) => !v), "aria-pressed": filtrosVisiveis }, /* @__PURE__ */ React.createElement(Icon, { name: "filter", size: 15 }), " Filtros"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("meta") }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " Novo objetivo"))), filtrosVisiveis && /* @__PURE__ */ React.createElement("div", { className: "pg-tabs", style: { width: "fit-content" } }, GOAL_FILTROS.map(([id, lbl]) => /* @__PURE__ */ React.createElement("button", { type: "button", key: id, className: "pg-tab" + (filtro === id ? " on" : ""), onClick: () => setFiltro(id) }, lbl))), /* @__PURE__ */ React.createElement("div", { className: "grid", style: { gridTemplateColumns: "repeat(4,1fr)" } }, /* @__PURE__ */ React.createElement(Kpi, { label: "Total de objetivos", value: String(metas.length), icon: "flag", color: "var(--c-habitacao)", sub: `${concluidas.length} conclu\xEDdo(s)` }), /* @__PURE__ */ React.createElement(Kpi, { label: "Total poupado", value: BM.eur0(totalAtual), icon: "target", color: "var(--accent)", sub: totalAlvo > 0 ? pct + "% do objetivo global" : "Sem objetivo definido" }), /* @__PURE__ */ React.createElement(Kpi, { label: "Valor restante", value: BM.eur0(Math.max(0, totalAlvo - totalAtual)), icon: "wallet", color: "var(--c-transporte)", sub: "Para concluir todos" }), /* @__PURE__ */ React.createElement(Kpi, { label: "Prazo m\xE9dio", value: prazoMedioMeses != null ? prazoMedioMeses + (prazoMedioMeses === 1 ? " m\xEAs" : " meses") : "\u2014", icon: "cal", color: "var(--c-educacao)", sub: prazoMedioMeses != null ? "Estimativa ao ritmo atual" : "Sem estimativa dispon\xEDvel" })), metas.length === 0 ? /* @__PURE__ */ React.createElement(
+    EmptyState,
+    {
+      icon: "target",
+      title: "Ainda n\xE3o criou nenhum objetivo financeiro.",
+      msg: "Os objetivos ajudam-no a acompanhar o progresso das suas metas financeiras.",
+      action: /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("meta") }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 16, color: "#fff" }), " Criar primeiro objetivo")
+    }
+  ) : metasFiltradas.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "card card-pad muted", style: { textAlign: "center", padding: "40px 20px", fontWeight: 600 } }, filtro === "suspensos" ? "N\xE3o existem objetivos suspensos." : "Sem objetivos nesta categoria.") : /* @__PURE__ */ React.createElement("div", { className: "goals-grid" }, metasFiltradas.map((m) => {
     const isOpen = !m.alvo || m.alvo <= 0;
-    const p = isOpen ? null : Math.round(m.atual / m.alvo * 100);
+    const p = isOpen ? null : Math.min(100, Math.round(m.atual / m.alvo * 100));
     const done = !isOpen && m.atual >= m.alvo;
     const fechada = !!m.fechada;
-    return /* @__PURE__ */ React.createElement("div", { className: "card card-pad", key: m.id, style: { display: "flex", flexDirection: "column", gap: 16, opacity: fechada ? 0.74 : 1 } }, /* @__PURE__ */ React.createElement("div", { className: "row", style: { justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("div", { className: "li-ico", style: { width: 44, height: 44, background: `color-mix(in srgb, ${m.cor} 16%, transparent)` } }, /* @__PURE__ */ React.createElement(Icon, { name: done || fechada ? "check" : "target", size: 20, color: m.cor, sw: 2 })), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 4 } }, /* @__PURE__ */ React.createElement("span", { className: "chip", style: { background: `color-mix(in srgb, ${m.cor} 14%, transparent)`, color: m.cor, borderColor: "transparent" } }, fechada ? "Conclu\xEDda" : isOpen ? "Livre" : p + "%"), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", style: { width: 30, height: 30 }, onClick: () => open("meta", m) }, /* @__PURE__ */ React.createElement(Icon, { name: "edit", size: 13 })), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", style: { width: 30, height: 30 }, onClick: () => fin.meta.remove(m.id) }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 13 })))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 16 } }, m.nome), /* @__PURE__ */ React.createElement("div", { className: "tnum", style: { marginTop: 8, fontSize: 24, fontWeight: 700 } }, BM.eur0(m.atual), " ", isOpen ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "var(--ink-3)", fontWeight: 700 } }, "acumulado") : /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, color: "var(--ink-3)", fontWeight: 700 } }, "/ ", BM.eur0(m.alvo)))), isOpen ? /* @__PURE__ */ React.createElement("div", { className: "bar", style: { opacity: 0.5 } }, /* @__PURE__ */ React.createElement("i", { style: { width: "100%", background: m.cor } })) : /* @__PURE__ */ React.createElement(Progress, { value: m.atual, max: m.alvo, color: m.cor }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 11 } }, /* @__PURE__ */ React.createElement("span", { className: "tiny muted", style: { fontWeight: 700 } }, fechada ? `Conclu\xEDda${m.fechadaEm ? " \xB7 " + mesLabel(m.fechadaEm) : ""}` : isOpen ? "Poupan\xE7a sem objetivo fixo" : done ? "Meta atingida \u{1F389}" : `Faltam ${BM.eur0(m.alvo - m.atual)}`), /* @__PURE__ */ React.createElement("div", { className: "row", style: { gap: 8 } }, !fechada && /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { flex: 1, justifyContent: "center", padding: "8px 12px" }, onClick: () => open("deposit", m) }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 14 }), " Depositar"), fechada ? /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { flex: 1, justifyContent: "center", padding: "8px 12px" }, onClick: () => fin.meta.reabrir(m.id) }, /* @__PURE__ */ React.createElement(Icon, { name: "history", size: 14 }), " Reabrir") : /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { flex: 1, justifyContent: "center", padding: "8px 12px" }, onClick: () => fin.meta.fechar(m.id) }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 14 }), " Concluir"))));
-  }), /* @__PURE__ */ React.createElement("button", { className: "card card-pad", onClick: () => open("meta"), style: { display: "grid", placeItems: "center", border: "1.5px dashed var(--border-strong)", background: "transparent", minHeight: 220, cursor: "pointer", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "li-ico", style: { width: 48, height: 48, margin: "0 auto 12px", background: "var(--accent-soft)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 22, color: "var(--accent)", sw: 2.2 })), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, "Nova meta de poupan\xE7a"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { marginTop: 4, fontWeight: 600, maxWidth: 180, marginInline: "auto" } }, "Define um objetivo e acompanha o progresso.")))), metas.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "card card-pad" }, /* @__PURE__ */ React.createElement("div", { className: "section-head", style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "section-title" }, "Evolu\xE7\xE3o das poupan\xE7as"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600, marginTop: 2 } }, "Acumulado de cada meta, m\xEAs a m\xEAs \u2014 as conclu\xEDdas aparecem a tracejado"))), /* @__PURE__ */ React.createElement(MultiLineSavings, { months: fin.series.map((s) => s.m), series: fin.metaSeries }), /* @__PURE__ */ React.createElement("div", { className: "row", style: { flexWrap: "wrap", gap: 16, marginTop: 14 } }, fin.metaSeries.map((s) => /* @__PURE__ */ React.createElement("span", { key: s.id, className: "row", style: { gap: 7, fontSize: 12.5, fontWeight: 700, opacity: s.fechada ? 0.6 : 1 } }, /* @__PURE__ */ React.createElement("span", { className: "dot", style: { background: s.cor } }), s.nome, s.fechada ? " (conclu\xEDda)" : "")))), fin.totalRec > 0 && fin.saldo > 0 && metas.length > 0 && /* @__PURE__ */ React.createElement(Alert, { kind: "ok", icon: "target", title: `Este m\xEAs sobrou-te ${BM.eur0(fin.saldo)} para poupar.` }, "Considera transferir parte deste valor para uma das tuas metas."));
+    const serie = fin.metaSeries.find((s) => s.id === m.id);
+    const est = estimarConclusaoMeta(m, serie);
+    return /* @__PURE__ */ React.createElement("div", { className: "card goal-card", key: m.id, style: { opacity: fechada ? 0.78 : 1 }, onClick: () => setDetalheId(m.id) }, /* @__PURE__ */ React.createElement("div", { className: "goal-card-top" }, /* @__PURE__ */ React.createElement("span", { className: "goal-ico", style: { background: `color-mix(in srgb, ${m.cor} 16%, transparent)` } }, /* @__PURE__ */ React.createElement(Icon, { name: done || fechada ? "check" : "target", size: 24, color: m.cor, sw: 2 })), /* @__PURE__ */ React.createElement("div", { className: "ph-menu-wrap", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn", title: "Op\xE7\xF5es", onClick: () => setMenuId(menuId === m.id ? null : m.id) }, /* @__PURE__ */ React.createElement(Icon, { name: "dots", size: 17 })), menuId === m.id && /* @__PURE__ */ React.createElement("div", { className: "ph-menu" }, !fechada && /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setMenuId(null);
+      open("deposit", m);
+    } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 15 }), " Depositar"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setMenuId(null);
+      open("meta", m);
+    } }, /* @__PURE__ */ React.createElement(Icon, { name: "edit", size: 15 }), " Editar"), fechada ? /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setMenuId(null);
+      fin.meta.reabrir(m.id);
+    } }, /* @__PURE__ */ React.createElement(Icon, { name: "history", size: 15 }), " Reabrir") : /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setMenuId(null);
+      fin.meta.fechar(m.id);
+    } }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 15 }), " Concluir"), /* @__PURE__ */ React.createElement("button", { className: "danger", onClick: () => {
+      setMenuId(null);
+      fin.meta.remove(m.id);
+    } }, /* @__PURE__ */ React.createElement(Icon, { name: "trash", size: 15 }), " Remover")))), /* @__PURE__ */ React.createElement("div", { className: "goal-card-name" }, m.nome), /* @__PURE__ */ React.createElement("div", { className: "goal-card-desc" }, paceTxt(m, serie, est)), /* @__PURE__ */ React.createElement("div", { className: "goal-card-amt" }, /* @__PURE__ */ React.createElement("span", { className: "tnum" }, BM.eur0(m.atual)), !isOpen && /* @__PURE__ */ React.createElement("span", { className: "goal-card-amt-of" }, "de ", BM.eur0(m.alvo))), isOpen ? /* @__PURE__ */ React.createElement("div", { className: "bar", style: { opacity: 0.5 } }, /* @__PURE__ */ React.createElement("i", { style: { width: "100%", background: m.cor } })) : /* @__PURE__ */ React.createElement(Progress, { value: m.atual, max: m.alvo, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("div", { className: "goal-card-foot" }, /* @__PURE__ */ React.createElement("span", { className: "goal-card-pct" }, fechada ? "Conclu\xEDdo" : isOpen ? "Livre" : p + "% conclu\xEDdo"), /* @__PURE__ */ React.createElement("span", { className: "goal-card-prazo" }, /* @__PURE__ */ React.createElement(Icon, { name: "cal", size: 13, color: "var(--ink-3)" }), fechada ? m.fechadaEm ? mesLabel(m.fechadaEm) : "Conclu\xEDdo" : est ? est.label : "Sem estimativa")));
+  })), metas.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "card card-pad" }, /* @__PURE__ */ React.createElement("div", { className: "section-head", style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "section-title" }, "Evolu\xE7\xE3o das poupan\xE7as"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600, marginTop: 2 } }, "Acumulado de cada objetivo, m\xEAs a m\xEAs \u2014 os conclu\xEDdos aparecem a tracejado"))), /* @__PURE__ */ React.createElement(MultiLineSavings, { months: fin.series.map((s) => s.m), series: fin.metaSeries }), /* @__PURE__ */ React.createElement("div", { className: "row", style: { flexWrap: "wrap", gap: 16, marginTop: 14 } }, fin.metaSeries.map((s) => /* @__PURE__ */ React.createElement("span", { key: s.id, className: "row", style: { gap: 7, fontSize: 12.5, fontWeight: 700, opacity: s.fechada ? 0.6 : 1 } }, /* @__PURE__ */ React.createElement("span", { className: "dot", style: { background: s.cor } }), s.nome, s.fechada ? " (conclu\xEDda)" : "")))), fin.totalRec > 0 && fin.saldo > 0 && metas.length > 0 && /* @__PURE__ */ React.createElement(Alert, { kind: "ok", icon: "target", title: `Este m\xEAs sobrou-te ${BM.eur0(fin.saldo)} para poupar.` }, "Considera transferir parte deste valor para um dos teus objetivos.")), /* @__PURE__ */ React.createElement("aside", { className: "goals-aside" }, /* @__PURE__ */ React.createElement("div", { className: "card card-pad goals-aside-card" }, /* @__PURE__ */ React.createElement("div", { className: "section-title" }, "Resumo geral"), /* @__PURE__ */ React.createElement("div", { className: "goals-donut-wrap" }, /* @__PURE__ */ React.createElement(
+    DonutChart,
+    {
+      data: [{ valor: totalAtual, color: "var(--accent)" }, { valor: Math.max(0, totalAlvo - totalAtual), color: "var(--border)" }],
+      size: 148,
+      thickness: 18,
+      center: /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "tnum", style: { fontSize: 22, fontWeight: 700 } }, pct, "%"), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600 } }, "conclu\xEDdo"))
+    }
+  )), /* @__PURE__ */ React.createElement("div", { className: "goals-donut-legend" }, /* @__PURE__ */ React.createElement("span", { className: "row", style: { gap: 7 } }, /* @__PURE__ */ React.createElement("span", { className: "dot", style: { background: "var(--accent)" } }), " Valor atingido ", /* @__PURE__ */ React.createElement("b", { className: "tnum" }, BM.eur0(totalAtual))), /* @__PURE__ */ React.createElement("span", { className: "row", style: { gap: 7 } }, /* @__PURE__ */ React.createElement("span", { className: "dot", style: { background: "var(--border-strong)" } }), " Valor restante ", /* @__PURE__ */ React.createElement("b", { className: "tnum" }, BM.eur0(Math.max(0, totalAlvo - totalAtual)))))), /* @__PURE__ */ React.createElement("div", { className: "card card-pad goals-aside-card" }, /* @__PURE__ */ React.createElement("div", { className: "section-title" }, "Dica inteligente"), /* @__PURE__ */ React.createElement("p", { className: "goals-tip-text" }, dica || "Ainda n\xE3o h\xE1 dados suficientes para gerar uma recomenda\xE7\xE3o \u2014 registe alguns dep\xF3sitos nos seus objetivos."), /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", disabled: true, title: "Em breve", style: { width: "100%", justifyContent: "center" } }, "Ver plano personalizado")), /* @__PURE__ */ React.createElement("div", { className: "card card-pad goals-aside-card" }, /* @__PURE__ */ React.createElement("div", { className: "section-title" }, "Pr\xF3ximos objetivos a vencer"), proximosAVencer.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "muted tiny", style: { fontWeight: 600 } }, "Sem estimativas dispon\xEDveis de momento.") : /* @__PURE__ */ React.createElement("div", { className: "goals-upcoming-list" }, proximosAVencer.map(({ meta, est }) => /* @__PURE__ */ React.createElement("div", { className: "goals-upcoming-item", key: meta.id }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 13 } }, meta.nome), /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 600, marginTop: 2 } }, est.label)), /* @__PURE__ */ React.createElement("span", { className: "chip" }, est.meses <= 1 ? "Em breve" : `Faltam ${est.meses} meses`)))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "goals-see-all", onClick: () => {
+    setFiltro("todos");
+    setFiltrosVisiveis(true);
+  } }, "Ver todos os objetivos"))), detalhe && /* @__PURE__ */ React.createElement(
+    MetaDetalheModal,
+    {
+      meta: detalhe,
+      serie: fin.metaSeries.find((s) => s.id === detalhe.id),
+      onClose: () => setDetalheId(null),
+      onDeposit: () => {
+        setDetalheId(null);
+        open("deposit", detalhe);
+      },
+      onEdit: () => {
+        setDetalheId(null);
+        open("meta", detalhe);
+      },
+      onToggleFechada: () => {
+        setDetalheId(null);
+        detalhe.fechada ? fin.meta.reabrir(detalhe.id) : fin.meta.fechar(detalhe.id);
+      }
+    }
+  ));
+}
+function MetaDetalheModal({ meta, serie, onClose, onDeposit, onEdit, onToggleFechada }) {
+  const isOpen = !meta.alvo || meta.alvo <= 0;
+  const p = isOpen ? null : Math.min(100, Math.round(meta.atual / meta.alvo * 100));
+  const fechada = !!meta.fechada;
+  const est = estimarConclusaoMeta(meta, serie);
+  return /* @__PURE__ */ React.createElement(
+    Modal,
+    {
+      title: meta.nome,
+      sub: fechada ? "Objetivo conclu\xEDdo" : isOpen ? "Poupan\xE7a sem objetivo fixo" : est ? "Estimativa: " + est.label : "Sem estimativa dispon\xEDvel",
+      icon: "target",
+      onClose,
+      footer: /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: onToggleFechada }, fechada ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Icon, { name: "history", size: 14 }), " Reabrir") : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 14 }), " Concluir")), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: onDeposit, disabled: fechada }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 15, color: "#fff" }), " Depositar"))
+    },
+    /* @__PURE__ */ React.createElement("div", { className: "modal-row-2", style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 700 } }, "J\xE1 poupado"), /* @__PURE__ */ React.createElement("div", { className: "tnum", style: { fontSize: 22, fontWeight: 700, marginTop: 4 } }, BM.eur0(meta.atual))), !isOpen && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 700 } }, "Objetivo"), /* @__PURE__ */ React.createElement("div", { className: "tnum", style: { fontSize: 22, fontWeight: 700, marginTop: 4 } }, BM.eur0(meta.alvo)))),
+    !isOpen && /* @__PURE__ */ React.createElement(Progress, { value: meta.atual, max: meta.alvo, color: "var(--accent)" }),
+    !isOpen && /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { marginTop: 9, fontWeight: 600 } }, p, "% conclu\xEDdo \xB7 faltam ", BM.eur0(Math.max(0, meta.alvo - meta.atual))),
+    serie && serie.points && serie.points.some((v) => v > 0) && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 20 } }, /* @__PURE__ */ React.createElement("div", { className: "tiny muted", style: { fontWeight: 700, marginBottom: 8 } }, "Evolu\xE7\xE3o (\xFAltimos 6 meses)"), /* @__PURE__ */ React.createElement(Sparkline, { data: serie.points, w: 380, h: 54, color: meta.cor })),
+    /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: onEdit }, /* @__PURE__ */ React.createElement(Icon, { name: "edit", size: 14 }), " Editar objetivo"))
+  );
 }
 function Relatorios({ open }) {
   const [tab, setTab] = React.useState("geral");

@@ -278,6 +278,7 @@ function Shell() {
   });
   const [modal, setModal] = useState(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false);
   const [sbCollapsed, setSbCollapsed] = useState(() => {
     try {
@@ -408,7 +409,7 @@ function Shell() {
     perfil: tr("sub_perfil")
   };
   const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
-  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(Topbar, { route, account: fin.account, title: pageTitle, sub: subByRoute[route], theme, setTheme, onLogout: fin.logout, go }), /* @__PURE__ */ React.createElement(PageIntro, { monthNav: showMonthNav ? /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement(MobileSidebarDrawer, { open: mobileMenuOpen, onClose: () => setMobileMenuOpen(false), route, go, account: fin.account }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(Topbar, { route, account: fin.account, title: pageTitle, sub: subByRoute[route], theme, setTheme, onLogout: fin.logout, go, onOpenMobileMenu: () => setMobileMenuOpen(true) }), /* @__PURE__ */ React.createElement(PageIntro, { monthNav: showMonthNav ? /* @__PURE__ */ React.createElement(
     MonthNav,
     {
       label: fin.monthLabel,

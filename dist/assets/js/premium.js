@@ -1363,23 +1363,24 @@ function gerarNotificacoes(prem, dados, account) {
       sev: dias <= 2 ? "urgent" : "warn",
       icon: "spark",
       titulo: x.nome + " \u2014 per\xEDodo gratuito a terminar",
-      texto: (dias <= 0 ? "Termina hoje" : "Termina em " + dias + " dia" + (dias > 1 ? "s" : "")) + " \xB7 depois passa a " + BM.eur(x.valor) + "/m\xEAs"
+      texto: (dias <= 0 ? "Termina hoje" : "Termina em " + dias + " dia" + (dias > 1 ? "s" : "")) + " \xB7 depois passa a " + BM.eur(x.valor) + "/m\xEAs",
+      rota: "agenda"
     });
   });
   const orc = +d0.orcamento || 0;
   if (orc > 0) {
     const gasto = (d0.despesas || []).filter((e) => BM.monthKey(e.data) === mes).reduce((a, e) => a + (+e.valor || 0), 0);
     const pct = Math.round(gasto / orc * 100);
-    if (gasto >= orc) out.push({ chave: "orc:over:" + mes, cat: "orcamento", sev: "urgent", icon: "wallet", titulo: "Or\xE7amento do m\xEAs ultrapassado", texto: "J\xE1 gastaste " + BM.eur(gasto) + " de " + BM.eur(orc) + " (" + pct + "%)." });
-    else if (gasto >= orc * 0.8) out.push({ chave: "orc:80:" + mes, cat: "orcamento", sev: "warn", icon: "wallet", titulo: "Perto do limite do or\xE7amento", texto: "J\xE1 usaste " + pct + "% (" + BM.eur(gasto) + " de " + BM.eur(orc) + ")." });
+    if (gasto >= orc) out.push({ chave: "orc:over:" + mes, cat: "orcamento", sev: "urgent", icon: "wallet", titulo: "Or\xE7amento do m\xEAs ultrapassado", texto: "J\xE1 gastaste " + BM.eur(gasto) + " de " + BM.eur(orc) + " (" + pct + "%).", rota: "relatorios" });
+    else if (gasto >= orc * 0.8) out.push({ chave: "orc:80:" + mes, cat: "orcamento", sev: "warn", icon: "wallet", titulo: "Perto do limite do or\xE7amento", texto: "J\xE1 usaste " + pct + "% (" + BM.eur(gasto) + " de " + BM.eur(orc) + ").", rota: "relatorios" });
   }
   (d0.metas || []).forEach((m) => {
     if (m.fechada) return;
     const alvo = +m.alvo || 0, atual = +m.atual || 0;
     if (alvo <= 0) return;
     const pct = atual / alvo;
-    if (atual >= alvo) out.push({ chave: "meta:done:" + m.id, cat: "meta", sev: "info", icon: "target", titulo: "Meta atingida: " + m.nome + " \u{1F389}", texto: "Chegaste a " + BM.eur(atual) + " de " + BM.eur(alvo) + ". J\xE1 podes fechar esta meta." });
-    else if (pct >= 0.5) out.push({ chave: "meta:half:" + m.id + ":" + mes, cat: "meta", sev: "info", icon: "target", titulo: "J\xE1 vais a meio: " + m.nome, texto: Math.round(pct * 100) + "% da meta (" + BM.eur(atual) + " de " + BM.eur(alvo) + ")." });
+    if (atual >= alvo) out.push({ chave: "meta:done:" + m.id, cat: "meta", sev: "info", icon: "target", titulo: "Meta atingida: " + m.nome, texto: "Chegaste a " + BM.eur(atual) + " de " + BM.eur(alvo) + ". J\xE1 podes fechar esta meta.", rota: "objetivos" });
+    else if (pct >= 0.5) out.push({ chave: "meta:half:" + m.id + ":" + mes, cat: "meta", sev: "info", icon: "target", titulo: "J\xE1 vais a meio: " + m.nome, texto: Math.round(pct * 100) + "% da meta (" + BM.eur(atual) + " de " + BM.eur(alvo) + ").", rota: "objetivos" });
   });
   const porCat = {};
   (s.recorrentes || []).filter((x) => recTipo(x) === "subscricao" && (x.estado || "ativa") === "ativa").forEach((x) => {
@@ -1389,7 +1390,7 @@ function gerarNotificacoes(prem, dados, account) {
   Object.keys(porCat).forEach((c) => {
     if (porCat[c].length > 1) {
       const menor = Math.min.apply(null, porCat[c].map((x) => mensalDe(x)));
-      out.push({ chave: "dup:" + c, cat: "insight", sev: "info", icon: "spark", titulo: "Tens " + porCat[c].length + " servi\xE7os de " + subCatMeta(c).nome, texto: porCat[c].map((x) => x.nome).join(", ") + " \xB7 podes poupar ~" + BM.eur(menor) + "/m\xEAs." });
+      out.push({ chave: "dup:" + c, cat: "insight", sev: "info", icon: "spark", titulo: "Tens " + porCat[c].length + " servi\xE7os de " + subCatMeta(c).nome, texto: porCat[c].map((x) => x.nome).join(", ") + " \xB7 podes poupar ~" + BM.eur(menor) + "/m\xEAs.", rota: "agenda" });
     }
   });
   const datas = [].concat(d0.despesas || [], d0.rendimentos || []).map((m) => m.data).filter(Boolean).sort();
@@ -1407,7 +1408,8 @@ function gerarNotificacoes(prem, dados, account) {
         sev: lim >= 30 ? "warn" : "info",
         icon: "history",
         titulo: "H\xE1 mais de " + txt + " sem registos",
-        texto: "O \xFAltimo movimento foi h\xE1 " + dias + " dias. Regista as tuas despesas recentes para manteres as contas em dia."
+        texto: "O \xFAltimo movimento foi h\xE1 " + dias + " dias. Regista as tuas despesas recentes para manteres as contas em dia.",
+        rota: "transacoes"
       });
     }
   }
@@ -1429,7 +1431,7 @@ function gerarNotificacoes(prem, dados, account) {
       const diff = recSemana - gastoSemana;
       const partes = ["Recebido " + BM.eur(recSemana), "gasto " + BM.eur(gastoSemana), (diff >= 0 ? "saldo +" : "saldo ") + BM.eur(diff)];
       if (catTopoNome) partes.push("mais gasto em " + catTopoNome);
-      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" \xB7 ") + "." });
+      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" \xB7 ") + ".", rota: "relatorios" });
     }
   }
   (s.grupos || []).forEach((g) => {
@@ -1442,7 +1444,8 @@ function gerarNotificacoes(prem, dados, account) {
         sev: "warn",
         icon: "users",
         titulo: "Tens d\xEDvidas no grupo " + g.nome,
-        texto: "Deves " + BM.eur(-meuSaldo) + " \xE0s despesas partilhadas deste grupo."
+        texto: "Deves " + BM.eur(-meuSaldo) + " \xE0s despesas partilhadas deste grupo.",
+        rota: "partilha"
       });
     }
     (g.despesas || []).filter((e) => e.vencimento).forEach((e) => {
@@ -1456,7 +1459,8 @@ function gerarNotificacoes(prem, dados, account) {
           titulo: "Despesa do grupo " + g.nome + " por pagar",
           texto: e.titulo + " \xB7 " + quandoTxt(d),
           valor: e.valor,
-          d
+          d,
+          rota: "partilha"
         });
       }
     });
@@ -1468,7 +1472,8 @@ function gerarNotificacoes(prem, dados, account) {
         sev: "info",
         icon: "users",
         titulo: pendentes + (pendentes === 1 ? " convite pendente" : " convites pendentes"),
-        texto: "No grupo " + g.nome + ", ainda por aceitar."
+        texto: "No grupo " + g.nome + ", ainda por aceitar.",
+        rota: "partilha"
       });
     }
   });
@@ -1493,7 +1498,7 @@ function dispararNotificacoesNativas(prem, dados, account) {
   prem.update({ notifLog: { [hoje]: [...jaHoje, ...novos.map((a) => a.chave)] } });
 }
 const quandoTxt = (d) => d < 0 ? `h\xE1 ${Math.abs(d)} dia${d === -1 ? "" : "s"}` : d === 0 ? "vence hoje" : `vence em ${d} dia${d > 1 ? "s" : ""}`;
-function NotifBell() {
+function NotifBell({ go }) {
   const prem = usePremium();
   const fin = useFinance();
   const dados = fin.data || {};
@@ -1509,6 +1514,10 @@ function NotifBell() {
   React.useEffect(() => {
     if (!open) setVerTodas(false);
   }, [open]);
+  const irPara = (rota) => {
+    setOpen(false);
+    if (go) go(rota);
+  };
   const nMov = (dados.despesas || []).length + (dados.rendimentos || []).length;
   React.useEffect(() => {
     if (!cfg.ativo) return;
@@ -1525,9 +1534,9 @@ function NotifBell() {
     });
   };
   const setCfg = (patch) => prem.update({ notif: { ...cfg, ...patch } });
-  return /* @__PURE__ */ React.createElement("div", { className: "notif-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn notif-btn", title: "Notifica\xE7\xF5es", "aria-label": "Abrir notifica\xE7\xF5es", "aria-haspopup": "true", "aria-expanded": open, onClick: () => setOpen((v) => !v) }, /* @__PURE__ */ React.createElement(Icon, { name: "bell", size: 20 }), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-badge" }, count > 9 ? "9+" : count)), open && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "notif-pop-bg", onClick: () => setOpen(false) }), /* @__PURE__ */ React.createElement("div", { className: "notif-pop", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "notif-head" }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, fontSize: 14.5 } }, "Notifica\xE7\xF5es"), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-head-count" }, count)), perm !== "granted" && perm !== "unsupported" && /* @__PURE__ */ React.createElement("div", { className: "notif-perm" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("b", { style: { fontSize: 13 } }, "Ativar avisos no dispositivo"), /* @__PURE__ */ React.createElement("span", { style: { display: "block", fontSize: 12, color: "var(--ink-3)", marginTop: 2 } }, perm === "denied" ? "Est\xE3o bloqueados \u2014 ativa-os nas defini\xE7\xF5es do navegador." : "Para receberes avisos mesmo fora desta p\xE1gina.")), perm === "default" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 12px", fontSize: 12.5 }, onClick: pedirPermissao }, "Ativar")), /* @__PURE__ */ React.createElement("div", { className: "notif-list" }, notifs.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "notif-empty" }, /* @__PURE__ */ React.createElement("span", { className: "li-ico", style: { width: 44, height: 44, background: "var(--accent-soft)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 20, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("span", null, "Est\xE1s em dia. Nada a tratar por agora.")) : notifsMostradas.map((a) => {
+  return /* @__PURE__ */ React.createElement("div", { className: "notif-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn notif-btn", title: "Notifica\xE7\xF5es", "aria-label": "Abrir notifica\xE7\xF5es", "aria-haspopup": "true", "aria-expanded": open, onClick: () => setOpen((v) => !v) }, /* @__PURE__ */ React.createElement(Icon, { name: "bell", size: 20 }), count > 0 && /* @__PURE__ */ React.createElement("span", { className: "notif-badge" }, count > 9 ? "9+" : count)), open && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "notif-pop-bg", onClick: () => setOpen(false) }), /* @__PURE__ */ React.createElement("div", { className: "notif-pop", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "notif-head" }, /* @__PURE__ */ React.createElement("span", { className: "notif-head-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: "bell", size: 17, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("div", { className: "notif-head-txt" }, /* @__PURE__ */ React.createElement("div", { className: "notif-head-title" }, "Notifica\xE7\xF5es"), /* @__PURE__ */ React.createElement("div", { className: "notif-head-sub" }, count > 0 ? count + (count === 1 ? " por resolver" : " por resolver") : "Est\xE1s em dia"))), perm !== "granted" && perm !== "unsupported" && /* @__PURE__ */ React.createElement("div", { className: "notif-perm" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("b", { style: { fontSize: 13 } }, "Ativar avisos no dispositivo"), /* @__PURE__ */ React.createElement("span", { style: { display: "block", fontSize: 12, color: "var(--ink-3)", marginTop: 2 } }, perm === "denied" ? "Est\xE3o bloqueados \u2014 ativa-os nas defini\xE7\xF5es do navegador." : "Para receberes avisos mesmo fora desta p\xE1gina.")), perm === "default" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { padding: "8px 12px", fontSize: 12.5 }, onClick: pedirPermissao }, "Ativar")), /* @__PURE__ */ React.createElement("div", { className: "notif-list" }, notifs.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "notif-empty" }, /* @__PURE__ */ React.createElement("span", { className: "li-ico", style: { width: 44, height: 44, background: "var(--accent-soft)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "check", size: 20, color: "var(--accent)" })), /* @__PURE__ */ React.createElement("span", null, "Est\xE1s em dia. Nada a tratar por agora.")) : notifsMostradas.map((a) => {
     const cor = a.sev === "urgent" ? "var(--neg)" : a.sev === "warn" ? "#e0792b" : "var(--accent)";
-    return /* @__PURE__ */ React.createElement("div", { className: "notif-item", key: a.chave }, /* @__PURE__ */ React.createElement("span", { className: "notif-item-ico", style: { background: "color-mix(in srgb, " + cor + " 14%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: a.icon || "bell", size: 16, color: cor })), /* @__PURE__ */ React.createElement("div", { className: "notif-item-txt" }, /* @__PURE__ */ React.createElement("b", null, a.titulo), /* @__PURE__ */ React.createElement("span", { className: "notif-item-sub" }, a.texto, a.valor != null && a.cat === "pagamento" ? " \xB7 " + BM.eur(a.valor) : "")), a.acao === "pagar" && /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { padding: "6px 11px", fontSize: 12, flex: "none" }, onClick: () => resolverAlerta(prem, a, fin) }, "Pagar"));
+    return /* @__PURE__ */ React.createElement("div", { className: "notif-item sev-" + a.sev, key: a.chave }, /* @__PURE__ */ React.createElement("span", { className: "notif-item-ico", style: { background: "color-mix(in srgb, " + cor + " 14%, transparent)" } }, /* @__PURE__ */ React.createElement(Icon, { name: a.icon || "bell", size: 16, color: cor })), /* @__PURE__ */ React.createElement("div", { className: "notif-item-txt" }, /* @__PURE__ */ React.createElement("b", null, a.titulo), /* @__PURE__ */ React.createElement("span", { className: "notif-item-sub" }, a.texto, a.valor != null ? " \xB7 " + BM.eur(a.valor) : "")), a.acao === "pagar" ? /* @__PURE__ */ React.createElement("button", { className: "btn btn-soft", style: { padding: "6px 11px", fontSize: 12, flex: "none" }, onClick: () => resolverAlerta(prem, a, fin) }, "Pagar") : a.rota && go ? /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", style: { padding: "6px 11px", fontSize: 12, flex: "none" }, onClick: () => irPara(a.rota) }, "Ver") : null);
   }), !verTodas && notifs.length > LIMITE && /* @__PURE__ */ React.createElement("button", { type: "button", className: "notif-ver-todas", onClick: () => setVerTodas(true) }, "Ver todas (", notifs.length, ")")), /* @__PURE__ */ React.createElement("div", { className: "notif-foot" }, /* @__PURE__ */ React.createElement("button", { className: "notif-switch" + (cfg.ativo ? " on" : ""), onClick: () => setCfg({ ativo: !cfg.ativo }), title: "Ligar/desligar avisos" }, /* @__PURE__ */ React.createElement("span", { className: "notif-switch-dot" })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, fontWeight: 600, flex: 1 } }, "Avisos ", cfg.ativo ? "ativos" : "desligados"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "var(--ink-3)", fontWeight: 600 } }, "Avisar"), /* @__PURE__ */ React.createElement("select", { className: "select", style: { width: "auto", padding: "5px 8px", fontSize: 12.5 }, value: cfg.aviso, onChange: (e) => setCfg({ aviso: +e.target.value }) }, [1, 3, 5, 7].map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n, " dia", n > 1 ? "s" : "", " antes")))))));
 }
 const horaAtual = () => (/* @__PURE__ */ new Date()).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });

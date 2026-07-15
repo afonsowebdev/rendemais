@@ -34,41 +34,59 @@ function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
   );
 }
 
-function Sidebar({ route, go, account, collapsed, onToggle }) {
-  const tr = useT();
-  // Navegação principal, agrupada em secções — nomes diretos em PT (ver nota em
-  // app.jsx/TITULOS). Os grupos servem só para dar respiro visual; não mudam rotas.
-  const groups = [
-    {
-      label: "Geral",
-      items: [
-        { id: "dashboard", label: "Painel", icon: "grid" },
-        { id: "assistente", label: "Assistente Rende+", icon: "bot" },
-        { id: "transacoes", label: "Transações", icon: "transfer" },
-        { id: "objetivos", label: "Objetivos", icon: "target" },
-        { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
-      ],
-    },
-    {
-      label: "Outros",
-      items: [
-        { id: "partilha", label: "Partilha", icon: "users" },
-        { id: "contas", label: "Contas", icon: "wallet" },
-        { id: "relatorios", label: "Relatórios", icon: "report" },
-        { id: "config", label: "Definições", icon: "gear" },
-      ],
-    },
-  ];
-  const ehPremium = !!(account && account.plano === "premium");
+// Navegação principal, agrupada em secções — nomes diretos em PT (ver nota em
+// app.jsx/TITULOS). Os grupos servem só para dar respiro visual; não mudam rotas.
+const NAV_GROUPS = [
+  {
+    label: "Geral",
+    items: [
+      { id: "dashboard", label: "Painel", icon: "grid" },
+      { id: "assistente", label: "Assistente Rende+", icon: "bot" },
+      { id: "transacoes", label: "Transações", icon: "transfer" },
+      { id: "objetivos", label: "Objetivos", icon: "target" },
+      { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" },
+    ],
+  },
+  {
+    label: "Outros",
+    items: [
+      { id: "partilha", label: "Partilha", icon: "users" },
+      { id: "contas", label: "Contas", icon: "wallet" },
+      { id: "relatorios", label: "Relatórios", icon: "report" },
+      { id: "config", label: "Definições", icon: "gear" },
+    ],
+  },
+];
+
+/* Lista de navegação partilhada pela sidebar fixa (desktop) e pelo menu hambúrguer em
+   offcanvas (mobile) — um único sítio para os itens do menu, para nunca desalinharem.
+   `onNavigate`, quando passado, corre a seguir ao `go` (usado para fechar o offcanvas). */
+function SidebarNavList({ route, go, onNavigate }) {
   const Item = (n) => {
     const active = route === n.id;
     return (
-      <button key={n.id} className={"nav-item" + (active ? " active" : "")} onClick={() => go(n.id)} title={n.label} aria-current={active ? "page" : undefined}>
+      <button key={n.id} className={"nav-item" + (active ? " active" : "")}
+        onClick={() => { go(n.id); onNavigate && onNavigate(); }} title={n.label} aria-current={active ? "page" : undefined}>
         <Icon name={n.icon} size={19} />
         <span>{n.label}</span>
       </button>
     );
   };
+  return (
+    <>
+      {NAV_GROUPS.map((g) => (
+        <React.Fragment key={g.label}>
+          <div className="nav-label">{g.label}</div>
+          {g.items.map(Item)}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
+
+function Sidebar({ route, go, account, collapsed, onToggle }) {
+  const tr = useT();
+  const ehPremium = !!(account && account.plano === "premium");
   return (
     <aside className="sidebar">
       <div style={{ padding: "4px 8px 22px" }}>
@@ -76,12 +94,7 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
           <Brand />
         </button>
       </div>
-      {groups.map((g) => (
-        <React.Fragment key={g.label}>
-          <div className="nav-label">{g.label}</div>
-          {g.items.map(Item)}
-        </React.Fragment>
-      ))}
+      <SidebarNavList route={route} go={go} />
       <div className="sidebar-foot">
         {!ehPremium && (
           <button className="sb-plan-pill" onClick={() => go("premium")} title="Desbloqueia o Rende+ Premium">
@@ -94,6 +107,40 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
         </button>
       </div>
     </aside>
+  );
+}
+
+/* Menu hambúrguer em mobile: offcanvas que desliza da esquerda, com fundo semi-transparente.
+   Fecha ao clicar num item (via onNavigate), ao clicar fora (backdrop) ou com Escape — nunca
+   fica um estado "aberto" preso. Reaproveita 100% do visual/itens da sidebar (SidebarNavList). */
+function MobileSidebarDrawer({ open, onClose, route, go, account }) {
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  const ehPremium = !!(account && account.plano === "premium");
+  return (
+    <>
+      <div className={"mobile-drawer-backdrop" + (open ? " open" : "")} onClick={onClose} aria-hidden={!open} />
+      <aside className={"sidebar mobile-drawer" + (open ? " open" : "")} role="dialog" aria-modal="true" aria-label="Menu de navegação" aria-hidden={!open}>
+        <div className="mobile-drawer-head">
+          <Brand />
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Fechar menu">
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        <SidebarNavList route={route} go={go} onNavigate={onClose} />
+        {!ehPremium && (
+          <div className="sidebar-foot">
+            <button className="sb-plan-pill" onClick={() => { go("premium"); onClose(); }} title="Desbloqueia o Rende+ Premium">
+              <Icon name="spark" size={14} color="var(--accent)" /> <span>Free — Upgrade</span>
+            </button>
+          </div>
+        )}
+      </aside>
+    </>
   );
 }
 
@@ -161,8 +208,10 @@ function ProfileMenu({ account, go, onLogout }) {
 
 /* Header interno: saudação (no Painel) ou título da página à esquerda — sempre no mesmo
    local do cabeçalho, nunca separado do conteúdo — e notificações/tema/perfil à direita.
-   O seletor de mês vive à parte, na PageIntro logo abaixo, quando a rota o usa. */
-function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
+   O seletor de mês vive à parte, na PageIntro logo abaixo, quando a rota o usa.
+   Em mobile (CSS), reflui para 2 linhas: hambúrguer+logo+ações em cima, título por baixo
+   — o botão hambúrguer e o logo central só existem/aparecem abaixo de 860px (ver styles.css). */
+function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
@@ -172,6 +221,12 @@ function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
   const tituloMostrado = isDashboard ? saudacao : title;
   return (
     <div className="topbar">
+      <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-label="Abrir menu de navegação" title="Menu">
+        <Icon name="menu" size={22} />
+      </button>
+      <div className="mobile-brand">
+        <Brand size={30} />
+      </div>
       {tituloMostrado && (
         <div className="topbar-title" style={{ minWidth: 0 }}>
           <h1 className="page-title">{tituloMostrado}</h1>
@@ -179,7 +234,7 @@ function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
         </div>
       )}
       <div className="topbar-actions">
-        {notificacoesOn && <NotifBell />}
+        {notificacoesOn && <NotifBell go={go} />}
         <button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
@@ -372,4 +427,4 @@ function Modal({ title, sub, icon, iconNeg, onClose, children, footer, wide, asi
   );
 }
 
-Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, MobileNav, MoreSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });
+Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, SidebarNavList, MobileSidebarDrawer, MobileNav, MoreSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });

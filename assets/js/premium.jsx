@@ -1812,6 +1812,7 @@ function gerarNotificacoes(prem, dados, account) {
       chave: "trial:" + x.id + ":" + mes, cat: "trial", sev: dias <= 2 ? "urgent" : "warn", icon: "spark",
       titulo: x.nome + " — período gratuito a terminar",
       texto: (dias <= 0 ? "Termina hoje" : "Termina em " + dias + " dia" + (dias > 1 ? "s" : "")) + " · depois passa a " + BM.eur(x.valor) + "/mês",
+      rota: "agenda",
     });
   });
 
@@ -1820,8 +1821,8 @@ function gerarNotificacoes(prem, dados, account) {
   if (orc > 0) {
     const gasto = (d0.despesas || []).filter((e) => BM.monthKey(e.data) === mes).reduce((a, e) => a + (+e.valor || 0), 0);
     const pct = Math.round((gasto / orc) * 100);
-    if (gasto >= orc) out.push({ chave: "orc:over:" + mes, cat: "orcamento", sev: "urgent", icon: "wallet", titulo: "Orçamento do mês ultrapassado", texto: "Já gastaste " + BM.eur(gasto) + " de " + BM.eur(orc) + " (" + pct + "%)." });
-    else if (gasto >= orc * 0.8) out.push({ chave: "orc:80:" + mes, cat: "orcamento", sev: "warn", icon: "wallet", titulo: "Perto do limite do orçamento", texto: "Já usaste " + pct + "% (" + BM.eur(gasto) + " de " + BM.eur(orc) + ")." });
+    if (gasto >= orc) out.push({ chave: "orc:over:" + mes, cat: "orcamento", sev: "urgent", icon: "wallet", titulo: "Orçamento do mês ultrapassado", texto: "Já gastaste " + BM.eur(gasto) + " de " + BM.eur(orc) + " (" + pct + "%).", rota: "relatorios" });
+    else if (gasto >= orc * 0.8) out.push({ chave: "orc:80:" + mes, cat: "orcamento", sev: "warn", icon: "wallet", titulo: "Perto do limite do orçamento", texto: "Já usaste " + pct + "% (" + BM.eur(gasto) + " de " + BM.eur(orc) + ").", rota: "relatorios" });
   }
 
   // 4) Metas de poupança (50% / concluída)
@@ -1830,8 +1831,8 @@ function gerarNotificacoes(prem, dados, account) {
     const alvo = +m.alvo || 0, atual = +m.atual || 0;
     if (alvo <= 0) return;
     const pct = atual / alvo;
-    if (atual >= alvo) out.push({ chave: "meta:done:" + m.id, cat: "meta", sev: "info", icon: "target", titulo: "Meta atingida: " + m.nome + " 🎉", texto: "Chegaste a " + BM.eur(atual) + " de " + BM.eur(alvo) + ". Já podes fechar esta meta." });
-    else if (pct >= 0.5) out.push({ chave: "meta:half:" + m.id + ":" + mes, cat: "meta", sev: "info", icon: "target", titulo: "Já vais a meio: " + m.nome, texto: Math.round(pct * 100) + "% da meta (" + BM.eur(atual) + " de " + BM.eur(alvo) + ")." });
+    if (atual >= alvo) out.push({ chave: "meta:done:" + m.id, cat: "meta", sev: "info", icon: "target", titulo: "Meta atingida: " + m.nome, texto: "Chegaste a " + BM.eur(atual) + " de " + BM.eur(alvo) + ". Já podes fechar esta meta.", rota: "objetivos" });
+    else if (pct >= 0.5) out.push({ chave: "meta:half:" + m.id + ":" + mes, cat: "meta", sev: "info", icon: "target", titulo: "Já vais a meio: " + m.nome, texto: Math.round(pct * 100) + "% da meta (" + BM.eur(atual) + " de " + BM.eur(alvo) + ").", rota: "objetivos" });
   });
 
   // 5) Insights — subscrições semelhantes/duplicadas
@@ -1840,7 +1841,7 @@ function gerarNotificacoes(prem, dados, account) {
   Object.keys(porCat).forEach((c) => {
     if (porCat[c].length > 1) {
       const menor = Math.min.apply(null, porCat[c].map((x) => mensalDe(x)));
-      out.push({ chave: "dup:" + c, cat: "insight", sev: "info", icon: "spark", titulo: "Tens " + porCat[c].length + " serviços de " + subCatMeta(c).nome, texto: porCat[c].map((x) => x.nome).join(", ") + " · podes poupar ~" + BM.eur(menor) + "/mês." });
+      out.push({ chave: "dup:" + c, cat: "insight", sev: "info", icon: "spark", titulo: "Tens " + porCat[c].length + " serviços de " + subCatMeta(c).nome, texto: porCat[c].map((x) => x.nome).join(", ") + " · podes poupar ~" + BM.eur(menor) + "/mês.", rota: "agenda" });
     }
   });
 
@@ -1852,7 +1853,7 @@ function gerarNotificacoes(prem, dados, account) {
     if (lim) {
       const txt = lim === 30 ? "um mês" : lim === 7 ? "uma semana" : "3 dias";
       out.push({ chave: "inativo:" + lim, cat: "inatividade", sev: lim >= 30 ? "warn" : "info", icon: "history",
-        titulo: "Há mais de " + txt + " sem registos", texto: "O último movimento foi há " + dias + " dias. Regista as tuas despesas recentes para manteres as contas em dia." });
+        titulo: "Há mais de " + txt + " sem registos", texto: "O último movimento foi há " + dias + " dias. Regista as tuas despesas recentes para manteres as contas em dia.", rota: "transacoes" });
     }
   }
 
@@ -1873,7 +1874,7 @@ function gerarNotificacoes(prem, dados, account) {
       const diff = recSemana - gastoSemana;
       const partes = ["Recebido " + BM.eur(recSemana), "gasto " + BM.eur(gastoSemana), (diff >= 0 ? "saldo +" : "saldo ") + BM.eur(diff)];
       if (catTopoNome) partes.push("mais gasto em " + catTopoNome);
-      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" · ") + "." });
+      out.push({ chave: "resumo:" + semanaKey, cat: "resumo", sev: "info", icon: "report", titulo: "O seu resumo semanal", texto: partes.join(" · ") + ".", rota: "relatorios" });
     }
   }
 
@@ -1885,19 +1886,19 @@ function gerarNotificacoes(prem, dados, account) {
     const meuSaldo = net["Eu"] || 0;
     if (meuSaldo < -0.01) {
       out.push({ chave: "part:divida:" + g.id + ":" + mes, cat: "partilha", sev: "warn", icon: "users",
-        titulo: "Tens dívidas no grupo " + g.nome, texto: "Deves " + BM.eur(-meuSaldo) + " às despesas partilhadas deste grupo." });
+        titulo: "Tens dívidas no grupo " + g.nome, texto: "Deves " + BM.eur(-meuSaldo) + " às despesas partilhadas deste grupo.", rota: "partilha" });
     }
     (g.despesas || []).filter((e) => e.vencimento).forEach((e) => {
       const d = daysUntil(e.vencimento);
       if (d <= 3) {
         out.push({ chave: "part:venc:" + g.id + ":" + e.id, cat: "partilha", sev: d <= 0 ? "urgent" : "warn", icon: "users",
-          titulo: "Despesa do grupo " + g.nome + " por pagar", texto: e.titulo + " · " + quandoTxt(d), valor: e.valor, d });
+          titulo: "Despesa do grupo " + g.nome + " por pagar", texto: e.titulo + " · " + quandoTxt(d), valor: e.valor, d, rota: "partilha" });
       }
     });
     const pendentes = (g.convites || []).filter((c) => c.estado === "pendente").length;
     if (pendentes > 0) {
       out.push({ chave: "part:conv:" + g.id, cat: "partilha", sev: "info", icon: "users",
-        titulo: pendentes + (pendentes === 1 ? " convite pendente" : " convites pendentes"), texto: "No grupo " + g.nome + ", ainda por aceitar." });
+        titulo: pendentes + (pendentes === 1 ? " convite pendente" : " convites pendentes"), texto: "No grupo " + g.nome + ", ainda por aceitar.", rota: "partilha" });
     }
   });
 
@@ -1924,7 +1925,7 @@ function dispararNotificacoesNativas(prem, dados, account) {
 
 const quandoTxt = (d) => d < 0 ? `há ${Math.abs(d)} dia${d === -1 ? "" : "s"}` : d === 0 ? "vence hoje" : `vence em ${d} dia${d > 1 ? "s" : ""}`;
 
-function NotifBell() {
+function NotifBell({ go }) {
   const prem = usePremium();
   const fin = useFinance();
   const dados = fin.data || {};
@@ -1938,6 +1939,7 @@ function NotifBell() {
   const LIMITE = 5;
   const notifsMostradas = verTodas ? notifs : notifs.slice(0, LIMITE);
   React.useEffect(() => { if (!open) setVerTodas(false); }, [open]);
+  const irPara = (rota) => { setOpen(false); if (go) go(rota); };
 
   // dispara ao abrir a app e a cada 30 min enquanto está aberta
   const nMov = (dados.despesas || []).length + (dados.rendimentos || []).length;
@@ -1966,8 +1968,11 @@ function NotifBell() {
           <div className="notif-pop-bg" onClick={() => setOpen(false)} />
           <div className="notif-pop" onClick={(e) => e.stopPropagation()}>
             <div className="notif-head">
-              <span style={{ fontWeight: 700, fontSize: 14.5 }}>Notificações</span>
-              {count > 0 && <span className="notif-head-count">{count}</span>}
+              <span className="notif-head-ico"><Icon name="bell" size={17} color="var(--accent)" /></span>
+              <div className="notif-head-txt">
+                <div className="notif-head-title">Notificações</div>
+                <div className="notif-head-sub">{count > 0 ? count + (count === 1 ? " por resolver" : " por resolver") : "Estás em dia"}</div>
+              </div>
             </div>
 
             {perm !== "granted" && perm !== "unsupported" && (
@@ -1992,13 +1997,17 @@ function NotifBell() {
                 notifsMostradas.map((a) => {
                   const cor = a.sev === "urgent" ? "var(--neg)" : a.sev === "warn" ? "#e0792b" : "var(--accent)";
                   return (
-                    <div className="notif-item" key={a.chave}>
+                    <div className={"notif-item sev-" + a.sev} key={a.chave}>
                       <span className="notif-item-ico" style={{ background: "color-mix(in srgb, " + cor + " 14%, transparent)" }}><Icon name={a.icon || "bell"} size={16} color={cor} /></span>
                       <div className="notif-item-txt">
                         <b>{a.titulo}</b>
-                        <span className="notif-item-sub">{a.texto}{(a.valor != null && a.cat === "pagamento") ? " · " + BM.eur(a.valor) : ""}</span>
+                        <span className="notif-item-sub">{a.texto}{a.valor != null ? " · " + BM.eur(a.valor) : ""}</span>
                       </div>
-                      {a.acao === "pagar" && <button className="btn btn-soft" style={{ padding: "6px 11px", fontSize: 12, flex: "none" }} onClick={() => resolverAlerta(prem, a, fin)}>Pagar</button>}
+                      {a.acao === "pagar" ? (
+                        <button className="btn btn-soft" style={{ padding: "6px 11px", fontSize: 12, flex: "none" }} onClick={() => resolverAlerta(prem, a, fin)}>Pagar</button>
+                      ) : a.rota && go ? (
+                        <button className="btn btn-ghost" style={{ padding: "6px 11px", fontSize: 12, flex: "none" }} onClick={() => irPara(a.rota)}>Ver</button>
+                      ) : null}
                     </div>
                   );
                 })

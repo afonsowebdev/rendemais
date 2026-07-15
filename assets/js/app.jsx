@@ -458,6 +458,7 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false); // abre o painel de personalização a partir de Definições
   const [sbCollapsed, setSbCollapsed] = useState(() => { try { return localStorage.getItem("rende_sb") === "1"; } catch (e) { return false; } });
   const toggleSidebar = () => setSbCollapsed((v) => { const n = !v; try { localStorage.setItem("rende_sb", n ? "1" : "0"); } catch (e) {} return n; });
@@ -602,8 +603,9 @@ function Shell() {
         </div>
       )}
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
+      <MobileSidebarDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} route={route} go={go} account={fin.account} />
       <div className="main">
-        <Topbar route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} />
+        <Topbar route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} onOpenMobileMenu={() => setMobileMenuOpen(true)} />
         <PageIntro monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
           canNext={!fin.isCurrentMonth} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}

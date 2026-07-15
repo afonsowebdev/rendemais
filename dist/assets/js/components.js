@@ -22,35 +22,67 @@ function CatBadge({ catKey, size = 40, r = 12 }) {
 function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
   return /* @__PURE__ */ React.createElement("div", { className: "brand", style: { padding: 0, cursor: onClick ? "pointer" : "default" }, onClick }, /* @__PURE__ */ React.createElement("div", { className: "brand-mark", style: { width: size, height: size } }, /* @__PURE__ */ React.createElement("span", { className: "brand-mark-txt", style: { fontSize: size * 0.5 } }, "R")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "brand-name", style: { color: nameColor, fontSize: size * 0.45 } }, "Rende", /* @__PURE__ */ React.createElement("span", { className: "brand-plus" }, "+")), sub && /* @__PURE__ */ React.createElement("div", { className: "brand-sub", style: { color: nameColor === "#fff" ? "rgba(255,255,255,.6)" : "var(--ink-3)" } }, sub)));
 }
-function Sidebar({ route, go, account, collapsed, onToggle }) {
-  const tr = useT();
-  const groups = [
-    {
-      label: "Geral",
-      items: [
-        { id: "dashboard", label: "Painel", icon: "grid" },
-        { id: "assistente", label: "Assistente Rende+", icon: "bot" },
-        { id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" },
-        { id: "objetivos", label: "Objetivos", icon: "target" },
-        { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" }
-      ]
-    },
-    {
-      label: "Outros",
-      items: [
-        { id: "partilha", label: "Partilha", icon: "users" },
-        { id: "contas", label: "Contas", icon: "wallet" },
-        { id: "relatorios", label: "Relat\xF3rios", icon: "report" },
-        { id: "config", label: "Defini\xE7\xF5es", icon: "gear" }
-      ]
-    }
-  ];
-  const ehPremium = !!(account && account.plano === "premium");
+const NAV_GROUPS = [
+  {
+    label: "Geral",
+    items: [
+      { id: "dashboard", label: "Painel", icon: "grid" },
+      { id: "assistente", label: "Assistente Rende+", icon: "bot" },
+      { id: "transacoes", label: "Transa\xE7\xF5es", icon: "transfer" },
+      { id: "objetivos", label: "Objetivos", icon: "target" },
+      { id: "agenda", label: "Agenda Financeira", icon: "calendarCheck" }
+    ]
+  },
+  {
+    label: "Outros",
+    items: [
+      { id: "partilha", label: "Partilha", icon: "users" },
+      { id: "contas", label: "Contas", icon: "wallet" },
+      { id: "relatorios", label: "Relat\xF3rios", icon: "report" },
+      { id: "config", label: "Defini\xE7\xF5es", icon: "gear" }
+    ]
+  }
+];
+function SidebarNavList({ route, go, onNavigate }) {
   const Item = (n) => {
     const active = route === n.id;
-    return /* @__PURE__ */ React.createElement("button", { key: n.id, className: "nav-item" + (active ? " active" : ""), onClick: () => go(n.id), title: n.label, "aria-current": active ? "page" : void 0 }, /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }), /* @__PURE__ */ React.createElement("span", null, n.label));
+    return /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: n.id,
+        className: "nav-item" + (active ? " active" : ""),
+        onClick: () => {
+          go(n.id);
+          onNavigate && onNavigate();
+        },
+        title: n.label,
+        "aria-current": active ? "page" : void 0
+      },
+      /* @__PURE__ */ React.createElement(Icon, { name: n.icon, size: 19 }),
+      /* @__PURE__ */ React.createElement("span", null, n.label)
+    );
   };
-  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, null))), groups.map((g) => /* @__PURE__ */ React.createElement(React.Fragment, { key: g.label }, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, g.label), g.items.map(Item))), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, NAV_GROUPS.map((g) => /* @__PURE__ */ React.createElement(React.Fragment, { key: g.label }, /* @__PURE__ */ React.createElement("div", { className: "nav-label" }, g.label), g.items.map(Item))));
+}
+function Sidebar({ route, go, account, collapsed, onToggle }) {
+  const tr = useT();
+  const ehPremium = !!(account && account.plano === "premium");
+  return /* @__PURE__ */ React.createElement("aside", { className: "sidebar" }, /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 8px 22px" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => go("dashboard"), style: { border: "none", background: "none", padding: 0, cursor: "pointer" }, title: tr("go_dashboard") }, /* @__PURE__ */ React.createElement(Brand, null))), /* @__PURE__ */ React.createElement(SidebarNavList, { route, go }), /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, !ehPremium && /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => go("premium"), title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")), /* @__PURE__ */ React.createElement("button", { className: "nav-item sb-toggle", onClick: onToggle, title: collapsed ? tr("sb_expand") : tr("sb_collapse") }, /* @__PURE__ */ React.createElement("span", { style: { display: "grid", transform: collapsed ? "none" : "rotate(180deg)" } }, /* @__PURE__ */ React.createElement(Icon, { name: "chevR", size: 18 })), /* @__PURE__ */ React.createElement("span", null, collapsed ? tr("sb_expand") : tr("sb_collapse")))));
+}
+function MobileSidebarDrawer({ open, onClose, route, go, account }) {
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  const ehPremium = !!(account && account.plano === "premium");
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "mobile-drawer-backdrop" + (open ? " open" : ""), onClick: onClose, "aria-hidden": !open }), /* @__PURE__ */ React.createElement("aside", { className: "sidebar mobile-drawer" + (open ? " open" : ""), role: "dialog", "aria-modal": "true", "aria-label": "Menu de navega\xE7\xE3o", "aria-hidden": !open }, /* @__PURE__ */ React.createElement("div", { className: "mobile-drawer-head" }, /* @__PURE__ */ React.createElement(Brand, null), /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn", onClick: onClose, "aria-label": "Fechar menu" }, /* @__PURE__ */ React.createElement(Icon, { name: "close", size: 18 }))), /* @__PURE__ */ React.createElement(SidebarNavList, { route, go, onNavigate: onClose }), !ehPremium && /* @__PURE__ */ React.createElement("div", { className: "sidebar-foot" }, /* @__PURE__ */ React.createElement("button", { className: "sb-plan-pill", onClick: () => {
+    go("premium");
+    onClose();
+  }, title: "Desbloqueia o Rende+ Premium" }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 14, color: "var(--accent)" }), " ", /* @__PURE__ */ React.createElement("span", null, "Free \u2014 Upgrade")))));
 }
 function MonthNav({ label, onPrev, onNext, canNext = true }) {
   const tr = useT();
@@ -96,7 +128,7 @@ function ProfileMenu({ account, go, onLogout }) {
     onLogout();
   } }, /* @__PURE__ */ React.createElement(Icon, { name: "logout", size: 16 }), " ", tr("logout_full"))));
 }
-function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
+function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
@@ -104,7 +136,7 @@ function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go }) {
   const primeiroNome = ((account == null ? void 0 : account.nome) || "").trim().split(" ")[0];
   const saudacao = primeiroNome ? `Ol\xE1, ${primeiroNome}` : "Ol\xE1";
   const tituloMostrado = isDashboard ? saudacao : title;
-  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, tituloMostrado && /* @__PURE__ */ React.createElement("div", { className: "topbar-title", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, tituloMostrado), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, null), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
+  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn topbar-hamburger", onClick: onOpenMobileMenu, "aria-label": "Abrir menu de navega\xE7\xE3o", title: "Menu" }, /* @__PURE__ */ React.createElement(Icon, { name: "menu", size: 22 })), /* @__PURE__ */ React.createElement("div", { className: "mobile-brand" }, /* @__PURE__ */ React.createElement(Brand, { size: 30 })), tituloMostrado && /* @__PURE__ */ React.createElement("div", { className: "topbar-title", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, tituloMostrado), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, { go }), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
 }
 function PageIntro({ monthNav }) {
   if (!monthNav) return null;
@@ -181,4 +213,4 @@ function Modal({ title, sub, icon, iconNeg, onClose, children, footer, wide, asi
   }, [onClose]);
   return /* @__PURE__ */ React.createElement("div", { className: "modal-bg", onClick: onClose }, /* @__PURE__ */ React.createElement("div", { className: "modal" + (wide ? " modal-wide" : ""), role: "dialog", "aria-modal": "true", "aria-label": ariaLabel || title, onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "modal-head" }, icon && /* @__PURE__ */ React.createElement("span", { className: "modal-head-ico" + (iconNeg ? " neg" : "") }, /* @__PURE__ */ React.createElement(Icon, { name: icon, size: 20 })), /* @__PURE__ */ React.createElement("div", { className: "modal-head-txt" }, /* @__PURE__ */ React.createElement("div", { className: "modal-title" }, title), sub && /* @__PURE__ */ React.createElement("div", { className: "modal-sub" }, sub)), /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn modal-close", style: { width: 32, height: 32 }, onClick: onClose, "aria-label": "Fechar" }, /* @__PURE__ */ React.createElement("span", { style: { transform: "rotate(45deg)", display: "grid" } }, /* @__PURE__ */ React.createElement(Icon, { name: "plus", size: 17, sw: 2, color: "var(--ink-2)" })))), /* @__PURE__ */ React.createElement("div", { className: "modal-body" + (aside ? " modal-with-aside" : "") }, /* @__PURE__ */ React.createElement("div", null, children), aside && /* @__PURE__ */ React.createElement("div", { className: "modal-info" }, aside)), footer && /* @__PURE__ */ React.createElement("div", { className: "modal-foot" }, footer)));
 }
-Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, MobileNav, MoreSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });
+Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, SidebarNavList, MobileSidebarDrawer, MobileNav, MoreSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });

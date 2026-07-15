@@ -1,93 +1,290 @@
 /* ===== Screens (parte 2): Poupança, Relatórios, Histórico, Definições ===== */
 
-/* ---------- POUPANÇA ---------- */
+/* ---------- OBJETIVOS (poupança) ----------
+   Estimativas de prazo e a dica inteligente são sempre calculadas a partir do ritmo real
+   de contribuição de cada objetivo (fin.metaSeries, que já vem dos depósitos reais) —
+   nunca uma data ou valor inventado. Quando não há ritmo positivo/dados suficientes,
+   mostra-se claramente "sem estimativa" em vez de simular um número. */
+function estimarConclusaoMeta(meta, serieMeta) {
+  if (meta.fechada || !(meta.alvo > 0)) return null;
+  const falta = meta.alvo - meta.atual;
+  if (falta <= 0) return { meses: 0, mediaMensal: 0, label: "Concluído" };
+  const pts = (serieMeta && serieMeta.points) || [];
+  if (pts.length < 2) return null;
+  const deltas = [];
+  for (let i = 1; i < pts.length; i++) deltas.push(pts[i] - pts[i - 1]);
+  const media = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+  if (media <= 0.01) return null;
+  const meses = Math.max(1, Math.ceil(falta / media));
+  const hoje = new Date();
+  const dt = new Date(hoje.getFullYear(), hoje.getMonth() + meses, 1);
+  return { meses, mediaMensal: media, label: BM.MESES[dt.getMonth()] + " " + dt.getFullYear() };
+}
+/* Recomendação baseada no objetivo aberto cuja estimativa está mais longe — mostra quanto
+   tempo se ganharia com mais 100 EUR/mês de ritmo. Sem objetivo com ritmo real, não mostra nada. */
+function gerarDicaObjetivos(abertas, metaSeries) {
+  let pior = null;
+  abertas.forEach((m) => {
+    const serie = metaSeries.find((s) => s.id === m.id);
+    const est = estimarConclusaoMeta(m, serie);
+    if (est && est.meses > 0 && (!pior || est.meses > pior.est.meses)) pior = { meta: m, est };
+  });
+  if (!pior) return null;
+  const { meta, est } = pior;
+  const falta = meta.alvo - meta.atual;
+  const novosMeses = Math.max(1, Math.ceil(falta / (est.mediaMensal + 100)));
+  const ganho = est.meses - novosMeses;
+  if (ganho <= 0) return null;
+  return `Se aumentar a sua poupança mensal em ${BM.eur0(100)}, consegue atingir "${meta.nome}" aproximadamente ${ganho} ${ganho === 1 ? "mês" : "meses"} mais cedo.`;
+}
+
+const GOAL_FILTROS = [["todos", "Todos"], ["progresso", "Em progresso"], ["concluidos", "Concluídos"], ["suspensos", "Suspensos"]];
+
 function Poupanca({ open }) {
   const fin = useFinance();
   const metas = fin.data.metas;
+  const [filtro, setFiltro] = React.useState("todos");
+  const [filtrosVisiveis, setFiltrosVisiveis] = React.useState(true);
+  const [menuId, setMenuId] = React.useState(null);
+  const [detalheId, setDetalheId] = React.useState(null);
+  React.useEffect(() => {
+    if (!menuId) return;
+    const h = (e) => { if (!e.target.closest || !e.target.closest(".ph-menu-wrap")) setMenuId(null); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [menuId]);
+
   const totalAlvo = metas.reduce((s, m) => s + (+m.alvo || 0), 0);
   const totalAtual = metas.reduce((s, m) => s + (+m.atual || 0), 0);
   const pct = totalAlvo > 0 ? Math.round((totalAtual / totalAlvo) * 100) : 0;
+  const concluidas = metas.filter((m) => m.fechada);
+  const abertas = metas.filter((m) => !m.fechada);
+  const estimativas = metas.map((m) => ({ meta: m, est: estimarConclusaoMeta(m, fin.metaSeries.find((s) => s.id === m.id)) })).filter((x) => x.est && x.est.meses > 0);
+  const prazoMedioMeses = estimativas.length ? Math.round(estimativas.reduce((s, x) => s + x.est.meses, 0) / estimativas.length) : null;
+  const dica = gerarDicaObjetivos(abertas, fin.metaSeries);
+  const proximosAVencer = estimativas.filter((x) => !x.meta.fechada).sort((a, b) => a.est.meses - b.est.meses).slice(0, 3);
+
+  const metasFiltradas = metas.filter((m) => {
+    if (filtro === "progresso") return !m.fechada;
+    if (filtro === "concluidos") return m.fechada;
+    if (filtro === "suspensos") return false; // não existe estado "suspenso" nos dados reais
+    return true;
+  });
+
   const mesLabel = (key) => { const [y, mo] = (key || "").split("-").map(Number); return mo ? BM.MESES[mo - 1] + " " + y : ""; };
+  const paceTxt = (m, serie, est) => {
+    if (m.fechada) return "Objetivo concluído";
+    if (!(m.alvo > 0)) return "Poupança sem objetivo fixo";
+    if (est && est.mediaMensal > 0) return "Poupa em média " + BM.eur0(est.mediaMensal) + "/mês";
+    return "Ainda sem ritmo de poupança para estimar";
+  };
+  const detalhe = detalheId ? metas.find((m) => m.id === detalheId) : null;
 
   return (
-    <div className="content">
-      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-        <Kpi label="Total poupado" value={BM.eur0(totalAtual)} icon="target" color="var(--accent)" sub={`Em ${metas.length} ${metas.length === 1 ? "meta" : "metas"}`} />
-        <Kpi label="Objetivo total" value={BM.eur0(totalAlvo)} icon="flag" color="var(--c-habitacao)" sub="Soma de todas as metas" />
-        <Kpi label="Progresso global" value={pct + "%"} icon="chart" color="var(--c-educacao)" sub={totalAlvo > 0 ? `Faltam ${BM.eur0(totalAlvo - totalAtual)}` : "Sem metas ainda"} />
-      </div>
-
-      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-        {metas.map((m) => {
-          const isOpen = !m.alvo || m.alvo <= 0;
-          const p = isOpen ? null : Math.round((m.atual / m.alvo) * 100);
-          const done = !isOpen && m.atual >= m.alvo;
-          const fechada = !!m.fechada;
-          return (
-            <div className="card card-pad" key={m.id} style={{ display: "flex", flexDirection: "column", gap: 16, opacity: fechada ? 0.74 : 1 }}>
-              <div className="row" style={{ justifyContent: "space-between" }}>
-                <div className="li-ico" style={{ width: 44, height: 44, background: `color-mix(in srgb, ${m.cor} 16%, transparent)` }}>
-                  <Icon name={done || fechada ? "check" : "target"} size={20} color={m.cor} sw={2} />
-                </div>
-                <div className="row" style={{ gap: 4 }}>
-                  <span className="chip" style={{ background: `color-mix(in srgb, ${m.cor} 14%, transparent)`, color: m.cor, borderColor: "transparent" }}>{fechada ? "Concluída" : isOpen ? "Livre" : p + "%"}</span>
-                  <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={() => open("meta", m)}><Icon name="edit" size={13} /></button>
-                  <button className="icon-btn" style={{ width: 30, height: 30 }} onClick={() => fin.meta.remove(m.id)}><Icon name="trash" size={13} /></button>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{m.nome}</div>
-                <div className="tnum" style={{ marginTop: 8, fontSize: 24, fontWeight: 700 }}>{BM.eur0(m.atual)} {isOpen ? <span style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 700 }}>acumulado</span> : <span style={{ fontSize: 15, color: "var(--ink-3)", fontWeight: 700 }}>/ {BM.eur0(m.alvo)}</span>}</div>
-              </div>
-              {isOpen
-                ? <div className="bar" style={{ opacity: .5 }}><i style={{ width: "100%", background: m.cor }} /></div>
-                : <Progress value={m.atual} max={m.alvo} color={m.cor} />}
-              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <span className="tiny muted" style={{ fontWeight: 700 }}>{fechada ? `Concluída${m.fechadaEm ? " · " + mesLabel(m.fechadaEm) : ""}` : isOpen ? "Poupança sem objetivo fixo" : done ? "Meta atingida 🎉" : `Faltam ${BM.eur0(m.alvo - m.atual)}`}</span>
-                <div className="row" style={{ gap: 8 }}>
-                  {!fechada && <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => open("deposit", m)}><Icon name="plus" size={14} /> Depositar</button>}
-                  {fechada
-                    ? <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => fin.meta.reabrir(m.id)}><Icon name="history" size={14} /> Reabrir</button>
-                    : <button className="btn btn-soft" style={{ flex: 1, justifyContent: "center", padding: "8px 12px" }} onClick={() => fin.meta.fechar(m.id)}><Icon name="check" size={14} /> Concluir</button>}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        <button className="card card-pad" onClick={() => open("meta")} style={{ display: "grid", placeItems: "center", border: "1.5px dashed var(--border-strong)", background: "transparent", minHeight: 220, cursor: "pointer", textAlign: "center" }}>
+    <div className="content goals-page">
+      <div className="goals-main">
+        <div className="goals-header">
           <div>
-            <div className="li-ico" style={{ width: 48, height: 48, margin: "0 auto 12px", background: "var(--accent-soft)" }}><Icon name="plus" size={22} color="var(--accent)" sw={2.2} /></div>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>Nova meta de poupança</div>
-            <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, maxWidth: 180, marginInline: "auto" }}>Define um objetivo e acompanha o progresso.</div>
+            <h1 className="goals-title">Objetivos</h1>
+            <p className="goals-sub">Acompanhe o progresso dos seus objetivos financeiros e mantenha-se focado nas suas metas.</p>
           </div>
-        </button>
-      </div>
-
-      {metas.length > 0 && (
-        <div className="card card-pad">
-          <div className="section-head" style={{ marginBottom: 12 }}>
-            <div>
-              <div className="section-title">Evolução das poupanças</div>
-              <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Acumulado de cada meta, mês a mês — as concluídas aparecem a tracejado</div>
-            </div>
-          </div>
-          <MultiLineSavings months={fin.series.map((s) => s.m)} series={fin.metaSeries} />
-          <div className="row" style={{ flexWrap: "wrap", gap: 16, marginTop: 14 }}>
-            {fin.metaSeries.map((s) => (
-              <span key={s.id} className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 700, opacity: s.fechada ? 0.6 : 1 }}>
-                <span className="dot" style={{ background: s.cor }} />{s.nome}{s.fechada ? " (concluída)" : ""}
-              </span>
-            ))}
+          <div className="row" style={{ gap: 10, flex: "none" }}>
+            <button className="btn btn-ghost" onClick={() => setFiltrosVisiveis((v) => !v)} aria-pressed={filtrosVisiveis}><Icon name="filter" size={15} /> Filtros</button>
+            <button className="btn btn-primary" onClick={() => open("meta")}><Icon name="plus" size={16} color="#fff" /> Novo objetivo</button>
           </div>
         </div>
-      )}
 
-      {fin.totalRec > 0 && fin.saldo > 0 && metas.length > 0 && (
-        <Alert kind="ok" icon="target" title={`Este mês sobrou-te ${BM.eur0(fin.saldo)} para poupar.`}>
-          Considera transferir parte deste valor para uma das tuas metas.
-        </Alert>
+        {filtrosVisiveis && (
+          <div className="pg-tabs" style={{ width: "fit-content" }}>
+            {GOAL_FILTROS.map(([id, lbl]) => (
+              <button type="button" key={id} className={"pg-tab" + (filtro === id ? " on" : "")} onClick={() => setFiltro(id)}>{lbl}</button>
+            ))}
+          </div>
+        )}
+
+        <div className="grid" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+          <Kpi label="Total de objetivos" value={String(metas.length)} icon="flag" color="var(--c-habitacao)" sub={`${concluidas.length} concluído(s)`} />
+          <Kpi label="Total poupado" value={BM.eur0(totalAtual)} icon="target" color="var(--accent)" sub={totalAlvo > 0 ? pct + "% do objetivo global" : "Sem objetivo definido"} />
+          <Kpi label="Valor restante" value={BM.eur0(Math.max(0, totalAlvo - totalAtual))} icon="wallet" color="var(--c-transporte)" sub="Para concluir todos" />
+          <Kpi label="Prazo médio" value={prazoMedioMeses != null ? prazoMedioMeses + (prazoMedioMeses === 1 ? " mês" : " meses") : "—"} icon="cal" color="var(--c-educacao)" sub={prazoMedioMeses != null ? "Estimativa ao ritmo atual" : "Sem estimativa disponível"} />
+        </div>
+
+        {metas.length === 0 ? (
+          <EmptyState icon="target" title="Ainda não criou nenhum objetivo financeiro."
+            msg="Os objetivos ajudam-no a acompanhar o progresso das suas metas financeiras."
+            action={<button className="btn btn-primary" onClick={() => open("meta")}><Icon name="plus" size={16} color="#fff" /> Criar primeiro objetivo</button>} />
+        ) : metasFiltradas.length === 0 ? (
+          <div className="card card-pad muted" style={{ textAlign: "center", padding: "40px 20px", fontWeight: 600 }}>
+            {filtro === "suspensos" ? "Não existem objetivos suspensos." : "Sem objetivos nesta categoria."}
+          </div>
+        ) : (
+          <div className="goals-grid">
+            {metasFiltradas.map((m) => {
+              const isOpen = !m.alvo || m.alvo <= 0;
+              const p = isOpen ? null : Math.min(100, Math.round((m.atual / m.alvo) * 100));
+              const done = !isOpen && m.atual >= m.alvo;
+              const fechada = !!m.fechada;
+              const serie = fin.metaSeries.find((s) => s.id === m.id);
+              const est = estimarConclusaoMeta(m, serie);
+              return (
+                <div className="card goal-card" key={m.id} style={{ opacity: fechada ? 0.78 : 1 }} onClick={() => setDetalheId(m.id)}>
+                  <div className="goal-card-top">
+                    <span className="goal-ico" style={{ background: `color-mix(in srgb, ${m.cor} 16%, transparent)` }}>
+                      <Icon name={done || fechada ? "check" : "target"} size={24} color={m.cor} sw={2} />
+                    </span>
+                    <div className="ph-menu-wrap" onClick={(e) => e.stopPropagation()}>
+                      <button className="icon-btn" title="Opções" onClick={() => setMenuId(menuId === m.id ? null : m.id)}><Icon name="dots" size={17} /></button>
+                      {menuId === m.id && (
+                        <div className="ph-menu">
+                          {!fechada && <button onClick={() => { setMenuId(null); open("deposit", m); }}><Icon name="plus" size={15} /> Depositar</button>}
+                          <button onClick={() => { setMenuId(null); open("meta", m); }}><Icon name="edit" size={15} /> Editar</button>
+                          {fechada
+                            ? <button onClick={() => { setMenuId(null); fin.meta.reabrir(m.id); }}><Icon name="history" size={15} /> Reabrir</button>
+                            : <button onClick={() => { setMenuId(null); fin.meta.fechar(m.id); }}><Icon name="check" size={15} /> Concluir</button>}
+                          <button className="danger" onClick={() => { setMenuId(null); fin.meta.remove(m.id); }}><Icon name="trash" size={15} /> Remover</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="goal-card-name">{m.nome}</div>
+                  <div className="goal-card-desc">{paceTxt(m, serie, est)}</div>
+
+                  <div className="goal-card-amt">
+                    <span className="tnum">{BM.eur0(m.atual)}</span>
+                    {!isOpen && <span className="goal-card-amt-of">de {BM.eur0(m.alvo)}</span>}
+                  </div>
+
+                  {isOpen
+                    ? <div className="bar" style={{ opacity: .5 }}><i style={{ width: "100%", background: m.cor }} /></div>
+                    : <Progress value={m.atual} max={m.alvo} color="var(--accent)" />}
+
+                  <div className="goal-card-foot">
+                    <span className="goal-card-pct">{fechada ? "Concluído" : isOpen ? "Livre" : p + "% concluído"}</span>
+                    <span className="goal-card-prazo">
+                      <Icon name="cal" size={13} color="var(--ink-3)" />
+                      {fechada ? (m.fechadaEm ? mesLabel(m.fechadaEm) : "Concluído") : est ? est.label : "Sem estimativa"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {metas.length > 0 && (
+          <div className="card card-pad">
+            <div className="section-head" style={{ marginBottom: 12 }}>
+              <div>
+                <div className="section-title">Evolução das poupanças</div>
+                <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>Acumulado de cada objetivo, mês a mês — os concluídos aparecem a tracejado</div>
+              </div>
+            </div>
+            <MultiLineSavings months={fin.series.map((s) => s.m)} series={fin.metaSeries} />
+            <div className="row" style={{ flexWrap: "wrap", gap: 16, marginTop: 14 }}>
+              {fin.metaSeries.map((s) => (
+                <span key={s.id} className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 700, opacity: s.fechada ? 0.6 : 1 }}>
+                  <span className="dot" style={{ background: s.cor }} />{s.nome}{s.fechada ? " (concluída)" : ""}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {fin.totalRec > 0 && fin.saldo > 0 && metas.length > 0 && (
+          <Alert kind="ok" icon="target" title={`Este mês sobrou-te ${BM.eur0(fin.saldo)} para poupar.`}>
+            Considera transferir parte deste valor para um dos teus objetivos.
+          </Alert>
+        )}
+      </div>
+
+      <aside className="goals-aside">
+        <div className="card card-pad goals-aside-card">
+          <div className="section-title">Resumo geral</div>
+          <div className="goals-donut-wrap">
+            <DonutChart data={[{ valor: totalAtual, color: "var(--accent)" }, { valor: Math.max(0, totalAlvo - totalAtual), color: "var(--border)" }]}
+              size={148} thickness={18}
+              center={<div><div className="tnum" style={{ fontSize: 22, fontWeight: 700 }}>{pct}%</div><div className="tiny muted" style={{ fontWeight: 600 }}>concluído</div></div>} />
+          </div>
+          <div className="goals-donut-legend">
+            <span className="row" style={{ gap: 7 }}><span className="dot" style={{ background: "var(--accent)" }} /> Valor atingido <b className="tnum">{BM.eur0(totalAtual)}</b></span>
+            <span className="row" style={{ gap: 7 }}><span className="dot" style={{ background: "var(--border-strong)" }} /> Valor restante <b className="tnum">{BM.eur0(Math.max(0, totalAlvo - totalAtual))}</b></span>
+          </div>
+        </div>
+
+        <div className="card card-pad goals-aside-card">
+          <div className="section-title">Dica inteligente</div>
+          <p className="goals-tip-text">{dica || "Ainda não há dados suficientes para gerar uma recomendação — registe alguns depósitos nos seus objetivos."}</p>
+          <button className="btn btn-soft" disabled title="Em breve" style={{ width: "100%", justifyContent: "center" }}>Ver plano personalizado</button>
+        </div>
+
+        <div className="card card-pad goals-aside-card">
+          <div className="section-title">Próximos objetivos a vencer</div>
+          {proximosAVencer.length === 0 ? (
+            <div className="muted tiny" style={{ fontWeight: 600 }}>Sem estimativas disponíveis de momento.</div>
+          ) : (
+            <div className="goals-upcoming-list">
+              {proximosAVencer.map(({ meta, est }) => (
+                <div className="goals-upcoming-item" key={meta.id}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{meta.nome}</div>
+                    <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{est.label}</div>
+                  </div>
+                  <span className="chip">{est.meses <= 1 ? "Em breve" : `Faltam ${est.meses} meses`}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <button type="button" className="goals-see-all" onClick={() => { setFiltro("todos"); setFiltrosVisiveis(true); }}>Ver todos os objetivos</button>
+        </div>
+      </aside>
+
+      {detalhe && (
+        <MetaDetalheModal meta={detalhe} serie={fin.metaSeries.find((s) => s.id === detalhe.id)}
+          onClose={() => setDetalheId(null)}
+          onDeposit={() => { setDetalheId(null); open("deposit", detalhe); }}
+          onEdit={() => { setDetalheId(null); open("meta", detalhe); }}
+          onToggleFechada={() => { setDetalheId(null); detalhe.fechada ? fin.meta.reabrir(detalhe.id) : fin.meta.fechar(detalhe.id); }} />
       )}
     </div>
+  );
+}
+
+function MetaDetalheModal({ meta, serie, onClose, onDeposit, onEdit, onToggleFechada }) {
+  const isOpen = !meta.alvo || meta.alvo <= 0;
+  const p = isOpen ? null : Math.min(100, Math.round((meta.atual / meta.alvo) * 100));
+  const fechada = !!meta.fechada;
+  const est = estimarConclusaoMeta(meta, serie);
+  return (
+    <Modal title={meta.nome} sub={fechada ? "Objetivo concluído" : isOpen ? "Poupança sem objetivo fixo" : est ? "Estimativa: " + est.label : "Sem estimativa disponível"} icon="target" onClose={onClose}
+      footer={<>
+        <button className="btn btn-ghost" onClick={onToggleFechada}>{fechada ? <><Icon name="history" size={14} /> Reabrir</> : <><Icon name="check" size={14} /> Concluir</>}</button>
+        <button className="btn btn-primary" onClick={onDeposit} disabled={fechada}><Icon name="plus" size={15} color="#fff" /> Depositar</button>
+      </>}>
+      <div className="modal-row-2" style={{ marginBottom: 16 }}>
+        <div>
+          <div className="tiny muted" style={{ fontWeight: 700 }}>Já poupado</div>
+          <div className="tnum" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>{BM.eur0(meta.atual)}</div>
+        </div>
+        {!isOpen && (
+          <div>
+            <div className="tiny muted" style={{ fontWeight: 700 }}>Objetivo</div>
+            <div className="tnum" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>{BM.eur0(meta.alvo)}</div>
+          </div>
+        )}
+      </div>
+      {!isOpen && <Progress value={meta.atual} max={meta.alvo} color="var(--accent)" />}
+      {!isOpen && <div className="tiny muted" style={{ marginTop: 9, fontWeight: 600 }}>{p}% concluído · faltam {BM.eur0(Math.max(0, meta.alvo - meta.atual))}</div>}
+      {serie && serie.points && serie.points.some((v) => v > 0) && (
+        <div style={{ marginTop: 20 }}>
+          <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>Evolução (últimos 6 meses)</div>
+          <Sparkline data={serie.points} w={380} h={54} color={meta.cor} />
+        </div>
+      )}
+      <div style={{ marginTop: 4 }}>
+        <button className="btn btn-ghost" onClick={onEdit}><Icon name="edit" size={14} /> Editar objetivo</button>
+      </div>
+    </Modal>
   );
 }
 
