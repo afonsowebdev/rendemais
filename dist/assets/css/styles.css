@@ -1833,7 +1833,7 @@ input.range::-moz-range-thumb {
   }
 
   .main {
-    padding-bottom: 90px;
+    padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
 
   /* header mobile em grid: hambúrguer + logo central + ações numa linha,
@@ -1943,20 +1943,45 @@ input.range::-moz-range-thumb {
     grid-template-columns: 1fr !important;
   }
 
-  /* bottom tab bar — pílula flutuante com aba ativa expansível */
+  /* bottom tab bar — fundo em SVG com entalhe central (notch) desenhado para o botão "+" */
   .mobilenav {
-    display: flex;
+    display: block;
     position: fixed;
     z-index: 60;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 9px 8px calc(9px + env(safe-area-inset-bottom, 0px));
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    box-shadow: 0 -10px 30px -18px rgba(8, 22, 16, .32);
+    height: calc(78px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobilenav-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: drop-shadow(0 -8px 24px rgba(8, 22, 16, .12));
+  }
+
+  .mobilenav-bg path {
+    fill: var(--surface);
+  }
+
+  [data-theme="dark"] .mobilenav-bg {
+    filter: drop-shadow(0 -8px 24px rgba(0, 0, 0, .38));
+  }
+
+  .mobilenav-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
     align-items: stretch;
-    gap: 2px;
+    height: 78px;
+    padding: 6px 6px calc(env(safe-area-inset-bottom, 0px));
+  }
+
+  .mtab-fab-slot {
+    flex: 0 0 78px;
   }
 
   .mtab {
@@ -1982,10 +2007,23 @@ input.range::-moz-range-thumb {
 
   .mtab svg {
     flex: none;
+    transition: transform .18s cubic-bezier(.34, 1.56, .64, 1);
   }
 
   .mtab span {
     white-space: nowrap;
+  }
+
+  .mtab-dot {
+    position: absolute;
+    bottom: 1px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+    transform: scale(.4);
+    transition: opacity .16s ease, transform .16s ease;
   }
 
   .mtab.on {
@@ -1993,27 +2031,38 @@ input.range::-moz-range-thumb {
     background: none;
   }
 
-  /* Botão "+" central (FAB) — estilo da barra premium */
+  .mtab.on svg {
+    transform: scale(1.08);
+  }
+
+  .mtab.on .mtab-dot {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Botão "+" central (FAB) — fora do fluxo da barra, encaixado no entalhe do SVG */
   .mtab-fab {
-    flex: 0 0 auto;
-    align-self: center;
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: -24px;
+    transform: translateX(-50%);
     display: grid;
     place-items: center;
-    width: 54px;
-    height: 54px;
-    margin: -16px 8px 0;
+    width: 62px;
+    height: 62px;
     padding: 0;
     border: none;
     border-radius: 50%;
     background: var(--accent);
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 8px 20px -6px color-mix(in srgb, var(--accent) 62%, transparent), 0 2px 6px rgba(0, 0, 0, .12);
-    transition: transform .12s ease, background .15s ease;
+    box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 8px rgba(0, 0, 0, .14);
+    transition: transform .14s ease, background .15s ease;
   }
 
   .mtab-fab:active {
-    transform: scale(.95);
+    transform: translateX(-50%) scale(.93);
   }
 
   [data-theme="dark"] .mtab.on {
@@ -2128,6 +2177,8 @@ input.range::-moz-range-thumb {
   font-weight: 700;
   color: var(--ink);
   text-align: left;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .sheet-item:hover {
@@ -2137,10 +2188,11 @@ input.range::-moz-range-thumb {
 .sheet-item .si-ico {
   width: 38px;
   height: 38px;
-  border-radius: 11px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--surface-2);
+  background: var(--accent-soft);
+  color: var(--accent);
   flex: none;
 }
 
@@ -2149,7 +2201,86 @@ input.range::-moz-range-thumb {
 }
 
 .sheet-item.on .si-ico {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---- AddSheet: ações do botão "+" — ícone + nome + descrição ---- */
+.add-sheet-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  padding: 4px 12px 10px;
+}
+
+.add-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: none;
+  border-radius: 14px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.add-sheet-item:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.add-sheet-item:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.add-sheet-ico {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   background: var(--accent-soft);
+  flex: none;
+}
+
+.add-sheet-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.add-sheet-txt b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.add-sheet-txt span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.add-sheet-soon {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: .02em;
 }
 
 /* ============================================================
@@ -5958,7 +6089,7 @@ input.range::-moz-range-thumb {
   }
 
   .main {
-    padding-bottom: 90px;
+    padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar {

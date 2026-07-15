@@ -255,36 +255,57 @@ function PageIntro({ monthNav }) {
   );
 }
 
+/* Barra inferior mobile: fundo desenhado em SVG com um entalhe (notch) central onde o
+   botão "+" encaixa, elevado por cima da barra — o botão em si é posicionado fora do
+   fluxo (absolute), a barra reserva-lhe o espaço com .mtab-fab-slot para os 4 itens
+   ficarem sempre bem distribuídos dos dois lados. Rotas/ícones/lógica de navegação
+   inalterados — só o desenho da barra e do botão central. */
 function MobileNav({ route, go, onAdd, onMore }) {
   const tr = useT();
   const Tab = (t) => (
     <button key={t.id} className={"mtab" + (route === t.id ? " on" : "")} onClick={() => go(t.id)}>
-      <Icon name={t.icon} size={23} sw={route === t.id ? 2.1 : 1.8} />
+      <Icon name={t.icon} size={22} sw={route === t.id ? 2.1 : 1.8} />
       <span>{t.label}</span>
+      <i className="mtab-dot" aria-hidden="true" />
     </button>
   );
   const moreRoutes = ["agenda", "contas", "relatorios", "perfil", "config", "partilha", "previsao", "premium"];
   return (
     <nav className="mobilenav">
-      {Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" })}
-      {Tab({ id: "transacoes", label: "Transações", icon: "transfer" })}
-      <button className="mtab-fab" onClick={onAdd} aria-label="Adicionar"><Icon name="plus" size={27} color="#fff" sw={2.4} /></button>
-      {Tab({ id: "objetivos", label: "Objetivos", icon: "target" })}
-      <button className={"mtab" + (moreRoutes.includes(route) ? " on" : "")} onClick={onMore}>
-        <Icon name="dots" size={23} sw={2.4} /><span>{tr("lbl_more")}</span>
+      <svg className="mobilenav-bg" viewBox="0 0 375 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 24 Q0 0 24 0 L139.5 0 C156 0 152 28 187.5 28 C223 28 219 0 235.5 0 L351 0 Q375 0 375 24 L375 80 L0 80 Z" />
+      </svg>
+      <div className="mobilenav-row">
+        {Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" })}
+        {Tab({ id: "transacoes", label: "Transações", icon: "transfer" })}
+        <span className="mtab-fab-slot" aria-hidden="true" />
+        {Tab({ id: "objetivos", label: "Objetivos", icon: "target" })}
+        <button className={"mtab" + (moreRoutes.includes(route) ? " on" : "")} onClick={onMore}>
+          <Icon name="dots" size={22} sw={2.2} /><span>{tr("lbl_more")}</span>
+          <i className="mtab-dot" aria-hidden="true" />
+        </button>
+      </div>
+      <button type="button" className="mtab-fab" onClick={onAdd} aria-label="Adicionar">
+        <Icon name="plus" size={25} color="#fff" sw={2.3} />
       </button>
     </nav>
   );
 }
 
+/* "Mais": Conta/Definições/Tema/Ajuda/Premium/Terminar sessão em destaque, tal como
+   pedido — mantêm-se também os restantes destinos reais já existentes (Relatórios,
+   Contas, e as páginas Premium), para nenhuma rota deixar de ser alcançável a partir
+   do mobile. Só o visual (linhas com ícone circular) e a organização mudaram. */
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
-  const items = [
+  const principais = [
+    { id: "perfil", label: "Conta", icon: "user" },
+    { id: "config", label: tr("lbl_settings"), icon: "gear" },
+  ];
+  const outros = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
     { id: "contas", label: tr("lbl_accounts"), icon: "wallet" },
-    { id: "perfil", label: tr("lbl_profile"), icon: "user" },
-    { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const premItems = [
     { id: "assistente", label: "Assistente Rende+", icon: "bot" },
@@ -292,34 +313,60 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
     { id: "partilha", label: "Partilha", icon: "users" },
     { id: "previsao", label: "Previsão", icon: "chart" },
   ];
+  const Item = (it) => (
+    <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); onClose(); }}>
+      <span className="si-ico"><Icon name={it.icon} size={18} /></span>{it.label}
+    </button>
+  );
   return (
     <div className="sheet-bg" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-grip" />
-        {items.map((it) => (
-          <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); onClose(); }}>
-            <span className="si-ico"><Icon name={it.icon} size={18} /></span>{it.label}
-          </button>
-        ))}
-        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
-        {ehPremium ? (
-          premItems.map((it) => (
-            <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); onClose(); }}>
-              <span className="si-ico"><Icon name={it.icon} size={18} color="var(--accent)" /></span>{it.label}
-            </button>
-          ))
-        ) : (
-          <button className={"sheet-item" + (route === "premium" ? " on" : "")} onClick={() => { go("premium"); onClose(); }}>
-            <span className="si-ico"><Icon name="spark" size={18} color="var(--accent)" /></span>Rende+ Premium
-          </button>
-        )}
-        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
+        {principais.map(Item)}
+        <button className={"sheet-item" + (route === "premium" ? " on" : "")} onClick={() => { go("premium"); onClose(); }}>
+          <span className="si-ico"><Icon name="spark" size={18} /></span>Premium
+        </button>
         <button className="sheet-item" onClick={() => { setTheme(theme === "dark" ? "light" : "dark"); }}>
           <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}
         </button>
+        <a className="sheet-item" href="mailto:contacto@rendemais.pt">
+          <span className="si-ico"><Icon name="info" size={18} /></span>Ajuda
+        </a>
+
+        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
+        {outros.map(Item)}
+        {ehPremium && premItems.map(Item)}
+
+        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
         <button className="sheet-item" style={{ color: "var(--neg)" }} onClick={() => { onClose(); onLogout(); }}>
           <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>{tr("logout_full")}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* Bottom Sheet do botão "+" central: 6 ações rápidas, cada uma com ícone + nome +
+   descrição — mesmo Design System dos restantes sheets/modais. `itens` vem de fora
+   (Shell, em app.jsx) já com a ação de cada opção, para este componente ficar só
+   com a apresentação. */
+function AddSheet({ onClose, itens }) {
+  return (
+    <div className="sheet-bg" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-grip" />
+        <div className="add-sheet-title">Adicionar</div>
+        {itens.map((it) => (
+          <button key={it.id} type="button" className={"add-sheet-item" + (it.disabled ? " disabled" : "")} disabled={it.disabled}
+            onClick={() => { if (it.disabled) return; it.onClick(); onClose(); }}>
+            <span className="add-sheet-ico"><Icon name={it.icon} size={19} color="var(--accent)" /></span>
+            <span className="add-sheet-txt">
+              <b>{it.label}{it.disabled && <span className="add-sheet-soon">Em breve</span>}</b>
+              <span>{it.desc}</span>
+            </span>
+            <Icon name="chevR" size={15} color="var(--ink-3)" />
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -427,4 +474,4 @@ function Modal({ title, sub, icon, iconNeg, onClose, children, footer, wide, asi
   );
 }
 
-Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, SidebarNavList, MobileSidebarDrawer, MobileNav, MoreSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });
+Object.assign(window, { initials, Avatar, Brand, CatBadge, Sidebar, SidebarNavList, MobileSidebarDrawer, MobileNav, MoreSheet, AddSheet, MonthNav, Topbar, Kpi, Alert, Progress, EmptyState, Field, Modal });

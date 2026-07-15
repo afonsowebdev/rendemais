@@ -448,6 +448,7 @@ function EntryModal({ type, item, onClose }) {
 /* ---------- App ---------- */
 function Shell() {
   const fin = useFinance();
+  const prem = usePremium();
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [route, setRoute] = useState("dashboard");
   const [authView, setAuthView] = useState(() => {
@@ -458,6 +459,8 @@ function Shell() {
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false); // bottom sheet do botão "+" central (mobile)
+  const [novoEventoOpen, setNovoEventoOpen] = useState(false); // "Novo evento" do AddSheet
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tweaksOpen, setTweaksOpen] = useState(false); // abre o painel de personalização a partir de Definições
   const [sbCollapsed, setSbCollapsed] = useState(() => { try { return localStorage.getItem("rende_sb") === "1"; } catch (e) { return false; } });
@@ -594,6 +597,19 @@ function Shell() {
   };
   const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
 
+  // Ações do botão "+" central (mobile) — reaproveita exatamente as mesmas ações já
+  // existentes no resto da app (open/go/lembrete). "Nova transferência" não tem
+  // suporte no modelo de dados (só há despesas/rendimentos) — fica marcada "Em breve"
+  // em vez de simular uma funcionalidade que não existe.
+  const addItens = [
+    { id: "rendimento", label: "Nova receita", desc: "Registar um valor recebido", icon: "arrowsDown", onClick: () => open("rendimento") },
+    { id: "despesa", label: "Nova despesa", desc: "Registar um gasto", icon: "wallet", onClick: () => open("despesa") },
+    { id: "transferencia", label: "Nova transferência", desc: "Mover dinheiro entre contas", icon: "transfer", disabled: true, onClick: () => {} },
+    { id: "meta", label: "Novo objetivo", desc: "Criar uma nova meta de poupança", icon: "target", onClick: () => open("meta") },
+    { id: "evento", label: "Novo evento", desc: "Agendar um lembrete de pagamento", icon: "cal", onClick: () => setNovoEventoOpen(true) },
+    { id: "grupo", label: "Novo grupo", desc: "Partilhar despesas com outras pessoas", icon: "users", onClick: () => go(ehPremium ? "partilha" : "premium") },
+  ];
+
   return (
     <div className={"app" + (sbCollapsed ? " sb-collapsed" : "")}>
       {pagamentoMsg && (
@@ -621,8 +637,10 @@ function Shell() {
         {route === "previsao" && (ehPremium ? <Previsao /> : <Paywall />)}
         {route === "premium" && <Paywall />}
       </div>
-      <MobileNav route={route} go={go} onAdd={() => open(P.add || "despesa")} onMore={() => setMoreOpen(true)} />
+      <MobileNav route={route} go={go} onAdd={() => setAddOpen(true)} onMore={() => setMoreOpen(true)} />
       {moreOpen && <MoreSheet route={route} go={go} account={fin.account} onClose={() => setMoreOpen(false)} theme={theme} setTheme={setTheme} onLogout={fin.logout} />}
+      {addOpen && <AddSheet itens={addItens} onClose={() => setAddOpen(false)} />}
+      {novoEventoOpen && <LembreteModal item={null} onClose={() => setNovoEventoOpen(false)} onSave={(it) => { prem.add("lembretes", it); setNovoEventoOpen(false); }} />}
       {modal && <EntryModal type={modal.type} item={modal.item} onClose={() => setModal(null)} />}
       <LockGate active={!!fin.session} />
       {novaVersao && (
