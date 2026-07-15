@@ -273,7 +273,7 @@ function MobileNav({ route, go, onAdd, onMore }) {
   return (
     <nav className="mobilenav">
       <svg className="mobilenav-bg" viewBox="0 0 375 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <path d="M0 24 Q0 0 24 0 L128 0 C148 0 143 40 187.5 40 C232 40 227 0 247 0 L351 0 Q375 0 375 24 L375 80 L0 80 Z" />
+        <path d="M0 24 Q0 0 24 0 L118 0 C144 0 136 74 187.5 74 C239 74 231 0 257 0 L351 0 Q375 0 375 24 L375 80 L0 80 Z" />
       </svg>
       <div className="mobilenav-row">
         {Tab({ id: "dashboard", label: tr("lbl_home"), icon: "grid" })}
