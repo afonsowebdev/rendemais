@@ -91,6 +91,13 @@ function LockScreen({ onUnlock }) {
   const [recuperar, setRecuperar] = React.useState(null);
   const [recBusy, setRecBusy] = React.useState(false);
   const [recErr, setRecErr] = React.useState("");
+  const [codigo, setCodigo] = React.useState("");
+  const [novaPass, setNovaPass] = React.useState("");
+  const [novaPass2, setNovaPass2] = React.useState("");
+  const [showPw, setShowPw] = React.useState(false);
+  const [showPw2, setShowPw2] = React.useState(false);
+  const [novoPin, setNovoPin] = React.useState("");
+  const [novoPin2, setNovoPin2] = React.useState("");
   React.useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -146,12 +153,45 @@ function LockScreen({ onUnlock }) {
     setRecErr("");
     try {
       await fin.esqueciPassword(email);
-      setRecuperar("sent");
+      setRecuperar("code");
     } catch (e) {
       setRecErr(e.message || "N\xE3o foi poss\xEDvel enviar o c\xF3digo. Tenta novamente.");
     } finally {
       setRecBusy(false);
     }
+  };
+  const reenviarCodigo = async () => {
+    setRecBusy(true);
+    setRecErr("");
+    try {
+      await fin.esqueciPassword(email);
+      setRecErr("");
+    } catch (e) {
+      setRecErr(e.message || "N\xE3o foi poss\xEDvel reenviar o c\xF3digo.");
+    } finally {
+      setRecBusy(false);
+    }
+  };
+  const confirmarCodigo = async () => {
+    if (!/^\d{6}$/.test(codigo.trim())) return setRecErr("Introduz o c\xF3digo de 6 d\xEDgitos.");
+    if (!pwStrong(novaPass)) return setRecErr("A nova palavra-passe \xE9 demasiado fraca.");
+    if (novaPass !== novaPass2) return setRecErr("As palavras-passe n\xE3o coincidem.");
+    setRecBusy(true);
+    setRecErr("");
+    try {
+      await fin.redefinirPassword(email, codigo, novaPass);
+      setRecuperar("newpin");
+    } catch (e) {
+      setRecErr(e.message || "C\xF3digo inv\xE1lido ou expirado.");
+    } finally {
+      setRecBusy(false);
+    }
+  };
+  const confirmarNovoPin = () => {
+    if (!/^\d{6}$/.test(novoPin)) return setRecErr("O PIN deve ter exatamente 6 d\xEDgitos.");
+    if (novoPin !== novoPin2) return setRecErr("Os PINs n\xE3o coincidem.");
+    window.RendeLock.setPin(novoPin);
+    okUnlock();
   };
   const erro = status === "error";
   const ocupado = status === "validating" || status === "ok";
@@ -169,10 +209,62 @@ function LockScreen({ onUnlock }) {
     /* @__PURE__ */ React.createElement("span", { className: "lock-shape s1", "aria-hidden": "true" }),
     /* @__PURE__ */ React.createElement("span", { className: "lock-shape s2", "aria-hidden": "true" }),
     /* @__PURE__ */ React.createElement("span", { className: "lock-shape s3", "aria-hidden": "true" }),
-    /* @__PURE__ */ React.createElement("div", { className: "lock-card" }, !recuperar ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-user" }, /* @__PURE__ */ React.createElement(Avatar, { account: acc, size: 64 }), /* @__PURE__ */ React.createElement("div", { className: "lock-user-name" }, nome || "A tua conta"), /* @__PURE__ */ React.createElement("p", { className: "lock-user-sub" }, "Introduza o seu PIN para desbloquear o Rende+.")), /* @__PURE__ */ React.createElement("div", { className: "lock-pin" + (erro ? " shake" : ""), role: "status", "aria-label": "PIN, " + digits.length + " de " + LOCK_PIN_LEN + " d\xEDgitos" }, Array.from({ length: LOCK_PIN_LEN }).map((_, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: "lock-dot" + (i < digits.length ? " filled" : "") + (erro ? " err" : "") }))), /* @__PURE__ */ React.createElement("div", { className: "lock-feedback" + (erro ? " show" : ""), role: "alert", "aria-live": "assertive" }, msg), /* @__PURE__ */ React.createElement("div", { className: "lock-keypad" }, [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => /* @__PURE__ */ React.createElement("button", { type: "button", key: n, className: "lock-key", disabled: ocupado, onClick: () => push(String(n)), "aria-label": "D\xEDgito " + n }, n)), /* @__PURE__ */ React.createElement("span", { className: "lock-key lock-key-blank", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-key", disabled: ocupado, onClick: () => push("0"), "aria-label": "D\xEDgito 0" }, "0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-key lock-key-del", disabled: ocupado || !digits.length, onClick: apagar, "aria-label": "Apagar d\xEDgito" }, "Apagar")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-forgot", onClick: () => setRecuperar("confirm") }, "Esqueceu-se do PIN?")) : /* @__PURE__ */ React.createElement("div", { className: "lock-recover" }, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: "shield", size: 20, color: "var(--accent)" })), recuperar === "confirm" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-title" }, "Recuperar acesso"), /* @__PURE__ */ React.createElement("p", { className: "lock-recover-txt" }, "Vamos enviar um c\xF3digo de verifica\xE7\xE3o para ", /* @__PURE__ */ React.createElement("b", null, email), ". De seguida, termine a sess\xE3o para continuar a recupera\xE7\xE3o a partir do ecr\xE3 de entrada."), recErr && /* @__PURE__ */ React.createElement("div", { className: "lock-recover-err" }, recErr), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: () => {
+    /* @__PURE__ */ React.createElement("div", { className: "lock-card" }, !recuperar ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-user" }, /* @__PURE__ */ React.createElement(Avatar, { account: acc, size: 64 }), /* @__PURE__ */ React.createElement("div", { className: "lock-user-name" }, nome || "A tua conta"), /* @__PURE__ */ React.createElement("p", { className: "lock-user-sub" }, "Introduza o seu PIN para desbloquear o Rende+.")), /* @__PURE__ */ React.createElement("div", { className: "lock-pin" + (erro ? " shake" : ""), role: "status", "aria-label": "PIN, " + digits.length + " de " + LOCK_PIN_LEN + " d\xEDgitos" }, Array.from({ length: LOCK_PIN_LEN }).map((_, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: "lock-dot" + (i < digits.length ? " filled" : "") + (erro ? " err" : "") }))), /* @__PURE__ */ React.createElement("div", { className: "lock-feedback" + (erro ? " show" : ""), role: "alert", "aria-live": "assertive" }, msg), /* @__PURE__ */ React.createElement("div", { className: "lock-keypad" }, [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => /* @__PURE__ */ React.createElement("button", { type: "button", key: n, className: "lock-key", disabled: ocupado, onClick: () => push(String(n)), "aria-label": "D\xEDgito " + n }, n)), /* @__PURE__ */ React.createElement("span", { className: "lock-key lock-key-blank", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-key", disabled: ocupado, onClick: () => push("0"), "aria-label": "D\xEDgito 0" }, "0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-key lock-key-del", disabled: ocupado || !digits.length, onClick: apagar, "aria-label": "Apagar d\xEDgito" }, "Apagar")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-forgot", onClick: () => setRecuperar("confirm") }, "Esqueceu-se do PIN?")) : /* @__PURE__ */ React.createElement("div", { className: "lock-recover" }, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-ico" }, /* @__PURE__ */ React.createElement(Icon, { name: "shield", size: 20, color: "var(--accent)" })), recuperar === "confirm" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-title" }, "Recuperar acesso"), /* @__PURE__ */ React.createElement("p", { className: "lock-recover-txt" }, "Vamos enviar um c\xF3digo de verifica\xE7\xE3o de 6 d\xEDgitos para ", /* @__PURE__ */ React.createElement("b", null, email), ". Com ele, pode definir uma nova palavra-passe e um novo PIN sem sair daqui."), recErr && /* @__PURE__ */ React.createElement("div", { className: "lock-recover-err" }, recErr), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: () => {
       setRecuperar(null);
       setRecErr("");
-    } }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-primary", disabled: recBusy, onClick: enviarRecuperacao }, recBusy ? "A enviar\u2026" : "Enviar c\xF3digo"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-title" }, "C\xF3digo enviado"), /* @__PURE__ */ React.createElement("p", { className: "lock-recover-txt" }, "Verifique o email ", /* @__PURE__ */ React.createElement("b", null, email), ". Termine a sess\xE3o para introduzir o c\xF3digo e criar uma nova palavra-passe; depois pode definir um novo PIN em Defini\xE7\xF5es."), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: () => setRecuperar(null) }, "Voltar"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-primary", onClick: () => fin.logout() }, "Terminar sess\xE3o")))), /* @__PURE__ */ React.createElement("div", { className: "lock-security" }, /* @__PURE__ */ React.createElement(Icon, { name: "shield", size: 13, color: "var(--ink-3)" }), " A sua sess\xE3o permanece protegida com encripta\xE7\xE3o segura."))
+    } }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-primary", disabled: recBusy, onClick: enviarRecuperacao }, recBusy ? "A enviar\u2026" : "Enviar c\xF3digo"))) : recuperar === "code" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-title" }, "Introduza o c\xF3digo"), /* @__PURE__ */ React.createElement("p", { className: "lock-recover-txt" }, "Envi\xE1mos um c\xF3digo de 6 d\xEDgitos para ", /* @__PURE__ */ React.createElement("b", null, email), ". Introduza-o e defina uma nova palavra-passe de acesso."), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-form" }, /* @__PURE__ */ React.createElement(Field, { label: "C\xF3digo de verifica\xE7\xE3o" }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        className: "input",
+        inputMode: "numeric",
+        maxLength: 6,
+        autoFocus: true,
+        value: codigo,
+        onChange: (e) => {
+          setCodigo(e.target.value.replace(/\D/g, ""));
+          setRecErr("");
+        },
+        placeholder: "000000"
+      }
+    )), /* @__PURE__ */ React.createElement(Field, { label: "Nova palavra-passe" }, /* @__PURE__ */ React.createElement(PwInput, { value: novaPass, onChange: (e) => {
+      setNovaPass(e.target.value);
+      setRecErr("");
+    }, placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", show: showPw, toggle: () => setShowPw((v) => !v), autoComplete: "new-password" })), novaPass && /* @__PURE__ */ React.createElement(Strength, { value: novaPass }), /* @__PURE__ */ React.createElement(Field, { label: "Confirmar palavra-passe" }, /* @__PURE__ */ React.createElement(PwInput, { value: novaPass2, onChange: (e) => {
+      setNovaPass2(e.target.value);
+      setRecErr("");
+    }, placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", show: showPw2, toggle: () => setShowPw2((v) => !v), autoComplete: "new-password", disabled: !pwStrong(novaPass) }))), recErr && /* @__PURE__ */ React.createElement("div", { className: "lock-recover-err" }, recErr), /* @__PURE__ */ React.createElement("button", { type: "button", className: "lock-forgot", onClick: reenviarCodigo }, "Reenviar c\xF3digo"), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: () => {
+      setRecuperar(null);
+      setRecErr("");
+    } }, "Cancelar"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-primary", disabled: recBusy, onClick: confirmarCodigo }, recBusy ? "A confirmar\u2026" : "Confirmar"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "lock-recover-title" }, "Defina um novo PIN"), /* @__PURE__ */ React.createElement("p", { className: "lock-recover-txt" }, "A sua conta foi recuperada. Defina um novo PIN de 6 d\xEDgitos para desbloquear rapidamente o Rende+ da pr\xF3xima vez."), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-form" }, /* @__PURE__ */ React.createElement(Field, { label: "Novo PIN (6 d\xEDgitos)" }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        className: "input",
+        type: "password",
+        inputMode: "numeric",
+        maxLength: 6,
+        autoFocus: true,
+        value: novoPin,
+        onChange: (e) => {
+          setNovoPin(e.target.value.replace(/\D/g, ""));
+          setRecErr("");
+        },
+        placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022"
+      }
+    )), /* @__PURE__ */ React.createElement(Field, { label: "Confirmar PIN" }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        className: "input",
+        type: "password",
+        inputMode: "numeric",
+        maxLength: 6,
+        value: novoPin2,
+        onChange: (e) => {
+          setNovoPin2(e.target.value.replace(/\D/g, ""));
+          setRecErr("");
+        },
+        placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022"
+      }
+    ))), recErr && /* @__PURE__ */ React.createElement("div", { className: "lock-recover-err" }, recErr), /* @__PURE__ */ React.createElement("div", { className: "lock-recover-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-ghost", onClick: okUnlock }, "Saltar por agora"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn btn-primary", onClick: confirmarNovoPin }, "Concluir")))), /* @__PURE__ */ React.createElement("div", { className: "lock-security" }, /* @__PURE__ */ React.createElement(Icon, { name: "shield", size: 13, color: "var(--ink-3)" }), " A sua sess\xE3o permanece protegida com encripta\xE7\xE3o segura."))
   );
 }
 function LockGate({ active }) {

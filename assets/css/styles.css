@@ -9650,6 +9650,13 @@ input.range::-moz-range-thumb {
   margin: -8px 0 14px;
 }
 
+.lock-recover-form {
+  width: 100%;
+  max-width: 320px;
+  text-align: left;
+  margin: 2px 0 4px;
+}
+
 .lock-recover-actions {
   display: flex;
   gap: 10px;

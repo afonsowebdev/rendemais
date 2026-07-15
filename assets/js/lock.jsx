@@ -44,9 +44,16 @@ function LockScreen({ onUnlock }) {
   const [digits, setDigits] = React.useState("");
   const [status, setStatus] = React.useState("idle"); // idle | validating | error | ok
   const [msg, setMsg] = React.useState("");
-  const [recuperar, setRecuperar] = React.useState(null); // null | "confirm" | "sent"
+  const [recuperar, setRecuperar] = React.useState(null); // null | "confirm" | "code" | "newpin"
   const [recBusy, setRecBusy] = React.useState(false);
   const [recErr, setRecErr] = React.useState("");
+  const [codigo, setCodigo] = React.useState("");
+  const [novaPass, setNovaPass] = React.useState("");
+  const [novaPass2, setNovaPass2] = React.useState("");
+  const [showPw, setShowPw] = React.useState(false);
+  const [showPw2, setShowPw2] = React.useState(false);
+  const [novoPin, setNovoPin] = React.useState("");
+  const [novoPin2, setNovoPin2] = React.useState("");
 
   React.useEffect(() => {
     const prev = document.body.style.overflow;
@@ -86,9 +93,30 @@ function LockScreen({ onUnlock }) {
 
   const enviarRecuperacao = async () => {
     setRecBusy(true); setRecErr("");
-    try { await fin.esqueciPassword(email); setRecuperar("sent"); }
+    try { await fin.esqueciPassword(email); setRecuperar("code"); }
     catch (e) { setRecErr(e.message || "Não foi possível enviar o código. Tenta novamente."); }
     finally { setRecBusy(false); }
+  };
+  const reenviarCodigo = async () => {
+    setRecBusy(true); setRecErr("");
+    try { await fin.esqueciPassword(email); setRecErr(""); }
+    catch (e) { setRecErr(e.message || "Não foi possível reenviar o código."); }
+    finally { setRecBusy(false); }
+  };
+  const confirmarCodigo = async () => {
+    if (!/^\d{6}$/.test(codigo.trim())) return setRecErr("Introduz o código de 6 dígitos.");
+    if (!pwStrong(novaPass)) return setRecErr("A nova palavra-passe é demasiado fraca.");
+    if (novaPass !== novaPass2) return setRecErr("As palavras-passe não coincidem.");
+    setRecBusy(true); setRecErr("");
+    try { await fin.redefinirPassword(email, codigo, novaPass); setRecuperar("newpin"); }
+    catch (e) { setRecErr(e.message || "Código inválido ou expirado."); }
+    finally { setRecBusy(false); }
+  };
+  const confirmarNovoPin = () => {
+    if (!/^\d{6}$/.test(novoPin)) return setRecErr("O PIN deve ter exatamente 6 dígitos.");
+    if (novoPin !== novoPin2) return setRecErr("Os PINs não coincidem.");
+    window.RendeLock.setPin(novoPin);
+    okUnlock();
   };
 
   const erro = status === "error";
@@ -135,20 +163,55 @@ function LockScreen({ onUnlock }) {
             {recuperar === "confirm" ? (
               <>
                 <div className="lock-recover-title">Recuperar acesso</div>
-                <p className="lock-recover-txt">Vamos enviar um código de verificação para <b>{email}</b>. De seguida, termine a sessão para continuar a recuperação a partir do ecrã de entrada.</p>
+                <p className="lock-recover-txt">Vamos enviar um código de verificação de 6 dígitos para <b>{email}</b>. Com ele, pode definir uma nova palavra-passe e um novo PIN sem sair daqui.</p>
                 {recErr && <div className="lock-recover-err">{recErr}</div>}
                 <div className="lock-recover-actions">
                   <button type="button" className="btn btn-ghost" onClick={() => { setRecuperar(null); setRecErr(""); }}>Cancelar</button>
                   <button type="button" className="btn btn-primary" disabled={recBusy} onClick={enviarRecuperacao}>{recBusy ? "A enviar…" : "Enviar código"}</button>
                 </div>
               </>
+            ) : recuperar === "code" ? (
+              <>
+                <div className="lock-recover-title">Introduza o código</div>
+                <p className="lock-recover-txt">Enviámos um código de 6 dígitos para <b>{email}</b>. Introduza-o e defina uma nova palavra-passe de acesso.</p>
+                <div className="lock-recover-form">
+                  <Field label="Código de verificação">
+                    <input className="input" inputMode="numeric" maxLength={6} autoFocus value={codigo}
+                      onChange={(e) => { setCodigo(e.target.value.replace(/\D/g, "")); setRecErr(""); }} placeholder="000000" />
+                  </Field>
+                  <Field label="Nova palavra-passe">
+                    <PwInput value={novaPass} onChange={(e) => { setNovaPass(e.target.value); setRecErr(""); }} placeholder="••••••••" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" />
+                  </Field>
+                  {novaPass && <Strength value={novaPass} />}
+                  <Field label="Confirmar palavra-passe">
+                    <PwInput value={novaPass2} onChange={(e) => { setNovaPass2(e.target.value); setRecErr(""); }} placeholder="••••••••" show={showPw2} toggle={() => setShowPw2((v) => !v)} autoComplete="new-password" disabled={!pwStrong(novaPass)} />
+                  </Field>
+                </div>
+                {recErr && <div className="lock-recover-err">{recErr}</div>}
+                <button type="button" className="lock-forgot" onClick={reenviarCodigo}>Reenviar código</button>
+                <div className="lock-recover-actions">
+                  <button type="button" className="btn btn-ghost" onClick={() => { setRecuperar(null); setRecErr(""); }}>Cancelar</button>
+                  <button type="button" className="btn btn-primary" disabled={recBusy} onClick={confirmarCodigo}>{recBusy ? "A confirmar…" : "Confirmar"}</button>
+                </div>
+              </>
             ) : (
               <>
-                <div className="lock-recover-title">Código enviado</div>
-                <p className="lock-recover-txt">Verifique o email <b>{email}</b>. Termine a sessão para introduzir o código e criar uma nova palavra-passe; depois pode definir um novo PIN em Definições.</p>
+                <div className="lock-recover-title">Defina um novo PIN</div>
+                <p className="lock-recover-txt">A sua conta foi recuperada. Defina um novo PIN de 6 dígitos para desbloquear rapidamente o Rende+ da próxima vez.</p>
+                <div className="lock-recover-form">
+                  <Field label="Novo PIN (6 dígitos)">
+                    <input className="input" type="password" inputMode="numeric" maxLength={6} autoFocus value={novoPin}
+                      onChange={(e) => { setNovoPin(e.target.value.replace(/\D/g, "")); setRecErr(""); }} placeholder="••••••" />
+                  </Field>
+                  <Field label="Confirmar PIN">
+                    <input className="input" type="password" inputMode="numeric" maxLength={6} value={novoPin2}
+                      onChange={(e) => { setNovoPin2(e.target.value.replace(/\D/g, "")); setRecErr(""); }} placeholder="••••••" />
+                  </Field>
+                </div>
+                {recErr && <div className="lock-recover-err">{recErr}</div>}
                 <div className="lock-recover-actions">
-                  <button type="button" className="btn btn-ghost" onClick={() => setRecuperar(null)}>Voltar</button>
-                  <button type="button" className="btn btn-primary" onClick={() => fin.logout()}>Terminar sessão</button>
+                  <button type="button" className="btn btn-ghost" onClick={okUnlock}>Saltar por agora</button>
+                  <button type="button" className="btn btn-primary" onClick={confirmarNovoPin}>Concluir</button>
                 </div>
               </>
             )}
