@@ -9244,409 +9244,296 @@ input.range::-moz-range-thumb {
   z-index: 9000;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: radial-gradient(130% 120% at 20% 0%, color-mix(in srgb, var(--accent) 10%, var(--surface-2)) 0%, var(--surface-2) 60%, var(--surface-2) 100%);
-  animation: lockIn .32s cubic-bezier(.4, 0, .2, 1);
-}
-
-.lock-root.lock-out {
-  animation: lockOut .28s ease forwards;
-}
-
-.lock-card {
-  width: 100%;
-  max-width: 1000px;
-  min-height: min(88vh, 640px);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 22px;
+  padding: 24px;
+  background: var(--bg);
   overflow: hidden;
-  box-shadow: 0 40px 120px -30px rgba(8, 22, 16, .45);
-  animation: lockCard .42s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* coluna esquerda institucional — verde de marca (branca por cima), igual nos 2 temas */
-.lock-left {
-  position: relative;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 26px;
-  color: #fff;
-  background: linear-gradient(160deg, #0d3b28 0%, #08271b 60%, #061a12 100%);
-}
-
-.lock-left::after {
-  content: "";
+/* elementos geométricos discretos do fundo — verde institucional muito diluído, com blur */
+.lock-shape {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(80% 60% at 30% 62%, rgba(20, 160, 107, .16), transparent 70%);
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .07;
+  filter: blur(60px);
   pointer-events: none;
 }
 
-.lock-brand,
-.lock-left-mid,
-.lock-privacy {
+.lock-shape.s1 {
+  width: 420px;
+  height: 420px;
+  top: -140px;
+  left: -120px;
+}
+
+.lock-shape.s2 {
+  width: 360px;
+  height: 360px;
+  bottom: -160px;
+  right: -100px;
+}
+
+.lock-shape.s3 {
+  width: 220px;
+  height: 220px;
+  top: 55%;
+  left: 62%;
+  opacity: .05;
+}
+
+[data-theme="dark"] .lock-shape {
+  opacity: .12;
+}
+
+.lock-card {
   position: relative;
   z-index: 1;
-}
-
-.lock-h1 {
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.lock-h1 span,
-.lock-h2 span {
-  color: var(--accent);
-}
-
-.lock-lead {
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, .7);
-  margin: 16px 0 0;
-  max-width: 350px;
-}
-
-/* cartão de privacidade: por defeito segue o tema (usado no mobile, dentro da coluna direita) */
-.lock-privacy {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  max-width: 360px;
-  text-align: left;
-}
-
-.lock-privacy-ic {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: var(--accent-soft);
-}
-
-.lock-privacy b {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.lock-privacy span {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-3);
-  margin-top: 2px;
-  line-height: 1.4;
-}
-
-/* na coluna esquerda (verde) o cartão é translúcido branco */
-.lock-left .lock-privacy {
-  background: rgba(255, 255, 255, .05);
-  border-color: rgba(255, 255, 255, .08);
-}
-
-.lock-left .lock-privacy-ic {
-  background: rgba(20, 160, 107, .16);
-}
-
-.lock-left .lock-privacy b {
-  color: #fff;
-}
-
-.lock-left .lock-privacy span {
-  color: rgba(255, 255, 255, .55);
-}
-
-/* coluna direita — segue o tema */
-.lock-right {
-  padding: 44px 40px;
+  width: 100%;
+  max-width: 448px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  color: var(--ink);
-}
-
-.lock-ico {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  margin-bottom: 18px;
-  background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent);
-  animation: lockPulse 2.8s ease-in-out infinite;
-}
-
-.lock-h2 {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  line-height: 1.15;
-  margin: 0;
-  color: var(--ink);
-}
-
-.lock-sub {
-  font-size: 13.5px;
-  color: var(--ink-3);
-  margin: 8px 0 22px;
-  max-width: 320px;
-}
-
-.lock-tabs {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
-  max-width: 340px;
-  margin-bottom: 20px;
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 4px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 40px 36px 30px;
+  animation: lockCardIn .3s cubic-bezier(.4, 0, .2, 1);
 }
 
-.lock-tab {
-  position: relative;
-  z-index: 1;
-  border: none;
-  background: none;
-  color: var(--ink-3);
-  font: inherit;
-  font-size: 13.5px;
+.lock-root.lock-out .lock-card {
+  animation: lockCardOut .22s ease forwards;
+}
+
+.lock-user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 26px;
+}
+
+.lock-user-name {
+  margin-top: 14px;
+  font-size: 17px;
   font-weight: 700;
-  padding: 9px 0;
-  cursor: pointer;
-  border-radius: 9px;
-  transition: color .2s;
-}
-
-.lock-tab.on {
   color: var(--ink);
+  letter-spacing: -.01em;
 }
 
-.lock-tab-ink {
-  position: absolute;
-  z-index: 0;
-  top: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  height: calc(100% - 8px);
-  border-radius: 9px;
-  background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  transition: transform .26s cubic-bezier(.4, 0, .2, 1);
-}
-
-.lock-pane {
-  width: 100%;
-  max-width: 340px;
-  animation: lockFade .24s ease;
-}
-
-.lock-pin-label {
-  font-size: 12.5px;
+.lock-user-sub {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--ink-3);
-  font-weight: 600;
-  margin-bottom: 12px;
+  margin: 6px 0 0;
+  max-width: 300px;
+  line-height: 1.5;
 }
 
+/* ---- PIN: 6 círculos, sem mostrar o dígito ---- */
 .lock-pin {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
+  margin-bottom: 10px;
 }
 
-.lock-pin-box {
-  width: 58px;
-  height: 66px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--ink);
-  caret-color: var(--accent);
-  background: var(--surface-2);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  outline: none;
-  font-family: inherit;
-  transition: border-color .16s, box-shadow .16s, background .16s;
+.lock-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
 
-.lock-pin-box:focus {
+.lock-dot.filled {
+  background: var(--accent);
   border-color: var(--accent);
-  background: var(--accent-soft);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  transform: scale(1.08);
 }
 
-.lock-pin-box.err {
+.lock-dot.err {
   border-color: var(--neg);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--neg) 15%, transparent);
 }
 
-.lock-pass {
-  position: relative;
-}
-
-.lock-pass-input {
-  width: 100%;
-  padding-right: 46px;
-}
-
-.lock-pass-input.err {
+.lock-dot.err.filled {
+  background: var(--neg);
   border-color: var(--neg);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--neg) 15%, transparent);
 }
 
-.lock-eye {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
+.lock-pin.shake {
+  animation: lockShake .38s ease;
 }
 
-.lock-eye:hover {
-  background: var(--surface-2);
-}
-
-.lock-msg {
+.lock-feedback {
   height: 18px;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--neg);
-  margin: 12px 0 4px;
+  margin: 2px 0 6px;
   opacity: 0;
-  transition: opacity .2s;
+  transition: opacity .18s ease;
 }
 
-.lock-msg.show {
+.lock-feedback.show {
   opacity: 1;
 }
 
-.lock-btn {
-  width: 100%;
-  max-width: 340px;
-  margin-top: 6px;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  background: var(--accent);
-  color: #fff;
+/* ---- teclado numérico circular ---- */
+.lock-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 62px);
+  gap: 16px;
+  justify-content: center;
+  margin: 12px 0 20px;
+}
+
+.lock-key {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
   font: inherit;
-  font-size: 14.5px;
-  font-weight: 800;
-  letter-spacing: -.01em;
-  transition: filter .16s, transform .04s;
-  box-shadow: 0 12px 32px -14px color-mix(in srgb, var(--accent) 75%, transparent);
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .12s ease, border-color .12s ease, transform .08s ease;
 }
 
-.lock-btn:hover {
-  filter: brightness(1.06);
+.lock-key:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
-.lock-btn:active {
-  transform: scale(.99);
+.lock-key:active:not(:disabled) {
+  transform: scale(.93);
 }
 
-.lock-btn:disabled {
-  opacity: .7;
+.lock-key:disabled {
+  opacity: .5;
   cursor: default;
 }
 
-.lock-or {
-  width: 100%;
-  max-width: 340px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-  color: var(--ink-3);
+.lock-key:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lock-key-blank {
+  visibility: hidden;
+  cursor: default;
+}
+
+.lock-key-del {
   font-size: 12px;
-  font-weight: 600;
-}
-
-.lock-or::before,
-.lock-or::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.lock-alt {
-  width: 100%;
-  max-width: 340px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  cursor: pointer;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--ink);
-  font: inherit;
-  font-size: 13.5px;
   font-weight: 700;
-  transition: background .16s;
+  color: var(--ink-3);
 }
 
-.lock-alt:hover {
-  background: color-mix(in srgb, var(--ink) 6%, var(--surface-2));
+.lock-forgot {
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color .15s ease;
 }
 
-.lock-foot {
-  margin-top: 26px;
+.lock-forgot:hover {
+  color: var(--accent);
 }
 
-.lock-foot-t {
+.lock-forgot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- painel de recuperação (substitui o PIN/teclado no cartão) ---- */
+.lock-recover {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  text-align: center;
+  width: 100%;
+  animation: lockCardIn .22s ease;
+}
+
+.lock-recover-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  margin-bottom: 14px;
+}
+
+.lock-recover-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lock-recover-txt {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin: 8px 0 18px;
+  max-width: 340px;
+}
+
+.lock-recover-err {
+  align-self: stretch;
   font-size: 12.5px;
   font-weight: 700;
+  color: var(--neg);
+  margin: -8px 0 14px;
+}
+
+.lock-recover-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.lock-card .btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lock-security {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 26px;
+  font-size: 11.5px;
+  font-weight: 600;
   color: var(--ink-3);
 }
 
-.lock-foot span {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-3);
-  opacity: .8;
-  margin-top: 3px;
+@keyframes lockCardIn {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to { opacity: 1; transform: none; }
 }
 
-.lock-m {
-  display: none;
+@keyframes lockCardOut {
+  to { opacity: 0; transform: scale(.98); }
+}
+
+@keyframes lockShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
 }
 
 /* ============================================================
@@ -9655,55 +9542,57 @@ input.range::-moz-range-thumb {
 @media (max-width: 880px) {
   .lock-root {
     padding: 0;
+    align-items: stretch;
   }
 
   .lock-card {
-    grid-template-columns: 1fr;
-    min-height: 100vh;
     max-width: 100%;
+    min-height: 100vh;
     border-radius: 0;
     border: none;
-    animation: lockIn .3s ease;
+    justify-content: center;
+    padding: 32px 24px 28px;
   }
 
-  .lock-left {
-    display: none;
+  .lock-keypad {
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    max-width: 360px;
+    gap: 14px;
   }
 
-  .lock-right {
-    padding: 40px 24px;
-    min-height: 100vh;
-    justify-content: flex-start;
-    padding-top: 8vh;
+  .lock-key {
+    width: 100%;
+    height: 72px;
+    font-size: 21px;
   }
 
-  .lock-d {
-    display: none !important;
+  /* botões do painel de recuperação: em mobile ficam empilhados a toda a largura,
+     com boa área de toque, e em forma de pílula (border-radius:50% numa caixa larga
+     e baixa produz os cantos totalmente arredondados pedidos). */
+  .lock-recover-actions {
+    flex-direction: column-reverse;
+    width: 100%;
+    gap: 12px;
   }
 
-  .lock-brand.lock-m {
-    display: flex;
-    margin-bottom: 22px;
-  }
-
-  .lock-h2.lock-m,
-  .lock-sub.lock-m {
-    display: block;
-  }
-
-  .lock-privacy.lock-m {
-    display: flex;
+  .lock-recover-actions .btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 50%;
+    font-size: 14.5px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
 
-  .lock-root,
   .lock-card,
-  .lock-ico,
-  .lock-pane,
-  .shake {
+  .lock-recover,
+  .lock-dot,
+  .lock-key,
+  .lock-pin.shake {
     animation: none;
+    transition: none;
   }
 }
 

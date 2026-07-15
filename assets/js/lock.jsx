@@ -31,141 +31,131 @@
   window.RendeLock = RendeLock;
 })();
 
-/* ---------- Ecrã de bloqueio (mockup: 2 colunas · PIN + Palavra-passe) ---------- */
+/* ---------- Ecrã de bloqueio (PIN de 6 dígitos, estilo app bancária) ----------
+   Substitui por completo o mockup anterior de 2 colunas. Mantém-se só a camada de
+   dados (RendeLock, acima) e o contrato onUnlock — toda a UI é nova. */
+const LOCK_PIN_LEN = 6;
+
 function LockScreen({ onUnlock }) {
   const fin = useFinance();
   const acc = (fin && fin.account) || {};
+  const nome = acc.nome || "";
   const email = acc.email || "";
-  const podePass = !!email;
-  const [tab, setTab] = React.useState("pin");
-  const [digits, setDigits] = React.useState(["", "", "", ""]);
-  const [pass, setPass] = React.useState("");
-  const [showPass, setShowPass] = React.useState(false);
+  const [digits, setDigits] = React.useState("");
   const [status, setStatus] = React.useState("idle"); // idle | validating | error | ok
   const [msg, setMsg] = React.useState("");
-  const refs = [React.useRef(null), React.useRef(null), React.useRef(null), React.useRef(null)];
+  const [recuperar, setRecuperar] = React.useState(null); // null | "confirm" | "sent"
+  const [recBusy, setRecBusy] = React.useState(false);
+  const [recErr, setRecErr] = React.useState("");
 
   React.useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const t = setTimeout(() => { if (refs[0].current) refs[0].current.focus(); }, 120);
-    return () => { document.body.style.overflow = prev; clearTimeout(t); };
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
-  const okUnlock = () => { setStatus("ok"); window.RendeLock.markUnlocked(); setTimeout(onUnlock, 280); };
-  const falhar = (m) => { setStatus("error"); setMsg(m); setTimeout(() => setStatus((s) => (s === "error" ? "idle" : s)), 520); };
-
-  const validarPin = (str) => {
-    if (str.length < 4) return falhar("Completa os 4 dígitos.");
-    setStatus("validating");
-    setTimeout(() => {
-      if (window.RendeLock.verify(str)) okUnlock();
-      else { setDigits(["", "", "", ""]); if (refs[0].current) refs[0].current.focus(); falhar("PIN incorreto. Tenta novamente."); }
-    }, 240);
+  const okUnlock = () => { setStatus("ok"); window.RendeLock.markUnlocked(); setTimeout(onUnlock, 260); };
+  const falhar = () => {
+    setStatus("error"); setMsg("PIN incorreto. Tente novamente.");
+    setTimeout(() => { setDigits(""); setStatus("idle"); setMsg(""); }, 640);
   };
-  const onDigit = (i, v) => {
-    const d = v.replace(/\D/g, "").slice(-1);
-    setMsg("");
-    setDigits((arr) => {
-      const n = arr.slice(); n[i] = d;
-      if (d && i < 3 && refs[i + 1].current) refs[i + 1].current.focus();
-      const full = n.join("");
-      if (full.length === 4 && n.every((x) => x)) validarPin(full);
+  const validar = (str) => {
+    setStatus("validating");
+    setTimeout(() => { if (window.RendeLock.verify(str)) okUnlock(); else falhar(); }, 220);
+  };
+  const push = (d) => {
+    if (status !== "idle") return;
+    setDigits((s) => {
+      if (s.length >= LOCK_PIN_LEN) return s;
+      const n = s + d;
+      if (n.length === LOCK_PIN_LEN) validar(n);
       return n;
     });
-    if (status === "error") setStatus("idle");
   };
-  const onKey = (i, e) => { if (e.key === "Backspace" && !digits[i] && i > 0 && refs[i - 1].current) refs[i - 1].current.focus(); };
+  const apagar = () => { if (status !== "idle") return; setDigits((s) => s.slice(0, -1)); };
 
-  const validarPass = () => {
-    if (!pass) return falhar("Introduz a palavra-passe.");
-    setStatus("validating");
-    API.login({ email: email, password: pass }).then(() => okUnlock()).catch(() => { setPass(""); falhar("Palavra-passe incorreta."); });
+  React.useEffect(() => {
+    if (recuperar) return;
+    const onKey = (e) => {
+      if (/^[0-9]$/.test(e.key)) push(e.key);
+      else if (e.key === "Backspace") apagar();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [status, recuperar]);
+
+  const enviarRecuperacao = async () => {
+    setRecBusy(true); setRecErr("");
+    try { await fin.esqueciPassword(email); setRecuperar("sent"); }
+    catch (e) { setRecErr(e.message || "Não foi possível enviar o código. Tenta novamente."); }
+    finally { setRecBusy(false); }
   };
 
   const erro = status === "error";
   const ocupado = status === "validating" || status === "ok";
-  const acionar = () => (tab === "pin" ? validarPin(digits.join("")) : validarPass());
 
   return (
     <div className={"lock-root" + (status === "ok" ? " lock-out" : "")} role="dialog" aria-modal="true" aria-label="Sessão bloqueada"
       onKeyDown={(e) => { if (e.key === "Escape") e.preventDefault(); }}>
+      <span className="lock-shape s1" aria-hidden="true" />
+      <span className="lock-shape s2" aria-hidden="true" />
+      <span className="lock-shape s3" aria-hidden="true" />
+
       <div className="lock-card">
-        <aside className="lock-left">
-          <div className="lock-brand"><Brand nameColor="#fff" /></div>
-          <div className="lock-left-mid">
-            <h1 className="lock-h1">Sessão bloqueada<br /><span>por inatividade</span></h1>
-            <p className="lock-lead">Para proteger os teus dados, a tua sessão foi bloqueada automaticamente devido a um período de inatividade.</p>
-          </div>
-          <div className="lock-privacy">
-            <span className="lock-privacy-ic"><Icon name="shield" size={16} color="var(--accent)" /></span>
-            <div><b>A tua privacidade é importante</b><span>Só tu tens acesso às tuas informações financeiras.</span></div>
-          </div>
-        </aside>
-
-        <div className="lock-right">
-          <div className="lock-brand lock-m"><Brand nameColor="var(--ink)" /></div>
-          <div className={"lock-ico" + (erro ? " shake" : "")}><Icon name="lock" size={30} color="var(--accent)" /></div>
-          <h2 className="lock-h2 lock-d">Bem-vindo de volta!</h2>
-          <h2 className="lock-h2 lock-m">Sessão bloqueada<br /><span>por inatividade</span></h2>
-          <p className="lock-sub lock-d">Introduz o teu {podePass ? "PIN ou palavra-passe" : "PIN"} para continuar.</p>
-          <p className="lock-sub lock-m">Para proteger os teus dados, a tua sessão foi bloqueada por segurança.</p>
-
-          {podePass && (
-            <div className="lock-tabs">
-              <button type="button" className={"lock-tab" + (tab === "pin" ? " on" : "")} onClick={() => { setTab("pin"); setMsg(""); setStatus("idle"); }}>PIN</button>
-              <button type="button" className={"lock-tab" + (tab === "pass" ? " on" : "")} onClick={() => { setTab("pass"); setMsg(""); setStatus("idle"); }}>Palavra-passe</button>
-              <span className="lock-tab-ink" style={{ transform: tab === "pass" ? "translateX(100%)" : "translateX(0)" }} />
+        {!recuperar ? (
+          <>
+            <div className="lock-user">
+              <Avatar account={acc} size={64} />
+              <div className="lock-user-name">{nome || "A tua conta"}</div>
+              <p className="lock-user-sub">Introduza o seu PIN para desbloquear o Rende+.</p>
             </div>
-          )}
 
-          {tab === "pin" ? (
-            <div className={"lock-pane" + (erro ? " shake" : "")}>
-              <div className="lock-pin-label">Insere o teu PIN de 4 dígitos</div>
-              <div className="lock-pin">
-                {digits.map((d, i) => (
-                  <input key={i} ref={refs[i]} className={"lock-pin-box" + (erro ? " err" : "")} inputMode="numeric" maxLength={1} type="password"
-                    value={d} disabled={ocupado} aria-label={"Dígito " + (i + 1)}
-                    onChange={(e) => onDigit(i, e.target.value)} onKeyDown={(e) => onKey(i, e)} />
-                ))}
-              </div>
+            <div className={"lock-pin" + (erro ? " shake" : "")} role="status" aria-label={"PIN, " + digits.length + " de " + LOCK_PIN_LEN + " dígitos"}>
+              {Array.from({ length: LOCK_PIN_LEN }).map((_, i) => (
+                <span key={i} className={"lock-dot" + (i < digits.length ? " filled" : "") + (erro ? " err" : "")} />
+              ))}
             </div>
-          ) : (
-            <div className={"lock-pane" + (erro ? " shake" : "")}>
-              <div className="lock-pass">
-                <input className={"input lock-pass-input" + (erro ? " err" : "")} type={showPass ? "text" : "password"} value={pass} placeholder="A tua palavra-passe"
-                  autoFocus disabled={ocupado} onChange={(e) => { setPass(e.target.value); setMsg(""); if (status === "error") setStatus("idle"); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") validarPass(); }} />
-                <button type="button" className="lock-eye" onClick={() => setShowPass((v) => !v)} title={showPass ? "Esconder" : "Mostrar"}><Icon name={showPass ? "eyeOff" : "eye"} size={17} color="rgba(255,255,255,.55)" /></button>
-              </div>
+
+            <div className={"lock-feedback" + (erro ? " show" : "")} role="alert" aria-live="assertive">{msg}</div>
+
+            <div className="lock-keypad">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                <button type="button" key={n} className="lock-key" disabled={ocupado} onClick={() => push(String(n))} aria-label={"Dígito " + n}>{n}</button>
+              ))}
+              <span className="lock-key lock-key-blank" aria-hidden="true" />
+              <button type="button" className="lock-key" disabled={ocupado} onClick={() => push("0")} aria-label="Dígito 0">0</button>
+              <button type="button" className="lock-key lock-key-del" disabled={ocupado || !digits.length} onClick={apagar} aria-label="Apagar dígito">Apagar</button>
             </div>
-          )}
 
-          <div className={"lock-msg" + (erro ? " show" : "")}>{msg}</div>
-
-          <button className="lock-btn" disabled={ocupado} onClick={acionar}>
-            {status === "validating" ? "A validar…" : status === "ok" ? "Desbloqueado ✓" : "Desbloquear"}
-          </button>
-
-          {podePass && (
-            <>
-              <div className="lock-or"><span>ou</span></div>
-              <button type="button" className="lock-alt" onClick={() => { setTab(tab === "pin" ? "pass" : "pin"); setMsg(""); setStatus("idle"); }}>
-                <Icon name="lock" size={15} color="rgba(255,255,255,.75)" /> {tab === "pin" ? "Usar palavra-passe" : "Usar PIN"}
-              </button>
-            </>
-          )}
-
-          <div className="lock-privacy lock-m" style={{ marginTop: 24 }}>
-            <span className="lock-privacy-ic"><Icon name="shield" size={16} color="var(--accent)" /></span>
-            <div><b>A tua privacidade é importante</b><span>Só tu tens acesso às tuas informações financeiras.</span></div>
+            <button type="button" className="lock-forgot" onClick={() => setRecuperar("confirm")}>Esqueceu-se do PIN?</button>
+          </>
+        ) : (
+          <div className="lock-recover">
+            <div className="lock-recover-ico"><Icon name="shield" size={20} color="var(--accent)" /></div>
+            {recuperar === "confirm" ? (
+              <>
+                <div className="lock-recover-title">Recuperar acesso</div>
+                <p className="lock-recover-txt">Vamos enviar um código de verificação para <b>{email}</b>. De seguida, termine a sessão para continuar a recuperação a partir do ecrã de entrada.</p>
+                {recErr && <div className="lock-recover-err">{recErr}</div>}
+                <div className="lock-recover-actions">
+                  <button type="button" className="btn btn-ghost" onClick={() => { setRecuperar(null); setRecErr(""); }}>Cancelar</button>
+                  <button type="button" className="btn btn-primary" disabled={recBusy} onClick={enviarRecuperacao}>{recBusy ? "A enviar…" : "Enviar código"}</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="lock-recover-title">Código enviado</div>
+                <p className="lock-recover-txt">Verifique o email <b>{email}</b>. Termine a sessão para introduzir o código e criar uma nova palavra-passe; depois pode definir um novo PIN em Definições.</p>
+                <div className="lock-recover-actions">
+                  <button type="button" className="btn btn-ghost" onClick={() => setRecuperar(null)}>Voltar</button>
+                  <button type="button" className="btn btn-primary" onClick={() => fin.logout()}>Terminar sessão</button>
+                </div>
+              </>
+            )}
           </div>
+        )}
 
-          <div className="lock-foot">
-            <div className="lock-foot-t"><Icon name="lock" size={13} color="rgba(255,255,255,.5)" /> <b>Segurança em primeiro lugar</b></div>
-            <span>A tua sessão será desbloqueada apenas por ti.</span>
-          </div>
-        </div>
+        <div className="lock-security"><Icon name="shield" size={13} color="var(--ink-3)" /> A sua sessão permanece protegida com encriptação segura.</div>
       </div>
     </div>
   );
@@ -202,7 +192,7 @@ function RLPinSetup({ onClose }) {
   const [b, setB] = React.useState("");
   const [err, setErr] = React.useState("");
   const ok = () => {
-    if (!/^\d{4}$/.test(a)) return setErr("O PIN deve ter exatamente 4 dígitos.");
+    if (!/^\d{6}$/.test(a)) return setErr("O PIN deve ter exatamente 6 dígitos.");
     if (a !== b) return setErr("Os PINs não coincidem.");
     window.RendeLock.setPin(a); onClose();
   };
@@ -210,7 +200,7 @@ function RLPinSetup({ onClose }) {
     <>
       <div className="modal-info-title">Como funciona</div>
       <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)", lineHeight: 1.55 }}>
-        Só precisas de definir o PIN. No ecrã de bloqueio podes desbloquear com este PIN <b>ou</b> com a <b>palavra-passe da tua conta</b> (a mesma do início de sessão) — não é preciso criar outra.
+        Este PIN de 6 dígitos é usado apenas no ecrã de bloqueio, para desbloquear rapidamente o Rende+ sem escrever a palavra-passe. Se o esqueceres, podes repor a partir do ecrã de bloqueio.
       </div>
     </>
   );
@@ -221,8 +211,8 @@ function RLPinSetup({ onClose }) {
         <button className="btn btn-primary" onClick={ok}><Icon name="check" size={15} color="#fff" /> Definir</button>
       </>}>
       <div className="modal-row-2">
-        <Field label="Novo PIN (4 dígitos)"><input className="input" type="password" inputMode="numeric" maxLength={4} autoFocus value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
-        <Field label="Confirmar PIN"><input className="input" type="password" inputMode="numeric" maxLength={4} value={b} onChange={(e) => setB(e.target.value.replace(/\D/g, ""))} placeholder="••••" /></Field>
+        <Field label="Novo PIN (6 dígitos)"><input className="input" type="password" inputMode="numeric" maxLength={6} autoFocus value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ""))} placeholder="••••••" /></Field>
+        <Field label="Confirmar PIN"><input className="input" type="password" inputMode="numeric" maxLength={6} value={b} onChange={(e) => setB(e.target.value.replace(/\D/g, ""))} placeholder="••••••" /></Field>
       </div>
       {err && <div className="alert bad" style={{ marginTop: 4, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
