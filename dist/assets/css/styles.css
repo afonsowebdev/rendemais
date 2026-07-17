@@ -127,6 +127,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ---- Fundo ambiente do modo escuro: brilho subtil com tons inspirados no gradiente
+   da Instagram (roxo → magenta → laranja), ancorado no canto inferior direito e a
+   espalhar-se em leque por todo o ecrã. É só uma camada de cor por trás de tudo —
+   as opacidades ficam propositadamente baixas para nunca competir com o conteúdo
+   nem alterar a essência escura já existente (var(--bg) continua a base). ---- */
+[data-theme="dark"] body {
+  background:
+    radial-gradient(60% 55% at 100% 100%, rgba(131, 58, 180, .16), transparent 100%),
+    radial-gradient(55% 50% at 100% 100%, rgba(225, 48, 108, .13), transparent 100%),
+    radial-gradient(72% 66% at 100% 100%, rgba(247, 119, 55, .09), transparent 100%),
+    var(--bg);
+}
+
 /* ============================================================
    UTILITARIOS / DIVERSOS
    ============================================================ */
