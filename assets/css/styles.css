@@ -510,11 +510,13 @@ button {
   font-weight: 500;
 }
 
-/* Seletor de mês, logo abaixo do header — alinhado à direita, sem título ao lado */
+/* Seletor de mês, logo abaixo do header — alinhado à direita, sem título ao lado.
+   Padding lateral igual ao do header/.content (36px), para o alinhamento vertical
+   ficar consistente em toda a página. */
 .page-intro {
   display: flex;
   justify-content: flex-end;
-  padding: 16px 32px 0;
+  padding: 20px 36px 0;
 }
 
 .page-intro-month {
