@@ -152,7 +152,6 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
   const principais = [
-    { id: "perfil", label: "Conta", icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" }
   ];
   const outros = [

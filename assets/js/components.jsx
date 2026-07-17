@@ -292,15 +292,14 @@ function MobileNav({ route, go, onAdd, onMore }) {
   );
 }
 
-/* "Mais": Conta/Definições/Tema/Ajuda/Premium/Terminar sessão em destaque, tal como
-   pedido — mantêm-se também os restantes destinos reais já existentes (Relatórios,
-   Contas, e as páginas Premium), para nenhuma rota deixar de ser alcançável a partir
-   do mobile. Só o visual (linhas com ícone circular) e a organização mudaram. */
+/* "Mais": Definições/Tema/Ajuda/Premium/Terminar sessão em destaque — mantêm-se também
+   os restantes destinos reais já existentes (Relatórios, Contas, e as páginas Premium),
+   para nenhuma rota deixar de ser alcançável a partir do mobile. Só o visual (linhas com
+   ícone circular) e a organização mudaram. */
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
   const principais = [
-    { id: "perfil", label: "Conta", icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const outros = [
