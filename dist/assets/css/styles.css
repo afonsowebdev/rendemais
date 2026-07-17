@@ -438,9 +438,14 @@ button {
 /* ============================================================
    TOPBAR / CABECALHO DA PAGINA
    ============================================================ */
+/* Painel flutuante (desktop): mesma dinâmica da sidebar — margem à volta em vez de
+   encostado ao topo/à barra lateral. `top:16px` (em vez de 0) faz o sticky "pousar"
+   sempre a 16px do topo do scroll, mantendo o espaço visível mesmo depois de rolar.
+   margin-left/right = 36px, igual ao padding lateral de .content, para o cartão do
+   header ficar alinhado com o conteúdo por baixo (e afastado da sidebar). */
 .topbar {
   position: sticky;
-  top: 0;
+  top: 16px;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -450,6 +455,9 @@ button {
   flex-shrink: 0;
   padding: 18px 32px;
   background: var(--surface);
+  margin: 16px 36px 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .topbar-title {
@@ -1874,6 +1882,10 @@ input.range::-moz-range-thumb {
     row-gap: 6px;
     padding: 12px 16px;
     min-height: 60px;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    top: 0;
   }
 
   .icon-btn.topbar-hamburger {
@@ -6130,6 +6142,10 @@ input.range::-moz-range-thumb {
     row-gap: 6px;
     padding: 12px 16px;
     min-height: 60px;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    top: 0;
   }
 
   .icon-btn.topbar-hamburger {
