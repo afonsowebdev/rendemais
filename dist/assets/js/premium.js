@@ -1492,7 +1492,7 @@ function dispararNotificacoesNativas(prem, dados, account) {
   const titulo = novos.length === 1 ? "Tens uma novidade" : "Tens " + novos.length + " novidades";
   const corpo = novos.slice(0, 3).map((a) => a.titulo).join("\n") + (novos.length > 3 ? "\n+ " + (novos.length - 3) + " mais" : "");
   try {
-    new Notification("Rende+ \xB7 " + titulo, { body: corpo, icon: "/icon-192.png", badge: "/icon-192.png", tag: "rende-notifs", renotify: true });
+    new Notification("Rende+ \xB7 " + titulo, { body: corpo, icon: "/assets/img/files/icon-192.png", badge: "/assets/img/files/icon-192.png", tag: "rende-notifs", renotify: true });
   } catch (e) {
   }
   prem.update({ notifLog: { [hoje]: [...jaHoje, ...novos.map((a) => a.chave)] } });

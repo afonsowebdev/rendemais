@@ -25,7 +25,7 @@ function CatBadge({ catKey, size = 40, r = 12 }) {
 function Brand({ nameColor = "var(--ink)", size = 38, sub = null, onClick }) {
   return (
     <div className="brand" style={{ padding: 0, cursor: onClick ? "pointer" : "default" }} onClick={onClick}>
-      <div className="brand-mark" style={{ width: size, height: size }}><span className="brand-mark-txt" style={{ fontSize: size * 0.5 }}>R</span></div>
+      <img className="brand-mark" src="assets/img/files/v2-symbol.svg" alt="" width={size} height={size} style={{ width: size, height: size }} />
       <div>
         <div className="brand-name" style={{ color: nameColor, fontSize: size * 0.45 }}>Rende<span className="brand-plus">+</span></div>
         {sub && <div className="brand-sub" style={{ color: nameColor === "#fff" ? "rgba(255,255,255,.6)" : "var(--ink-3)" }}>{sub}</div>}
