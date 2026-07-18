@@ -207,9 +207,12 @@ button {
 
 /* Painel flutuante (desktop): margem à volta em vez de encostado às margens da
    janela — nunca aplicado ao .mobile-drawer, que continua a deslizar rente ao ecrã.
-   Sem linha divisória: a separação do conteúdo passa a ser feita só por espaço/sombra. */
+   Sem linha divisória: a separação do conteúdo passa a ser feita só por espaço/sombra.
+   24px é o valor-base da grelha de alinhamento de todo o sistema (ver também .topbar,
+   .content e .page-intro) — mudar aqui exige mudar nos outros três para os manter
+   coerentes entre si. */
 .sidebar:not(.mobile-drawer) {
-  margin: 16px 0 16px 16px;
+  margin: 24px 0 24px 24px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
@@ -439,13 +442,14 @@ button {
    TOPBAR / CABECALHO DA PAGINA
    ============================================================ */
 /* Painel flutuante (desktop): mesma dinâmica da sidebar — margem à volta em vez de
-   encostado ao topo/à barra lateral. `top:16px` (em vez de 0) faz o sticky "pousar"
-   sempre a 16px do topo do scroll, mantendo o espaço visível mesmo depois de rolar.
-   margin-left/right = 36px, igual ao padding lateral de .content, para o cartão do
-   header ficar alinhado com o conteúdo por baixo (e afastado da sidebar). */
+   encostado ao topo/à barra lateral. `top:24px` (em vez de 0) faz o sticky "pousar"
+   sempre a 24px do topo do scroll, mantendo o espaço visível mesmo depois de rolar.
+   margin-left/right = 24px, igual à margem da sidebar e ao padding lateral de
+   .content/.page-intro — os quatro juntos formam a grelha de alinhamento única do
+   sistema (mesma linha vertical: sidebar → gutter → header/conteúdo). */
 .topbar {
   position: sticky;
-  top: 16px;
+  top: 24px;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -455,7 +459,7 @@ button {
   flex-shrink: 0;
   padding: 18px 32px;
   background: var(--surface);
-  margin: 16px 36px 0;
+  margin: 24px 24px 0;
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
@@ -516,7 +520,7 @@ button {
 .page-intro {
   display: flex;
   justify-content: flex-end;
-  padding: 20px 36px 0;
+  padding: 24px 24px 0;
 }
 
 .page-intro-month {
@@ -719,10 +723,10 @@ button {
    UTILITARIOS / DIVERSOS
    ============================================================ */
 .content {
-  margin: 32px 36px 64px;
+  margin: 40px 24px 72px;
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 28px;
 }
 
 /* ============================================================
@@ -3894,11 +3898,11 @@ input.range::-moz-range-thumb {
     transition: width .2s ease, box-shadow .2s ease;
   }
 
-  /* 92px = 76px da sidebar recolhida + 16px da sua margem esquerda: a coluna tem de
+  /* 100px = 76px da sidebar recolhida + 24px da sua margem esquerda: a coluna tem de
      reservar espaço até onde a sidebar (position:fixed) realmente termina, para o
-     header/conteúdo manterem a mesma margem de 36px em relação a ela, recolhida ou não. */
+     header/conteúdo manterem a mesma margem de 24px em relação a ela, recolhida ou não. */
   .app.sb-collapsed {
-    grid-template-columns: 92px 1fr;
+    grid-template-columns: 100px 1fr;
   }
 
   /* manter o conteúdo na coluna da direita mesmo com a barra fora do fluxo */
