@@ -1806,11 +1806,11 @@ input.range::-moz-range-thumb {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 20, .5);
+  background: rgba(15, 23, 20, .38);
   z-index: 95;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .25s ease;
+  transition: opacity .2s ease;
 }
 
 .sidebar.mobile-drawer {
@@ -1876,7 +1876,9 @@ input.range::-moz-range-thumb {
   }
 
   /* header mobile em grid: hambúrguer + logo central + ações numa linha,
-     título/subtítulo a ocupar a linha inteira por baixo. */
+     título/subtítulo a ocupar a linha inteira por baixo. Painel flutuante — mesma
+     filosofia do desktop: margem à volta, cantos arredondados, sombra subtil, sem
+     linha inferior. `top:16px` (sticky) para o espaço se manter visível no scroll. */
   .topbar {
     display: grid;
     grid-template-columns: 40px 1fr auto;
@@ -1886,12 +1888,12 @@ input.range::-moz-range-thumb {
     align-items: center;
     column-gap: 10px;
     row-gap: 6px;
-    padding: 12px 16px;
+    padding: 16px 18px;
     min-height: 60px;
-    margin: 0;
-    border-radius: 0;
-    box-shadow: none;
-    top: 0;
+    margin: 16px 16px 0;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    top: 16px;
   }
 
   .icon-btn.topbar-hamburger {
@@ -1924,7 +1926,7 @@ input.range::-moz-range-thumb {
   }
 
   .page-intro {
-    padding: 20px 16px 0;
+    padding: 24px 16px 0;
     align-items: flex-start;
   }
 
@@ -1955,8 +1957,8 @@ input.range::-moz-range-thumb {
 
   .content {
     margin: 0;
-    padding: 18px 16px 32px;
-    gap: 16px;
+    padding: 20px 16px 36px;
+    gap: 20px;
   }
 
   .card-pad {
@@ -2116,7 +2118,11 @@ input.range::-moz-range-thumb {
   }
 
   /* menu hambúrguer — offcanvas: desliza a partir da esquerda, fecha ao clicar num
-     item, no fundo (backdrop) ou com Escape (mecânica em MobileSidebarDrawer). */
+     item, no fundo (backdrop) ou com Escape (mecânica em MobileSidebarDrawer).
+     Painel suspenso — mesma filosofia do header/sidebar do desktop: margem à volta
+     (nunca toca em nenhuma margem do ecrã), cantos arredondados nos 4 lados, sombra
+     suave. O transform de fechado soma a margem esquerda (16px) + uma folga extra
+     à percentagem, para o painel sair mesmo por completo do ecrã (sem "resto" visível). */
   .mobile-drawer-backdrop {
     display: block;
   }
@@ -2129,16 +2135,17 @@ input.range::-moz-range-thumb {
   .sidebar.mobile-drawer {
     display: flex;
     position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    top: 16px;
+    left: 16px;
+    bottom: 16px;
     z-index: 96;
-    width: min(300px, 84vw);
+    width: min(300px, 80vw);
     max-width: 320px;
     border-right: none;
-    transform: translateX(-100%);
-    transition: transform .28s cubic-bezier(.4, 0, .2, 1);
-    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, .35);
+    border-radius: var(--radius);
+    transform: translateX(calc(-100% - 32px));
+    transition: transform .24s cubic-bezier(.4, 0, .2, 1);
+    box-shadow: var(--shadow-md);
     pointer-events: none;
   }
 
@@ -2153,7 +2160,6 @@ input.range::-moz-range-thumb {
     justify-content: space-between;
     margin: -22px -16px 14px;
     padding: 14px 14px 14px 20px;
-    border-bottom: 1px solid var(--border);
   }
 
   .mobile-drawer-head .brand {
@@ -6153,12 +6159,12 @@ input.range::-moz-range-thumb {
     align-items: center;
     column-gap: 10px;
     row-gap: 6px;
-    padding: 12px 16px;
+    padding: 16px 18px;
     min-height: 60px;
-    margin: 0;
-    border-radius: 0;
-    box-shadow: none;
-    top: 0;
+    margin: 16px 16px 0;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    top: 16px;
   }
 
   .icon-btn.topbar-hamburger {
@@ -6191,7 +6197,7 @@ input.range::-moz-range-thumb {
   }
 
   .page-intro {
-    padding: 20px 16px 0;
+    padding: 24px 16px 0;
     align-items: flex-start;
   }
 
@@ -6222,8 +6228,8 @@ input.range::-moz-range-thumb {
 
   .content {
     margin: 0;
-    padding: 18px 16px 32px;
-    gap: 16px;
+    padding: 20px 16px 36px;
+    gap: 20px;
   }
 
   .card-pad {
