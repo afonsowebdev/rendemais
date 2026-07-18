@@ -3894,8 +3894,11 @@ input.range::-moz-range-thumb {
     transition: width .2s ease, box-shadow .2s ease;
   }
 
+  /* 92px = 76px da sidebar recolhida + 16px da sua margem esquerda: a coluna tem de
+     reservar espaço até onde a sidebar (position:fixed) realmente termina, para o
+     header/conteúdo manterem a mesma margem de 36px em relação a ela, recolhida ou não. */
   .app.sb-collapsed {
-    grid-template-columns: 76px 1fr;
+    grid-template-columns: 92px 1fr;
   }
 
   /* manter o conteúdo na coluna da direita mesmo com a barra fora do fluxo */
