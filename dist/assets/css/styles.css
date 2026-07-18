@@ -523,69 +523,145 @@ button {
   display: none;
 }
 
-/* Seletor de mês, logo abaixo do header — alinhado à direita, sem título ao lado.
-   Padding lateral igual ao do header/.content (36px), para o alinhamento vertical
-   ficar consistente em toda a página. */
+/* Navegação de mês, logo abaixo do header, sempre centrada — nunca colada ao
+   cartão principal que vem a seguir. Padding lateral igual ao do header/.content,
+   para o alinhamento vertical ficar consistente em toda a página. */
 .page-intro {
   display: flex;
-  justify-content: flex-end;
-  padding: 24px 24px 0;
+  justify-content: center;
+  padding: 28px 24px 4px;
 }
 
 .page-intro-month {
   flex: none;
+  width: 100%;
+  max-width: 420px;
 }
 
-.month-seg {
-  height: 44px;
-  align-items: stretch;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0;
-  gap: 0;
-  box-shadow: var(--shadow-sm, none);
+/* Carrossel de mês: sem caixa, sem input, sem borda pesada — só o mês, uma dica de
+   gesto e um indicador de página, ladeados por duas setas circulares soltas. Grid de
+   3 colunas (não flex) para o texto ficar sempre centrado entre as setas, mesmo que
+   uma delas fique desativada (disabled não muda a largura). */
+.month-carousel {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
 }
 
-.month-seg button {
-  height: 100%;
-  width: 44px;
+.month-carousel-arrow {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  border-radius: 0;
-  background: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--ink-2);
-  transition: background .14s ease, color .14s ease;
+  box-shadow: var(--shadow-sm, none);
+  transition: background .15s ease, color .15s ease, transform .12s ease;
 }
 
-.month-seg button:first-child {
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-}
-
-.month-seg button:last-child {
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-
-.month-seg button:hover:not(:disabled) {
+.month-carousel-arrow:hover:not(:disabled) {
   background: var(--surface-2);
   color: var(--ink);
 }
 
-.month-seg button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+.month-carousel-arrow:active:not(:disabled) {
+  transform: scale(.93);
 }
 
-.month-seg-label {
-  gap: 7px;
-  padding: 0 14px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink);
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-  min-width: 132px;
+.month-carousel-arrow:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.month-carousel-arrow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.month-carousel-track {
+  display: flex;
   justify-content: center;
+  min-width: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.month-carousel-track:active {
+  cursor: grabbing;
+}
+
+.month-carousel-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.month-carousel-label {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.month-carousel-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.month-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.month-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background .15s ease, transform .15s ease;
+}
+
+.month-carousel-dot.on {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+
+/* Ao mudar de mês, o bloco de texto desliza suavemente na direção do gesto/seta —
+   nunca troca instantaneamente (efeito de carrossel, sem trocar de sítio o resto do
+   layout, só o conteúdo interno). */
+@keyframes month-slide-in-next {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes month-slide-in-prev {
+  from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.month-carousel-content.dir-next {
+  animation: month-slide-in-next .22s ease;
+}
+
+.month-carousel-content.dir-prev {
+  animation: month-slide-in-prev .22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .month-carousel-content.dir-next,
+  .month-carousel-content.dir-prev {
+    animation: none;
+  }
 }
 
 /* Botão de perfil do header interno (avatar + nome + dropdown) */
@@ -1969,11 +2045,7 @@ input.range::-moz-range-thumb {
 
   .page-intro-month {
     width: 100%;
-  }
-
-  .page-intro-month .month-seg {
-    width: 100%;
-    justify-content: space-between;
+    max-width: none;
   }
 
   .topbar-actions {

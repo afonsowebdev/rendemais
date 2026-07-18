@@ -144,16 +144,48 @@ function MobileSidebarDrawer({ open, onClose, route, go, account }) {
   );
 }
 
+/* Navegação de mês em formato "carrossel": nada de input/caixa — só o mês, uma
+   dica de gesto e um indicador de página decorativo, ladeados por duas setas
+   circulares soltas (não fazem parte de nenhum campo). A troca de mês continua a
+   passar sempre por onPrev/onNext (mesma lógica de shiftMonth já existente) — isto
+   é só a apresentação nova; arrastar/swipe já funcionam via pointer events, prontos
+   para gestos em ecrãs táteis e trackpad. */
 function MonthNav({ label, onPrev, onNext, canNext = true }) {
   const tr = useT();
+  const [dir, setDir] = React.useState(null);
+  const dragRef = React.useRef({ x: 0, active: false });
+  const SWIPE_THRESHOLD = 40;
+
+  const step = (delta, fn) => { setDir(delta < 0 ? "prev" : "next"); fn(); };
+
+  const onPointerDown = (e) => {
+    dragRef.current = { x: e.clientX, active: true };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const endDrag = (e) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    const dx = e.clientX - dragRef.current.x;
+    if (dx > SWIPE_THRESHOLD) step(-1, onPrev);
+    else if (dx < -SWIPE_THRESHOLD && canNext) step(1, onNext);
+  };
+
   return (
-    <div className="seg month-seg">
-      <button onClick={onPrev} aria-label="Mês anterior"><span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={15} /></span></button>
-      <span className="row month-seg-label">
-        <Icon name="cal" size={14} color="var(--ink-3)" />{label}
-      </span>
-      <button onClick={canNext ? onNext : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}>
-        <Icon name="chevR" size={15} />
+    <div className="month-carousel">
+      <button type="button" className="month-carousel-arrow" onClick={() => step(-1, onPrev)} aria-label="Mês anterior">
+        <span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={16} /></span>
+      </button>
+      <div className="month-carousel-track" onPointerDown={onPointerDown} onPointerUp={endDrag} onPointerCancel={endDrag} style={{ touchAction: "pan-y" }}>
+        <div key={label} className={"month-carousel-content" + (dir ? " dir-" + dir : "")}>
+          <div className="month-carousel-label">{label}</div>
+          <div className="month-carousel-hint">Deslize para os lados para mudar de mês</div>
+          <div className="month-carousel-dots" aria-hidden="true">
+            {[0, 1, 2, 3, 4].map((i) => <span key={i} className={"month-carousel-dot" + (i === 2 ? " on" : "")} />)}
+          </div>
+        </div>
+      </div>
+      <button type="button" className="month-carousel-arrow" onClick={canNext ? () => step(1, onNext) : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}>
+        <Icon name="chevR" size={16} />
       </button>
     </div>
   );
