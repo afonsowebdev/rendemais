@@ -719,7 +719,7 @@ button {
    UTILITARIOS / DIVERSOS
    ============================================================ */
 .content {
-  padding: 32px 36px 64px;
+  margin: 32px 36px 64px;
   display: flex;
   flex-direction: column;
   gap: 26px;
@@ -1950,6 +1950,7 @@ input.range::-moz-range-thumb {
   }
 
   .content {
+    margin: 0;
     padding: 18px 16px 32px;
     gap: 16px;
   }
@@ -3100,7 +3101,7 @@ input.range::-moz-range-thumb {
 /* density */
 [data-density="compact"] .content {
   gap: 14px;
-  padding: 20px 24px 44px;
+  margin: 20px 24px 44px;
 }
 
 /* ============================================================
@@ -3119,7 +3120,7 @@ input.range::-moz-range-thumb {
 
 [data-density="comfy"] .content {
   gap: 28px;
-  padding: 34px 40px 60px;
+  margin: 34px 40px 60px;
 }
 
 /* ============================================================
@@ -3391,11 +3392,14 @@ input.range::-moz-range-thumb {
   }
 }
 
-/* mantém o espaçamento lateral controlado no telemóvel (independente da densidade) */
-@media (max-width: 480px) {
+/* mantém o espaçamento lateral controlado no telemóvel (independente da densidade) —
+   a regra de densidade usa margin (para alinhar com o header no desktop) e tem mais
+   especificidade do que a .content geral do mobile, por isso é preciso repor aqui. */
+@media (max-width: 860px) {
 
   [data-density="comfy"] .content,
   [data-density="compact"] .content {
+    margin: 0 !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
@@ -6210,6 +6214,7 @@ input.range::-moz-range-thumb {
   }
 
   .content {
+    margin: 0;
     padding: 18px 16px 32px;
     gap: 16px;
   }
