@@ -211,14 +211,14 @@ function ProfileMenu({ account, go, onLogout }) {
    O seletor de mês vive à parte, na PageIntro logo abaixo, quando a rota o usa.
    Em mobile (CSS), reflui para 2 linhas: hambúrguer+logo+ações em cima, título por baixo
    — o botão hambúrguer e o logo central só existem/aparecem abaixo de 860px (ver styles.css). */
-function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
+/* Header global, único para todas as páginas autenticadas — em mobile só mostra
+   navegação/conta (hambúrguer, marca centrada, notificações, perfil): nunca título,
+   subtítulo, saudação ou informação específica da página (isso vive em PageIntro,
+   dentro do conteúdo). Em desktop o título continua aqui, como sempre. */
+function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
-  const isDashboard = route === "dashboard";
-  const primeiroNome = (account?.nome || "").trim().split(" ")[0];
-  const saudacao = primeiroNome ? `Olá, ${primeiroNome}` : "Olá";
-  const tituloMostrado = isDashboard ? saudacao : title;
   return (
     <div className="topbar">
       <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-label="Abrir menu de navegação" title="Menu">
@@ -227,9 +227,9 @@ function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onO
       <div className="mobile-brand">
         <Brand size={30} />
       </div>
-      {tituloMostrado && (
+      {title && (
         <div className="topbar-title" style={{ minWidth: 0 }}>
-          <h1 className="page-title">{tituloMostrado}</h1>
+          <h1 className="page-title">{title}</h1>
           {sub && <p className="page-sub">{sub}</p>}
         </div>
       )}
@@ -244,13 +244,22 @@ function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onO
   );
 }
 
-/* Seletor de mês, logo abaixo do header, alinhado à direita — só nas rotas com dados
-   mensais (Painel/Transações/Relatórios). Sem título/saudação aqui: isso já vive no header. */
-function PageIntro({ monthNav }) {
-  if (!monthNav) return null;
+/* Logo abaixo do header. Em desktop, título/saudação já vivem no Topbar — aqui só
+   passa o seletor de mês (quando existe), alinhado à direita, como sempre.
+   Em mobile, o Topbar esconde o título (ver CSS), por isso é aqui que ele reaparece:
+   título/subtítulo/saudação da página, seguidos do seletor de mês, ambos dentro do
+   conteúdo — nunca dentro do cabeçalho fixo. */
+function PageIntro({ title, sub, monthNav }) {
+  if (!title && !monthNav) return null;
   return (
     <div className="page-intro">
-      <div className="page-intro-month">{monthNav}</div>
+      {title && (
+        <div className="page-intro-title">
+          <h1 className="page-title">{title}</h1>
+          {sub && <p className="page-sub">{sub}</p>}
+        </div>
+      )}
+      {monthNav && <div className="page-intro-month">{monthNav}</div>}
     </div>
   );
 }

@@ -117,8 +117,13 @@ function DateOfBirthPicker({ value, onChange }) {
   );
 }
 
-function Onboarding({ onBack, onLogin }) {
+/* `mode="profile"` reaproveita os mesmos ecrãs 2/3 fora do registo — como um
+   convite opcional, pós-login, para completar o perfil que o registo rápido
+   (só nome+email+código+password) deixou por preencher. Não cria conta nem
+   sessão nova; grava com fin.updateAccount e fecha com onDone. */
+function Onboarding({ onBack, onLogin, mode = "signup", onDone }) {
   const fin = useFinance();
+  const isProfileMode = mode === "profile";
 
   const SITUACOES = [
     ["estudante", "Estudante", "bx-graduation"],
@@ -160,13 +165,17 @@ function Onboarding({ onBack, onLogin }) {
   const nomePais = (code) => PAIS_NOME[code] || code;
 
   const defPais = React.useMemo(() => BM.detectCountry(), []);
-  // Rascunho local: permite continuar o onboarding depois de recarregar a página.
-  // Nunca guarda password/código — só dados de configuração, e só até ao fim do Passo 3.
+  // Rascunho local: permite continuar o registo depois de recarregar a página.
+  // Nunca guarda password/código. Não se aplica ao modo "profile" (a conta já existe).
   const DRAFT_KEY = "rende_onboarding_draft";
-  const draft = React.useMemo(() => { try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }, []);
+  const draft = React.useMemo(() => { if (isProfileMode) return null; try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }, []);
   const limparRascunho = () => { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} };
 
-  const [step, setStep] = React.useState(() => (draft && [1, 2, 3].includes(draft.step)) ? draft.step : 1);
+  // O registo passou a ser só o Passo 1 (nome+email+nascimento) — os passos 2/3
+  // só existem hoje dentro do modo "profile" (convite pós-login). Por isso o registo
+  // começa sempre no Passo 1, mesmo que exista um rascunho antigo de um passo 2/3
+  // (de antes desta simplificação) — só o nome/email desse rascunho são reaproveitados.
+  const [step, setStep] = React.useState(() => (isProfileMode ? 2 : 1));
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState("");
   const [okMsg, setOkMsg] = React.useState("");
@@ -178,7 +187,9 @@ function Onboarding({ onBack, onLogin }) {
   const SEL_MAX = 3;
   const [f, setF] = React.useState(() => {
     const base = {
-      nome: "", email: "", password: "", password2: "", termos: false,
+      nome: (isProfileMode && fin.account && fin.account.nome) || "",
+      email: (isProfileMode && fin.account && fin.account.email) || "",
+      password: "", password2: "", termos: false,
       moeda: BM.currencyForCountry(defPais), pais: defPais, nascimento: "",
       preferencia: [], situacao: ["estudante"], rendimentos: [], despesas: [], objetivo: ["fundo"],
       planeamento: "mais-tarde", partilha: "nao", orcamento: "",
@@ -186,9 +197,10 @@ function Onboarding({ onBack, onLogin }) {
     };
     return draft && draft.f ? { ...base, ...draft.f, password: "", password2: "", code: "" } : base;
   });
-  // grava o rascunho sempre que muda (só até à conta ficar criada — ver criarPassword)
+  // grava o rascunho sempre que muda (só até à conta ficar criada — ver criarPassword;
+  // não se aplica ao modo "profile", que não tem rascunho)
   React.useEffect(() => {
-    if (typeof step !== "number" || step > 3) return;
+    if (isProfileMode || typeof step !== "number" || step > 3) return;
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, f: { ...f, password: "", password2: "", code: "" } })); } catch (e) {}
   }, [step, f]);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
@@ -217,14 +229,14 @@ function Onboarding({ onBack, onLogin }) {
     if (!f.nome.trim() || !f.email.trim()) return "Preenche o nome e o email.";
     if (!nomeOk) return "O nome só pode conter letras.";
     if (!emailOk) return "Introduza um endereço de email válido.";
+    if (idade == null) return "Indica a tua data de nascimento.";
+    if (idade < 16) return "Tens de ter pelo menos 16 anos para criar conta.";
     if (!f.termos) return "Tens de aceitar os Termos de Serviço e a Política de Privacidade.";
     return "";
   };
   const validaPasso2 = () => {
     if (!f.moeda) return "Escolhe a tua moeda principal.";
     if (!f.pais) return "Escolhe o teu país de residência.";
-    if (idade == null) return "Indica a tua data de nascimento.";
-    if (idade < 16) return "Tens de ter pelo menos 16 anos para criar conta.";
     return "";
   };
 
@@ -234,11 +246,21 @@ function Onboarding({ onBack, onLogin }) {
     setErr(""); setOkMsg(""); setStep((s) => s + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  const back = () => { setErr(""); setOkMsg(""); if (step === 1) return onBack && onBack(); setStep((s) => s - 1); window.scrollTo({ top: 0 }); };
+  const back = () => {
+    setErr(""); setOkMsg("");
+    if (isProfileMode && step === 2) return onDone && onDone(); // "Agora não" — fecha sem guardar
+    if (step === 1) return onBack && onBack();
+    setStep((s) => s - 1);
+    window.scrollTo({ top: 0 });
+  };
 
-  // Fim do Passo 3: dispara o registo e vai para a verificação de email.
-  const finalizar = async () => {
+  // Passo 1 (registo rápido): nome + email + data de nascimento só. Dispara o registo
+  // e vai para a verificação de email — o resto do perfil fica para depois (ver
+  // guardarPerfil, chamado a partir do modo "profile").
+  const criarConta = async () => {
     if (busy) return;
+    const e = validaPasso1();
+    if (e) { setErr(e); return; }
     setErr("");
     setBusy(true);
     try {
@@ -266,6 +288,11 @@ function Onboarding({ onBack, onLogin }) {
     if (f.password !== f.password2) { setErr("As palavras-passe não coincidem."); return; }
     if (!setupToken) { setErr("A sessão de configuração expirou. Confirma o email de novo."); setStep("verify"); return; }
     setBusy(true); setErr("");
+    // Marca, ANTES de criar a sessão, que esta conta ainda não passou pelo convite
+    // opcional de completar o perfil — tem de existir antes do fin.definirPassword
+    // resolver, porque essa chamada já atualiza fin.account e pode disparar a
+    // verificação no Shell antes do resto desta função continuar.
+    try { localStorage.setItem("rende_perfil_pendente_" + f.email.trim().toLowerCase(), "1"); } catch (e) {}
     try {
       // cria a conta + sessão e guarda o perfil (o backend recebe tudo de uma vez)
       await fin.definirPassword(setupToken, f.password, {
@@ -290,6 +317,32 @@ function Onboarding({ onBack, onLogin }) {
     } catch (e) { setErr(e.message || "Não foi possível criar a palavra-passe."); }
     finally { setBusy(false); }
   };
+  // Modo "profile": grava o perfil (passos 2/3) numa conta já existente, sem criar
+  // sessão nova nem passar por verificação de email/password.
+  const guardarPerfil = async () => {
+    if (busy) return;
+    setErr(""); setBusy(true);
+    try {
+      await fin.updateAccount({
+        pais: f.pais, moeda: f.moeda, moedas: [f.moeda],
+        perfil: situacaoLabel, preferencia: f.preferencia,
+        situacao: f.situacao, fontesRendimento: f.rendimentos, principaisDespesas: f.despesas, objetivo: f.objetivo,
+        planeamento: f.planeamento, partilha: f.partilha,
+        notificacoes: f.notificacoes, resumoSemanal: f.resumoSemanal,
+      });
+      if (f.objetivo.length) {
+        await Promise.all(f.objetivo.map((id) => {
+          const nome = (OBJETIVOS.find((o) => o[0] === id) || [null, id])[1];
+          return fin.meta.add({ nome, alvo: 0, atual: 0 });
+        }));
+      }
+      const orc = parseFloat(String(f.orcamento).replace(",", "."));
+      if (!isNaN(orc) && orc > 0) fin.updateAccount({ orcamento: orc });
+      try { localStorage.removeItem("rende_perfil_pendente_" + (f.email || "").trim().toLowerCase()); } catch (e) {}
+      onDone && onDone();
+    } catch (e) { setErr(e.message || "Não foi possível guardar o perfil."); }
+    finally { setBusy(false); }
+  };
   const doResend = async () => {
     setErr("");
     try { await fin.reenviarCodigo(f.email); setOkMsg("Enviámos um novo código para o teu email."); }
@@ -302,15 +355,18 @@ function Onboarding({ onBack, onLogin }) {
       <div className="ob1">
         <div className="ob1-form">
           <div className="ob1-form-in">
-            <div className="ob1-brand"><Brand /></div>
-            {onBack && <button className="auth-back" onClick={onBack}><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
+            <div className="ob1-brand ob1-brand-center"><Brand /></div>
+            {onBack && <button className="auth-back auth-back-strong" onClick={onBack}><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
             <h1 className="ob1-h1">Crie a sua conta</h1>
             <p className="ob1-sub">Comece a organizar a sua vida financeira com o Rende+.</p>
-            <p className="ob1-sub-note">Registe-se gratuitamente e configure a sua experiência em poucos passos.</p>
+            <p className="ob1-sub-note">Registe-se em menos de um minuto — o resto do perfil configura-se depois, com calma.</p>
 
             <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" autoComplete="name" /></Field>
             <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" autoComplete="email" /></Field>
-            <div className="ob-note tiny" style={{ marginBottom: 14 }}><Icon name="lock" size={13} color="var(--ink-3)" /> Por segurança, a palavra-passe é criada no fim, só depois de confirmares o teu email.</div>
+            <Field label="Data de nascimento" hint="Idade mínima: 16 anos.">
+              <DateOfBirthPicker value={f.nascimento} onChange={(iso) => setF((s) => ({ ...s, nascimento: iso }))} />
+              {idade != null && <div className="tiny" style={{ marginTop: 6, fontWeight: 700, color: idade < 16 ? "var(--neg)" : "var(--accent)" }}>{idade < 16 ? `Tens ${idade} anos — a idade mínima é 16.` : `Tens ${idade} anos.`}</div>}
+            </Field>
 
             <button type="button" className={"ob1-terms" + (f.termos ? " on" : "")} onClick={() => setF((s) => ({ ...s, termos: !s.termos }))}>
               <span className="ob-check-box" aria-hidden="true">{f.termos && <i className="bx bx-check"></i>}</span>
@@ -319,9 +375,7 @@ function Onboarding({ onBack, onLogin }) {
 
             {err && <div className="alert bad" style={{ margin: "4px 0 12px", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
-            <button className="btn btn-primary ob1-cta" onClick={next}>Criar conta gratuita</button>
-
-            <div className="ob1-secure"><span className="ob1-secure-ico"><Icon name="shield" size={16} color="var(--accent)" /></span><div><b>Os seus dados estão protegidos connosco.</b><span>Nunca partilhamos as suas informações.</span></div></div>
+            <button className="btn btn-primary ob1-cta" disabled={busy} onClick={criarConta}>{busy ? "A criar…" : "Criar Conta"}</button>
 
             <div className="ob1-sep"><span>Também pode continuar com</span></div>
 
@@ -375,7 +429,7 @@ function Onboarding({ onBack, onLogin }) {
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
             {busy ? "A confirmar…" : "Confirmar email"}
           </button>
-          <p className="ob1-have"><button onClick={() => { setStep(3); setErr(""); }}>Voltar e rever os dados</button></p>
+          <p className="ob1-have"><button onClick={() => { setStep(1); setErr(""); }}>Corrigir o email</button></p>
         </div>
       </div>
     );
@@ -387,7 +441,7 @@ function Onboarding({ onBack, onLogin }) {
       <div className="ob-verify-wrap">
         <div className="ob-verify-card">
           <div className="ob1-brand" style={{ marginBottom: 18 }}><Brand /></div>
-          <div className="alert ok" style={{ margin: "0 0 14px", padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>Email confirmado! 🎉</span></div>
+          <div className="alert ok" style={{ margin: "0 0 14px", padding: "10px 12px" }}><Icon name="check" size={16} color="var(--accent)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>Email confirmado.</span></div>
           <h1 className="ob1-h1" style={{ fontSize: 26 }}>Cria a tua palavra-passe</h1>
           <p className="ob1-sub">Último passo: define uma palavra-passe segura para proteger a tua conta.</p>
           <Field label="Palavra-passe"><PwInput value={f.password} onChange={set("password")} placeholder="Crie uma senha segura" show={showPw} toggle={() => setShowPw((v) => !v)} autoComplete="new-password" autoFocus /></Field>
@@ -405,13 +459,17 @@ function Onboarding({ onBack, onLogin }) {
   }
 
   /* ---------------- CHROME comum aos passos 2 e 3 ---------------- */
-  const pct = step === 2 ? 67 : 100;
+  // Fora do registo (mode="profile"), estes dois ecrãs são o convite opcional inteiro
+  // (2 passos, não 3) — a etiqueta e a barra de progresso refletem isso.
+  const stepLabel = isProfileMode ? step - 1 : step;
+  const totalLabel = isProfileMode ? 2 : 3;
+  const pct = Math.round((stepLabel / totalLabel) * 100);
   const chrome = (main, aside) => (
     <div className="ob">
       <header className="ob-top">
         <div className="ob-top-brand"><Brand /></div>
         <div className="ob-top-prog">
-          <div className="ob-top-prog-lbl"><b>Passo {step} de 3</b><span>{pct}%</span></div>
+          <div className="ob-top-prog-lbl"><b>Passo {stepLabel} de {totalLabel}</b><span>{pct}%</span></div>
           <div className="ob-prog-bar"><i style={{ width: pct + "%" }} /></div>
         </div>
         <div className="ob-top-user"><span className="ob-avatar">{(f.nome || "?").trim().slice(0, 2).toUpperCase() || "FA"}</span></div>
@@ -465,10 +523,6 @@ function Onboarding({ onBack, onLogin }) {
               )}
               <button type="button" className="ob-inline-link" onClick={() => setMoedaAberta((v) => !v)}>{moedaAberta ? "Usar a moeda sugerida" : "Alterar moeda"}</button>
             </Field>
-            <Field label="Data de nascimento" hint="Calculamos a tua idade a partir desta data (mínimo 16 anos).">
-              <DateOfBirthPicker value={f.nascimento} onChange={(iso) => setF((s) => ({ ...s, nascimento: iso }))} />
-              {idade != null && <div className="tiny" style={{ marginTop: 6, fontWeight: 700, color: idade < 16 ? "var(--neg)" : "var(--accent)" }}>{idade < 16 ? `Tens ${idade} anos — a idade mínima é 16.` : `Tens ${idade} anos.`}</div>}
-            </Field>
           </div>
         </section>
 
@@ -485,7 +539,7 @@ function Onboarding({ onBack, onLogin }) {
         {err && <div className="alert bad" style={{ margin: "4px 0 0", padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
         <div className="ob-actions">
-          <button className="btn btn-ghost" onClick={back}><Icon name="chevR" size={15} style={{ transform: "rotate(180deg)" }} /> Voltar</button>
+          <button className="btn btn-ghost" onClick={back}>{isProfileMode ? "Agora não" : <><Icon name="chevR" size={15} style={{ transform: "rotate(180deg)" }} /> Voltar</>}</button>
           <button className="btn btn-primary" onClick={next}>Continuar <Icon name="chevR" size={15} color="#fff" /></button>
         </div>
       </>
@@ -614,9 +668,9 @@ function Onboarding({ onBack, onLogin }) {
         <h4 className="ob-card-t">Está quase lá</h4>
         <p className="ob-card-d">Com estas informações o Rende+ poderá oferecer uma experiência personalizada para si.</p>
         <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
-        <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 13, fontSize: 15, marginTop: 4 }} onClick={finalizar}>
+        <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: 13, fontSize: 15, marginTop: 4 }} onClick={guardarPerfil}>
           {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
-          {busy ? "A preparar…" : <>Entrar no painel <Icon name="chevR" size={16} color="#fff" /></>}
+          {busy ? "A guardar…" : <>Guardar e concluir <Icon name="chevR" size={16} color="#fff" /></>}
         </button>
         <button className="ob-back-link" onClick={back}><Icon name="chevR" size={14} style={{ transform: "rotate(180deg)" }} /> Voltar</button>
       </div>

@@ -40,6 +40,21 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Secção ativa na navegação (scroll-spy): observa as secções âncora e marca
+  // o link correspondente enquanto essa secção está visível — complementa o
+  // scroll suave já existente (goSection), não o substitui.
+  const [activeSection, setActiveSection] = React.useState("");
+  React.useEffect(() => {
+    const ids = ["funcionalidades", "vantagens", "como-funciona", "precos", "faq"];
+    const els = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!els.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); });
+    }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
   // Menu suspenso do cabeçalho mobile (aberto pelo botão junto ao logótipo).
   const [menuOpen, setMenuOpen] = React.useState(false);
   React.useEffect(() => {
@@ -107,7 +122,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
     { initial: "B", img: "assets/img/social-proof/pessoa-4.jpg" },
   ];
 
-  const NAV = [["funcionalidades", "Funcionalidades"], ["como-funciona", "Como funciona"], ["vantagens", "Vantagens"], ["precos", "Preços"], ["faq", "FAQ"]];
+  const NAV = [["funcionalidades", "Funcionalidades"], ["vantagens", "Vantagens"], ["como-funciona", "Como funciona"], ["precos", "Preços"], ["faq", "FAQ"]];
   const NAV_ICONS = { funcionalidades: "grid", "como-funciona": "info", vantagens: "spark", precos: "tag", faq: "book" };
 
   const FEATS = [
@@ -156,7 +171,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <a href="#" onClick={goTop} style={{ textDecoration: "none", cursor: "pointer" }} aria-label="Ir para o topo"><Brand /></a>
           </div>
           <nav className="lp-nav">
-            {NAV.map(([id, label]) => <a key={id} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
+            {NAV.map(([id, label]) => <a key={id} className={activeSection === id ? "active" : ""} href={"#" + id} onClick={(e) => goSection(e, id)}>{label}</a>)}
           </nav>
         </div>
         <div className="lp-header-actions">
@@ -189,7 +204,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
                   <i className="bx bx-log-in" aria-hidden="true"></i> Iniciar sessão
                 </button>
                 <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); onCreate(); }}>
-                  <i className="bx bx-user-plus" aria-hidden="true"></i> Criar conta gratuita
+                  <i className="bx bx-user-plus" aria-hidden="true"></i> Criar Conta
                 </button>
               </div>
             )}
@@ -207,7 +222,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <span className="lp-menu-label">Menu</span>
             <nav className="lp-menu-nav">
               {NAV.map(([id, label]) => (
-                <a key={id} className="lp-menu-nav-link" href={"#" + id} onClick={(e) => { goSection(e, id); setMenuOpen(false); }}>
+                <a key={id} className={"lp-menu-nav-link" + (activeSection === id ? " active" : "")} href={"#" + id} onClick={(e) => { goSection(e, id); setMenuOpen(false); }}>
                   <span className="lp-menu-nav-ico"><Icon name={NAV_ICONS[id]} size={17} color="var(--ink-2)" /></span>
                   {label}
                 </a>
@@ -250,7 +265,7 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
             <h1 className="lp2-h1">Assuma o controlo da sua <span className="accent">vida financeira.</span></h1>
             <p className="lp-sub">O Rende+ é uma aplicação de gestão financeira que o ajuda a organizar receitas, despesas, objetivos financeiros e o orçamento mensal, tudo num único lugar.</p>
             <div className="lp-cta">
-              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Começar gratuitamente <Icon name="chevR" size={16} color="#fff" /></button>
+              <button className="btn btn-primary" style={{ padding: "13px 22px", fontSize: 15 }} onClick={onCreate}>Começar <Icon name="chevR" size={16} color="#fff" /></button>
               <button className="btn lp2-demo" style={{ padding: "13px 22px", fontSize: 15 }} onClick={(e) => goSection(e, "como-funciona")}><i className="bx bx-play-circle" aria-hidden="true" style={{ fontSize: 19 }}></i> Ver demonstração</button>
             </div>
             <div className="lp-trust">
@@ -370,6 +385,9 @@ function Landing({ onCreate, onLogin, theme, setTheme, lang, setLang, tr }) {
                 <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Partilha de despesas em grupo</li>
                 <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Notificações automáticas</li>
                 <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Bloqueio por PIN e inatividade</li>
+                <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Assistente Rende+ (IA financeira pessoal)</li>
+                <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Previsão de saldo e exportação de relatórios</li>
+                <li><Icon name="check" size={16} color="var(--accent)" sw={2.4} /> Agenda financeira completa (lembretes, recorrências e calendário)</li>
               </ul>
               <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "auto" }} onClick={onCreate}>Experimentar o Premium</button>
             </div>

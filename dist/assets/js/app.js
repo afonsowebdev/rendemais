@@ -267,6 +267,7 @@ function EntryModal({ type, item, onClose }) {
   );
 }
 function Shell() {
+  var _a;
   const fin = useFinance();
   const prem = usePremium();
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -277,6 +278,23 @@ function Shell() {
     if (h === "entrar") return "login";
     return null;
   });
+  const [mostrarCompletarPerfil, setMostrarCompletarPerfil] = useState(false);
+  useEffect(() => {
+    if (!fin.session || !fin.account || !fin.account.email) return;
+    try {
+      const chave = "rende_perfil_pendente_" + fin.account.email.trim().toLowerCase();
+      if (localStorage.getItem(chave) === "1") setMostrarCompletarPerfil(true);
+    } catch (e) {
+    }
+  }, [fin.session, fin.account && fin.account.email]);
+  const fecharCompletarPerfil = () => {
+    var _a2;
+    setMostrarCompletarPerfil(false);
+    try {
+      localStorage.removeItem("rende_perfil_pendente_" + (((_a2 = fin.account) == null ? void 0 : _a2.email) || "").trim().toLowerCase());
+    } catch (e) {
+    }
+  };
   const [modal, setModal] = useState(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -373,9 +391,9 @@ function Shell() {
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }, []);
   const go = (id) => {
-    var _a;
+    var _a2;
     setRoute(ROUTE_ALIASES[id] || id);
-    (_a = document.querySelector(".main")) == null ? void 0 : _a.scrollTo(0, 0);
+    (_a2 = document.querySelector(".main")) == null ? void 0 : _a2.scrollTo(0, 0);
   };
   const open = (type, item) => setModal({ type, item });
   const panel = /* @__PURE__ */ React.createElement(TweaksPanel, { open: tweaksOpen, onOpenChange: setTweaksOpen }, /* @__PURE__ */ React.createElement(TweakSection, { label: "Tema" }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Modo escuro", value: t.dark, onChange: (v) => setTweak("dark", v) }), /* @__PURE__ */ React.createElement(TweakColor, { label: "Cor de acento", value: t.accent, options: ["#14a06b", "#0f6fff", "#7a5ae0", "#0f2540", "#e0792b"], onChange: (v) => setTweak("accent", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Tipografia" }), /* @__PURE__ */ React.createElement(TweakSelect, { label: "Tipo de letra", value: t.font, options: ["Inter", "Manrope", "Poppins", "Plus Jakarta Sans", "Montserrat", "Comfortaa", "Quicksand"], onChange: (v) => setTweak("font", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Layout" }), /* @__PURE__ */ React.createElement(TweakRadio, { label: "Densidade", value: t.density, options: ["compact", "regular", "comfy"], onChange: (v) => setTweak("density", v) }), /* @__PURE__ */ React.createElement(TweakSlider, { label: "Cantos", value: t.radius, min: 4, max: 24, step: 2, unit: "px", onChange: (v) => setTweak("radius", v) }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Contraste alto", value: contraste, onChange: (v) => setTweak("contraste", v) }), /* @__PURE__ */ React.createElement(TweakSection, { label: "Privacidade" }), /* @__PURE__ */ React.createElement(TweakToggle, { label: "Ocultar valores", value: ocultar, onChange: (v) => setTweak("ocultar", v) }));
@@ -383,6 +401,9 @@ function Shell() {
     if (authView === "signup") return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Onboarding, { onBack: () => setAuthView(null), onLogin: () => setAuthView("login") }), panel);
     if (authView) return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Auth, { initialMode: authView, onBack: () => setAuthView(null), onSignup: () => setAuthView("signup") }), panel);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Landing, { onCreate: () => setAuthView("signup"), onLogin: () => setAuthView("login"), theme, setTheme, lang, setLang, tr }), panel);
+  }
+  if (mostrarCompletarPerfil) {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Onboarding, { mode: "profile", onDone: fecharCompletarPerfil }), panel);
   }
   const P = PAGES[route] || {};
   const TITULOS = {
@@ -399,6 +420,9 @@ function Shell() {
     perfil: tr("lbl_profile")
   };
   const pageTitle = route === "assistente" ? null : TITULOS[route] || "Painel";
+  const primeiroNome = (((_a = fin.account) == null ? void 0 : _a.nome) || "").trim().split(" ")[0];
+  const saudacao = primeiroNome ? `Ol\xE1, ${primeiroNome}` : "Ol\xE1";
+  const tituloMostrado = route === "dashboard" ? saudacao : pageTitle;
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
     dashboard: "Acompanhe a sua vida financeira em tempo real.",
@@ -421,7 +445,7 @@ function Shell() {
     { id: "evento", label: "Novo evento", desc: "Agendar um lembrete de pagamento", icon: "cal", onClick: () => setNovoEventoOpen(true) },
     { id: "grupo", label: "Novo grupo", desc: "Partilhar despesas com outras pessoas", icon: "users", onClick: () => go(ehPremium ? "partilha" : "premium") }
   ];
-  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement(MobileSidebarDrawer, { open: mobileMenuOpen, onClose: () => setMobileMenuOpen(false), route, go, account: fin.account }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(Topbar, { route, account: fin.account, title: pageTitle, sub: subByRoute[route], theme, setTheme, onLogout: fin.logout, go, onOpenMobileMenu: () => setMobileMenuOpen(true) }), /* @__PURE__ */ React.createElement(PageIntro, { monthNav: showMonthNav ? /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "app" + (sbCollapsed ? " sb-collapsed" : "") }, pagamentoMsg && /* @__PURE__ */ React.createElement("div", { onClick: () => setPagamentoMsg(""), style: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: 460, width: "calc(100% - 32px)", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "13px 16px", display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" } }, /* @__PURE__ */ React.createElement(Icon, { name: "spark", size: 18, color: "var(--accent)" }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 600, lineHeight: 1.5 } }, pagamentoMsg)), /* @__PURE__ */ React.createElement(Sidebar, { route, go, account: fin.account, collapsed: sbCollapsed, onToggle: toggleSidebar }), /* @__PURE__ */ React.createElement(MobileSidebarDrawer, { open: mobileMenuOpen, onClose: () => setMobileMenuOpen(false), route, go, account: fin.account }), /* @__PURE__ */ React.createElement("div", { className: "main" }, /* @__PURE__ */ React.createElement(Topbar, { title: tituloMostrado, sub: subByRoute[route], theme, setTheme, onLogout: fin.logout, go, onOpenMobileMenu: () => setMobileMenuOpen(true) }), /* @__PURE__ */ React.createElement(PageIntro, { title: tituloMostrado, sub: subByRoute[route], monthNav: showMonthNav ? /* @__PURE__ */ React.createElement(
     MonthNav,
     {
       label: fin.monthLabel,

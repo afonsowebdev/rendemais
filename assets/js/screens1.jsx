@@ -211,10 +211,10 @@ function Auth({ initialMode, onBack, onSignup }) {
   return (
     <div className="login-wrap login-wrap-v2">
       <div className="login-form">
-        <div className="login-card">
+        <form className="login-card" onSubmit={(e) => { e.preventDefault(); runPrimary(); }}>
           <div className="login-form-brand"><Brand /></div>
           <div className="login-brand-top"><Brand /></div>
-          {onBack && <button onClick={onBack} className="auth-back"><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
+          {onBack && <button type="button" onClick={onBack} className="auth-back auth-back-strong"><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
           <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-.02em", margin: "0 0 6px" }}>{loginTitle}</h2>
           <p className="muted" style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 500, lineHeight: 1.55 }}>{loginSub}</p>
 
@@ -307,7 +307,7 @@ function Auth({ initialMode, onBack, onSignup }) {
                 <span className="login-remember-box" aria-hidden="true">{remember && <Icon name="check" size={13} color="#fff" />}</span>
                 <span>Manter sessão iniciada</span>
               </button>
-              <button onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>{tr("auth_forgot_link")}</button>
+              <button type="button" onClick={() => goMode("forgot")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", fontSize: 12.5, cursor: "pointer", padding: 0 }}>{tr("auth_forgot_link")}</button>
             </div>
           )}
 
@@ -327,7 +327,7 @@ function Auth({ initialMode, onBack, onSignup }) {
           {err && <div className="alert bad" style={{ marginBottom: 12, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
 
           <style>{`@keyframes rmaisSpin{to{transform:rotate(360deg)}}`}</style>
-          <button className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4, border: "none", opacity: busy ? 0.8 : 1, cursor: busy ? "wait" : "pointer" }} onClick={runPrimary}>
+          <button type="submit" className="btn btn-primary" disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px", fontSize: 15, marginTop: 4, border: "none", opacity: busy ? 0.8 : 1, cursor: busy ? "wait" : "pointer" }}>
             {busy && <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,.45)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", marginRight: 8, animation: "rmaisSpin .6s linear infinite", verticalAlign: "-2px" }} />}
             {busy ? loadingLabel : primaryLabel}
           </button>
@@ -347,12 +347,12 @@ function Auth({ initialMode, onBack, onSignup }) {
           )}
 
           <p className="muted tiny" style={{ textAlign: "center", marginTop: 20, fontWeight: 600 }}>
-            {mode === "signup" && <>{tr("auth_have_account")} <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
-            {mode === "login" && <>{tr("auth_no_account")} <button onClick={() => (onSignup ? onSignup() : goMode("signup"))} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Criar conta gratuita</button></>}
-            {mode === "verify" && <button onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
-            {(mode === "forgot" || mode === "reset") && <button onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
+            {mode === "signup" && <>{tr("auth_have_account")} <button type="button" onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_signin_link")}</button></>}
+            {mode === "login" && <>{tr("auth_no_account")} <button type="button" onClick={() => (onSignup ? onSignup() : goMode("signup"))} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Criar Conta</button></>}
+            {mode === "verify" && <button type="button" onClick={() => goMode("signup")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>Voltar e corrigir o email</button>}
+            {(mode === "forgot" || mode === "reset") && <button type="button" onClick={() => goMode("login")} style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 700, font: "inherit", cursor: "pointer", padding: 0 }}>{tr("auth_back_login")}</button>}
           </p>
-        </div>
+        </form>
       </div>
 
       <aside className="login-aside">
@@ -397,7 +397,6 @@ function Dashboard({ go, open }) {
   const recent = [...fin.despMes].sort((a, b) => (b.data || "").localeCompare(a.data || "")).slice(0, 6);
   const recSpark = fin.series.map((m) => m.rec);
   const gastoSpark = fin.series.map((m) => m.gasto);
-  const taxaPoup = fin.totalRec > 0 ? Math.round((fin.saldo / fin.totalRec) * 100) : 0;
 
   if (!hasData) {
     return (
@@ -436,12 +435,12 @@ function Dashboard({ go, open }) {
     );
   }
 
+  // As informações de "estás a poupar X%" e de metas quase concluídas passaram para
+  // as notificações (ver gerarNotificacoes em premium.jsx) — o Dashboard mantém só os
+  // alertas realmente acionáveis (orçamento perto do limite, saldo negativo).
   const alerts = [];
   if (pctGasto != null && pctGasto >= 80) alerts.push(["warn", "bell", tt("dash_alert_budget_t", { pct: pctGasto }), tt("dash_alert_budget_d", { x: BM.eur(Math.max(0, orc - fin.totalGasto)), y: BM.eur0(orc) })]);
   if (fin.saldo < 0) alerts.push(["bad", "info", tr("dash_alert_neg_t"), tt("dash_alert_neg_d", { x: BM.eur(-fin.saldo) })]);
-  else if (taxaPoup >= 10) alerts.push(["ok", "target", tt("dash_alert_save_t", { pct: taxaPoup }), tr("dash_alert_save_d")]);
-  const nearMeta = fin.data.metas.find((m) => m.atual / m.alvo >= 0.7 && m.atual < m.alvo);
-  if (nearMeta) alerts.push(["ok", "target", tt("dash_alert_meta_t", { nome: nearMeta.nome }), tt("dash_alert_meta_d", { x: BM.eur0(nearMeta.alvo - nearMeta.atual) })]);
 
   // Objetivo em destaque: a meta aberta mais próxima da conclusão (maior progresso).
   const metasAbertas = fin.data.metas.filter((m) => !m.fechada);
@@ -499,9 +498,12 @@ function Dashboard({ go, open }) {
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 14 }}>
             <div><div className="section-title">{tr("dash_evolution")}</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tr("dash_evolution_sub")}</div></div>
-            <div className="row tiny" style={{ fontWeight: 700 }}>
-              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")}</span>
-              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")}</span>
+            <div className="row" style={{ gap: 14, alignItems: "center" }}>
+              <div className="row tiny" style={{ fontWeight: 700 }}>
+                <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")}</span>
+                <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")}</span>
+              </div>
+              <button type="button" className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("relatorios")}><Icon name="chart" size={14} /> Ver histórico</button>
             </div>
           </div>
           <LineChart data={fin.series} height={216} />

@@ -111,8 +111,7 @@ function Paywall() {
     <div className="content">
       <div className="card card-pad paywall">
         <div className="prem-crown"><Icon name="spark" size={26} color="#fff" /></div>
-        <h2 style={{ fontSize: 23, fontWeight: 700, letterSpacing: "-.01em", marginTop: 4 }}>Rende+ Premium</h2>
-        <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>Controla o teu dinheiro com superpoderes.</p>
+        <p className="muted" style={{ marginTop: 10, fontSize: 14 }}>Controla o teu dinheiro com superpoderes.</p>
 
         <div className="prem-feats">
           {PREM_FEATS.map((f) => (
@@ -1823,6 +1822,18 @@ function gerarNotificacoes(prem, dados, account) {
     const pct = Math.round((gasto / orc) * 100);
     if (gasto >= orc) out.push({ chave: "orc:over:" + mes, cat: "orcamento", sev: "urgent", icon: "wallet", titulo: "Orçamento do mês ultrapassado", texto: "Já gastaste " + BM.eur(gasto) + " de " + BM.eur(orc) + " (" + pct + "%).", rota: "relatorios" });
     else if (gasto >= orc * 0.8) out.push({ chave: "orc:80:" + mes, cat: "orcamento", sev: "warn", icon: "wallet", titulo: "Perto do limite do orçamento", texto: "Já usaste " + pct + "% (" + BM.eur(gasto) + " de " + BM.eur(orc) + ").", rota: "relatorios" });
+  }
+
+  // 3b) Taxa de poupança do mês (mudou-se do Dashboard para aqui — mesma fórmula/limiar
+  // que lá estava: saldo/recebido, a partir de 10%).
+  const despesasMes = (d0.despesas || []).filter((e) => BM.monthKey(e.data) === mes);
+  const rendimentosMes = (d0.rendimentos || []).filter((r) => BM.monthKey(r.data) === mes);
+  const totalRecMes = rendimentosMes.reduce((a, r) => a + (+r.valor || 0), 0);
+  const totalGastoMes = despesasMes.reduce((a, e) => a + (+e.valor || 0), 0);
+  const saldoMes = totalRecMes - totalGastoMes;
+  const taxaPoupMes = totalRecMes > 0 ? Math.round((saldoMes / totalRecMes) * 100) : 0;
+  if (saldoMes >= 0 && taxaPoupMes >= 10) {
+    out.push({ chave: "poupanca:" + mes, cat: "poupanca", sev: "info", icon: "target", titulo: "Estás a poupar " + taxaPoupMes + "% do que recebes", texto: "Bom trabalho — continua assim!", rota: "relatorios" });
   }
 
   // 4) Metas de poupança (50% / concluída)

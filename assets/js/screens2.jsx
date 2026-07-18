@@ -84,11 +84,7 @@ function Poupanca({ open }) {
     <div className="content goals-page">
       <div className="goals-main">
         <div className="goals-header">
-          <div>
-            <h1 className="goals-title">Objetivos</h1>
-            <p className="goals-sub">Acompanhe o progresso dos seus objetivos financeiros e mantenha-se focado nas suas metas.</p>
-          </div>
-          <div className="row" style={{ gap: 10, flex: "none" }}>
+          <div className="row" style={{ gap: 10, flex: "none", marginLeft: "auto" }}>
             <button className="btn btn-ghost" onClick={() => setFiltrosVisiveis((v) => !v)} aria-pressed={filtrosVisiveis}><Icon name="filter" size={15} /> Filtros</button>
             <button className="btn btn-primary" onClick={() => open("meta")}><Icon name="plus" size={16} color="#fff" /> Novo objetivo</button>
           </div>
@@ -822,18 +818,6 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
 
   return (
     <div className="content" style={{ maxWidth: 880, margin: "0 auto" }}>
-      <Section title="Conta" icon="user">
-        <Rowi label="Dados pessoais" sub={[a.nome, a.email].filter(Boolean).join(" · ") || "Sem dados"}>
-          <button className="btn btn-ghost" onClick={() => open("perfil")}><Icon name="edit" size={14} /> Editar</button>
-        </Rowi>
-        <Rowi label="Ver perfil completo" sub="Dados, estatísticas e preferências financeiras">
-          <button className="btn btn-ghost" onClick={() => go("perfil")}><Icon name="user" size={14} /> Abrir</button>
-        </Rowi>
-        <Rowi label="Terminar sessão" sub="Voltar ao ecrã de início de sessão" last>
-          <button className="btn btn-ghost" onClick={fin.logout}><Icon name="logout" size={14} /> Sair</button>
-        </Rowi>
-      </Section>
-
       <Section title="Aparência" icon="sun">
         <Rowi label="Modo escuro" sub="Reduz o brilho em ambientes com pouca luz">
           <Toggle on={theme === "dark"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />

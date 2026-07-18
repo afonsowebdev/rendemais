@@ -457,6 +457,22 @@ function Shell() {
     if (h === "entrar") return "login";
     return null;
   }); // null = landing | "signup" | "login" — abre direto via /#criar-conta ou /#entrar
+  // Convite opcional pós-login para completar o perfil (país, moeda, preferências,
+  // situação financeira) que o registo rápido (só nome+email+nascimento) deixou por
+  // preencher — ver Onboarding mode="profile" e a marca "rende_perfil_pendente_<email>"
+  // gravada em criarPassword (onboarding.jsx). Nunca bloqueia: fecha com "Agora não".
+  const [mostrarCompletarPerfil, setMostrarCompletarPerfil] = useState(false);
+  useEffect(() => {
+    if (!fin.session || !fin.account || !fin.account.email) return;
+    try {
+      const chave = "rende_perfil_pendente_" + fin.account.email.trim().toLowerCase();
+      if (localStorage.getItem(chave) === "1") setMostrarCompletarPerfil(true);
+    } catch (e) {}
+  }, [fin.session, fin.account && fin.account.email]);
+  const fecharCompletarPerfil = () => {
+    setMostrarCompletarPerfil(false);
+    try { localStorage.removeItem("rende_perfil_pendente_" + (fin.account?.email || "").trim().toLowerCase()); } catch (e) {}
+  };
   const [modal, setModal] = useState(null); // { type, item }
   const [moreOpen, setMoreOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false); // bottom sheet do botão "+" central (mobile)
@@ -570,6 +586,10 @@ function Shell() {
     return (<><Landing onCreate={() => setAuthView("signup")} onLogin={() => setAuthView("login")} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} tr={tr} />{panel}</>);
   }
 
+  if (mostrarCompletarPerfil) {
+    return (<><Onboarding mode="profile" onDone={fecharCompletarPerfil} />{panel}</>);
+  }
+
   const P = PAGES[route] || {};
   // Títulos diretos em PT (mesmo padrão já usado para as rotas Premium) — os nomes da
   // nova navegação (Painel/Transações/Objetivos/Agenda Financeira) não têm chave de
@@ -582,6 +602,12 @@ function Shell() {
   // A página do Assistente já mostra o próprio título/subtítulo (coluna esquerda) —
   // não duplicar no header partilhado.
   const pageTitle = route === "assistente" ? null : (TITULOS[route] || "Painel");
+  // No Painel, o header mostra a saudação em vez do título genérico — cálculo único,
+  // partilhado pelo Topbar (desktop) e pelo PageIntro (mobile, onde o título do
+  // header some e reaparece aqui em cima do conteúdo).
+  const primeiroNome = (fin.account?.nome || "").trim().split(" ")[0];
+  const saudacao = primeiroNome ? `Olá, ${primeiroNome}` : "Olá";
+  const tituloMostrado = route === "dashboard" ? saudacao : pageTitle;
   // portão de plano: quem tem premium ativo usa as funcionalidades; os outros veem o Paywall
   const ehPremium = !!(fin.account && fin.account.plano === "premium");
   const subByRoute = {
@@ -621,8 +647,8 @@ function Shell() {
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <MobileSidebarDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} route={route} go={go} account={fin.account} />
       <div className="main">
-        <Topbar route={route} account={fin.account} title={pageTitle} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} onOpenMobileMenu={() => setMobileMenuOpen(true)} />
-        <PageIntro monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
+        <Topbar title={tituloMostrado} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} onOpenMobileMenu={() => setMobileMenuOpen(true)} />
+        <PageIntro title={tituloMostrado} sub={subByRoute[route]} monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
           canNext={!fin.isCurrentMonth} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
         {route === "assistente" && (ehPremium ? <AssistenteRendePage go={go} open={open} /> : <Paywall />)}

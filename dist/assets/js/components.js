@@ -128,19 +128,15 @@ function ProfileMenu({ account, go, onLogout }) {
     onLogout();
   } }, /* @__PURE__ */ React.createElement(Icon, { name: "logout", size: 16 }), " ", tr("logout_full"))));
 }
-function Topbar({ route, account, title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
+function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
-  const isDashboard = route === "dashboard";
-  const primeiroNome = ((account == null ? void 0 : account.nome) || "").trim().split(" ")[0];
-  const saudacao = primeiroNome ? `Ol\xE1, ${primeiroNome}` : "Ol\xE1";
-  const tituloMostrado = isDashboard ? saudacao : title;
-  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn topbar-hamburger", onClick: onOpenMobileMenu, "aria-label": "Abrir menu de navega\xE7\xE3o", title: "Menu" }, /* @__PURE__ */ React.createElement(Icon, { name: "menu", size: 22 })), /* @__PURE__ */ React.createElement("div", { className: "mobile-brand" }, /* @__PURE__ */ React.createElement(Brand, { size: 30 })), tituloMostrado && /* @__PURE__ */ React.createElement("div", { className: "topbar-title", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, tituloMostrado), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, { go }), /* @__PURE__ */ React.createElement("button", { className: "icon-btn topbar-theme-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
+  return /* @__PURE__ */ React.createElement("div", { className: "topbar" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "icon-btn topbar-hamburger", onClick: onOpenMobileMenu, "aria-label": "Abrir menu de navega\xE7\xE3o", title: "Menu" }, /* @__PURE__ */ React.createElement(Icon, { name: "menu", size: 22 })), /* @__PURE__ */ React.createElement("div", { className: "mobile-brand" }, /* @__PURE__ */ React.createElement(Brand, { size: 30 })), title && /* @__PURE__ */ React.createElement("div", { className: "topbar-title", style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, title), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), /* @__PURE__ */ React.createElement("div", { className: "topbar-actions" }, notificacoesOn && /* @__PURE__ */ React.createElement(NotifBell, { go }), /* @__PURE__ */ React.createElement("button", { className: "icon-btn topbar-theme-btn", onClick: () => setTheme(theme === "dark" ? "light" : "dark"), title: themeLabel, "aria-label": themeLabel }, /* @__PURE__ */ React.createElement(Icon, { name: theme === "dark" ? "sun" : "moon", size: 20 })), /* @__PURE__ */ React.createElement(ProfileMenu, { account: fin.account, go, onLogout })));
 }
-function PageIntro({ monthNav }) {
-  if (!monthNav) return null;
-  return /* @__PURE__ */ React.createElement("div", { className: "page-intro" }, /* @__PURE__ */ React.createElement("div", { className: "page-intro-month" }, monthNav));
+function PageIntro({ title, sub, monthNav }) {
+  if (!title && !monthNav) return null;
+  return /* @__PURE__ */ React.createElement("div", { className: "page-intro" }, title && /* @__PURE__ */ React.createElement("div", { className: "page-intro-title" }, /* @__PURE__ */ React.createElement("h1", { className: "page-title" }, title), sub && /* @__PURE__ */ React.createElement("p", { className: "page-sub" }, sub)), monthNav && /* @__PURE__ */ React.createElement("div", { className: "page-intro-month" }, monthNav));
 }
 function MobileNav({ route, go, onAdd, onMore }) {
   const tr = useT();
