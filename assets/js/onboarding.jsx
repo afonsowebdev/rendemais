@@ -359,7 +359,6 @@ function Onboarding({ onBack, onLogin, mode = "signup", onDone }) {
             {onBack && <button className="auth-back auth-back-strong" onClick={onBack}><i className="bx bx-chevron-left" aria-hidden="true"></i> Voltar</button>}
             <h1 className="ob1-h1">Crie a sua conta</h1>
             <p className="ob1-sub">Comece a organizar a sua vida financeira com o Rende+.</p>
-            <p className="ob1-sub-note">Registe-se em menos de um minuto — o resto do perfil configura-se depois, com calma.</p>
 
             <Field label="Nome completo"><input className="input" value={f.nome} onChange={onNome} placeholder="Ex.: Francisco Afonso" autoComplete="name" /></Field>
             <Field label="Email"><input className="input" value={f.email} onChange={set("email")} placeholder="exemplo@dominio.pt" autoComplete="email" /></Field>

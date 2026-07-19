@@ -71,6 +71,7 @@
   --shadow: 0 1px 2px rgba(15, 27, 45, .04), 0 8px 24px -12px rgba(15, 27, 45, .14);
   --shadow-sm: 0 1px 2px rgba(15, 27, 45, .05);
   --shadow-md: 0 4px 14px rgba(15, 27, 45, .07), 0 18px 42px -18px rgba(15, 27, 45, .22);
+  --shadow-lg: 0 2px 4px rgba(15, 27, 45, 0.08), 0 24px 56px -16px rgba(15, 27, 45, 0.32);
 }
 
 /* ---- DARK ---- */
@@ -88,6 +89,7 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .6);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, .28), 0 20px 46px -18px rgba(0, 0, 0, .5);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, .4), 0 28px 64px -16px rgba(0, 0, 0, .75);
 }
 
 /* ---- CONTRASTE ALTO (Definições → Aparência) — reforça texto e bordas, mantém as
@@ -111,6 +113,10 @@
    ============================================================ */
 * {
   box-sizing: border-box;
+  /* remove o retângulo azul nativo que o Safari/Chrome mobile mostram ao tocar em
+     qualquer elemento clicável — não afeta o anel de foco por teclado
+     (:focus-visible), que continua ativo em todo o lado. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -151,6 +157,14 @@ button {
   font-family: inherit;
   color: inherit;
   cursor: pointer;
+}
+
+/* Sem contorno ao clicar/tocar (rato ou touch) — o anel de foco só volta a aparecer
+   em :focus-visible (navegação por teclado), definido por elemento onde é preciso;
+   isto evita o retângulo azul nativo do browser em qualquer botão ou link clicado. */
+button:focus,
+a:focus {
+  outline: none;
 }
 
 .tnum {
@@ -2440,33 +2454,49 @@ input.range::-moz-range-thumb {
    UTILITARIOS / DIVERSOS
    ============================================================ */
 /* ===== Landing page ===== */
+/* overflow-x:clip (não hidden) de propósito: "hidden" num só eixo força o browser a
+   promover o outro eixo a "auto", o que transforma esta div num scroll container
+   próprio e quebra o position:sticky do .lp-header (deixa de colar ao scroll real
+   da página). "clip" evita esse efeito secundário, mantendo o mesmo objetivo
+   (impedir overflow horizontal). */
 .lp {
   min-height: 100%;
   background: var(--bg);
   color: var(--ink);
-  overflow-x: hidden;
-  padding-top: 70px;
+  overflow-x: clip;
 }
 
 /* ============================================================
    LANDING PAGE (pagina publica)
    ============================================================ */
+/* Header sticky (não fixed): fica em fluxo normal e "pousa" a 16px do topo assim
+   que se faz scroll, com margem à volta (nunca colado às bordas do ecrã) — mesma
+   filosofia de painel flutuante já usada no resto da app. z-index alto para ficar
+   sempre por cima do conteúdo da página durante o scroll. */
 .lp-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+  position: sticky;
+  top: 16px;
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  margin: 16px 20px 0;
   padding: 16px 40px;
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(12px);
+  border-radius: var(--radius);
   border-bottom: none;
-  box-shadow: none;
+  /* Sombra sempre presente (não só ao fazer scroll) — um pouco mais suave que
+     --shadow-lg (que fica mais forte para o dropdown do menu), para o header se
+     destacar do fundo sem pesar demasiado. Valor próprio, não o token partilhado,
+     para não afetar outros elementos que também usam --shadow-lg. */
+  box-shadow: 0 2px 4px rgba(15, 27, 45, .06), 0 18px 40px -18px rgba(15, 27, 45, .22);
   transition: box-shadow .25s ease, background .25s ease;
+}
+
+[data-theme="dark"] .lp-header {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .3), 0 20px 46px -18px rgba(0, 0, 0, .55);
 }
 
 .lp-header-left {
@@ -2476,10 +2506,10 @@ input.range::-moz-range-thumb {
   min-width: 0;
 }
 
-/* Sem linha nenhuma — só sombra quando se faz scroll */
+/* Sem linha nenhuma — a sombra (--shadow-lg) já é bem visível sempre (ver
+   .lp-header); ao fazer scroll só o fundo fica um pouco mais opaco. */
 .lp-header.scrolled {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
-  box-shadow: 0 6px 24px rgba(10, 40, 28, .10);
 }
 
 .lp-nav {
@@ -2548,7 +2578,7 @@ input.range::-moz-range-thumb {
   height: 46px;
   border-radius: 50%;
   border: none;
-  background: none;
+  background: var(--surface);
   color: var(--ink-2);
   align-items: center;
   justify-content: center;
@@ -2560,9 +2590,13 @@ input.range::-moz-range-thumb {
   background: var(--surface-2);
 }
 
-/* Botão de tema: círculo de 42px, fundo consoante o tema, borda discreta
-   (especificidade reforçada para vencer a regra global ".icon-btn { border-radius: 0 !important }") */
-.icon-btn.lp-theme-btn {
+/* Botão de tema: círculo de 42px, fundo consoante o tema, borda discreta.
+   Prefixo ".lp" a mais (3 classes) de propósito: ".lp .icon-btn { border-radius:0
+   !important }" (cantos retos da landing) tem a mesma especificidade que
+   ".icon-btn.lp-theme-btn" e, por vir depois no ficheiro, ganhava o empate — com o
+   ".lp" aqui também, esta regra passa a ter mais uma classe e vence sempre,
+   independente da ordem no ficheiro. */
+.lp .icon-btn.lp-theme-btn {
   width: 42px;
   height: 42px;
   border-radius: 50% !important;
@@ -2659,7 +2693,7 @@ input.range::-moz-range-thumb {
   position: relative;
 }
 
-.icon-btn.lp-account-btn {
+.lp .icon-btn.lp-account-btn {
   width: 42px;
   height: 42px;
   border-radius: 50% !important;
@@ -2759,58 +2793,62 @@ input.range::-moz-range-thumb {
 }
 
 /* Menu suspenso do cabeçalho mobile — painel lateral corporativo */
+/* Fundo transparente — só um "captador" de cliques para fechar o menu ao tocar fora
+   (o menu deixou de ser um painel de ecrã inteiro, não precisa de escurecer a
+   página toda). */
 .lp-menu-bg {
   position: fixed;
   inset: 0;
   z-index: 49;
-  background: rgba(6, 12, 18, .55);
-  backdrop-filter: blur(2px);
-  animation: lpMenuFade .2s ease;
+  background: transparent;
 }
 
 /* ============================================================
    ANIMACOES E AT-RULES
    ============================================================ */
-@keyframes lpMenuFade {
+@keyframes lpMenuPop {
   from {
     opacity: 0;
+    transform: translateY(-8px) scale(.97);
   }
 
   to {
     opacity: 1;
-  }
-}
-
-@keyframes lpMenuSlideIn {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 /* ============================================================
    LANDING PAGE (pagina publica)
    ============================================================ */
+/* Menu do hambúrguer mobile: já não é um painel fixo a ocupar o ecrã todo — é um
+   dropdown flutuante e compacto, ancorado no canto superior direito, logo abaixo do
+   header (mesmo canto onde está o botão que o abre). Fundo em vidro fosco
+   (translúcido + blur, nunca branco sólido) — funciona igual nos dois temas porque
+   usa var(--surface) misturada com transparência, e --surface já muda entre claro
+   e escuro. */
 .lp-menu {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(84vw, 360px);
-  background: var(--surface);
-  border: none;
-  border-left: 1px solid var(--border);
-  border-radius: 0;
-  box-shadow: -20px 0 48px -16px rgba(6, 12, 18, .32);
-  padding: 90px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  top: 94px;
+  right: 12px;
+  left: auto;
+  bottom: auto;
+  width: min(84vw, 320px);
+  max-height: calc(100vh - 110px);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 4px;
   overflow-y: auto;
-  animation: lpMenuSlideIn .28s cubic-bezier(.22, .61, .36, 1) both;
+  transform-origin: top right;
+  animation: lpMenuPop .18s cubic-bezier(.22, .61, .36, 1) both;
 }
 
 .lp-menu-label {
@@ -2921,15 +2959,20 @@ input.range::-moz-range-thumb {
   padding: 72px 0 64px;
 }
 
-.lp-eyebrow {
+/* ".lp .lp-eyebrow" (2 classes) em vez de só ".lp-eyebrow" de propósito: existe uma
+   regra "cantos retos" mais abaixo no ficheiro (".lp-eyebrow { border-radius:0
+   !important }", da renovação visual do Premium) com a mesma especificidade — como
+   vem depois no ficheiro, ganhava o empate. Com o ".lp" a mais aqui, esta regra tem
+   mais uma classe e passa a vencer sempre, independente da ordem no ficheiro. */
+.lp .lp-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
   padding: 7px 15px;
-  border-radius: 999px;
+  border-radius: 999px !important;
   background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
   color: var(--accent-ink);
   font-weight: 700;
   font-size: 12.5px;
@@ -2938,7 +2981,7 @@ input.range::-moz-range-thumb {
 
 [data-theme="dark"] .lp-eyebrow {
   color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
 .lp-h1 {
@@ -3143,11 +3186,9 @@ input.range::-moz-range-thumb {
    RESPONSIVO — media queries (telemovel/tablet)
    ============================================================ */
 @media (max-width: 900px) {
-  .lp {
-    padding-top: 60px;
-  }
-
   .lp-header {
+    top: 12px;
+    margin: 12px 12px 0;
     padding: 14px 18px;
   }
 
@@ -5230,21 +5271,13 @@ input.range::-moz-range-thumb {
   font-size: 14.5px;
   font-weight: 500;
   line-height: 1.55;
-  margin: 0 0 6px;
-}
-
-.ob1-sub-note {
-  color: var(--ink-3);
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.5;
-  margin: 0 0 22px;
+  margin: 0 0 24px;
 }
 
 .ob1-social {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .ob1-social-btn {
@@ -5274,7 +5307,7 @@ input.range::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 18px 0;
+  margin: 28px 0;
   color: var(--ink-3);
   font-size: 12.5px;
   font-weight: 700;
@@ -5344,7 +5377,7 @@ input.range::-moz-range-thumb {
   font-size: 13px;
   color: var(--ink-2);
   font-weight: 600;
-  margin: 8px 0 22px;
+  margin: 26px 0 12px;
 }
 
 .ob1-have button {
