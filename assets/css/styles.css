@@ -2187,15 +2187,16 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
-  /* Logo compacto (só o símbolo, sem o nome), à esquerda do header — fora de
-     .topbar-actions, por isso com o próprio círculo (maior que os ícones do grupo
-     à direita, de propósito, para o símbolo se destacar mais). Especificidade
-     dupla para vencer sempre o .icon-btn.topbar-brand-btn{display:none} de desktop. */
+  /* Logo completo (símbolo + "Rende+"), à esquerda do header — sem o círculo dos
+     ícones do grupo à direita, já que o texto precisa de largura própria; só
+     padding e cantos suaves. Especificidade dupla para vencer sempre o
+     .icon-btn.topbar-brand-btn{display:none} de desktop. */
   .icon-btn.topbar-brand-btn {
     display: grid;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
+    width: auto;
+    height: auto;
+    padding: 4px 10px 4px 2px;
+    border-radius: 999px;
     background: transparent;
     border: 1px solid transparent;
     flex: none;
@@ -2205,7 +2206,6 @@ input.range::-moz-range-thumb {
     padding: 0;
   }
 
-  .topbar-brand-btn .brand-name,
   .topbar-brand-btn .brand-sub {
     display: none;
   }
