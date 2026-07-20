@@ -795,6 +795,27 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
   const [busyDel, setBusyDel] = React.useState(false);
   const [delErr, setDelErr] = React.useState("");
 
+  // Verificação manual de atualizações (compara com o version.json do servidor)
+  const [verVerificando, setVerVerificando] = React.useState(false);
+  const [verResultado, setVerResultado] = React.useState(null); // { tipo: "atual" | "nova" | "erro", versao }
+  const [verConfirmar, setVerConfirmar] = React.useState(false);
+  const verificarAtualizacoes = () => {
+    setVerVerificando(true);
+    setVerResultado(null);
+    fetch("/version.json?t=" + Date.now(), { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        if (d && d.version && d.version !== window.APP_VERSION) {
+          setVerResultado({ tipo: "nova", versao: d.version });
+          setVerConfirmar(true);
+        } else {
+          setVerResultado({ tipo: "atual" });
+        }
+      })
+      .catch(() => setVerResultado({ tipo: "erro" }))
+      .finally(() => setVerVerificando(false));
+  };
+
   const Section = ({ title, icon, children }) => (
     <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div className="section-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -927,6 +948,23 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
         </Rowi>
       </Section>
 
+      <Section title="Atualizações" icon="download">
+        <Rowi
+          label="Versão instalada"
+          sub={
+            verVerificando ? "A verificar…"
+              : verResultado?.tipo === "atual" ? "Já tens a versão mais recente."
+              : verResultado?.tipo === "erro" ? "Não foi possível verificar agora. Tenta mais tarde."
+              : "Toca para procurar uma versão nova"
+          }
+          last
+        >
+          <button className="btn btn-ghost" disabled={verVerificando} onClick={verificarAtualizacoes}>
+            <Icon name="sync" size={14} /> {verVerificando ? "A verificar…" : `v${window.APP_VERSION || "1.0.0"} · Verificar`}
+          </button>
+        </Rowi>
+      </Section>
+
       <div className="tiny" style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--ink-3)", marginTop: 4 }}>Preferências</div>
       <PerfilPreferencias />
 
@@ -959,6 +997,20 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
             Vais apagar a conta <strong style={{ color: "var(--ink)" }}>{a.email}</strong> e <strong style={{ color: "var(--ink)" }}>todos</strong> os dados — despesas, rendimentos, metas, contas e categorias. Esta ação <strong style={{ color: "var(--ink)" }}>não pode ser revertida</strong>. Se voltares a criar conta com este email, começa tudo do zero.
           </div>
           {delErr && <div className="alert bad" style={{ marginTop: 14, padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{delErr}</span></div>}
+        </Modal>
+      )}
+
+      {verConfirmar && verResultado?.tipo === "nova" && (
+        <Modal title="Nova versão disponível" sub={`A versão ${verResultado.versao} já está pronta.`} icon="download" onClose={() => setVerConfirmar(false)}
+          footer={<>
+            <button className="btn btn-ghost" onClick={() => setVerConfirmar(false)}>Agora não</button>
+            <button className="btn btn-primary" onClick={() => window.location.reload()}>
+              <Icon name="sync" size={15} color="#fff" /> Atualizar agora
+            </button>
+          </>}>
+          <div className="muted" style={{ fontSize: 13.5, fontWeight: 500, lineHeight: 1.6 }}>
+            Ao atualizares, a app recarrega para instalar a versão mais recente. Os teus dados não são afetados.
+          </div>
         </Modal>
       )}
 
