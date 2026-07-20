@@ -299,7 +299,7 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
   return (
     <div className="topbar">
       <button type="button" className="icon-btn topbar-brand-btn" onClick={() => go("dashboard")} aria-label="Ir para o Painel" title="Rende+">
-        <Brand size={26} />
+        <Brand size={34} />
       </button>
       {title && (
         <div className="topbar-title" style={{ minWidth: 0 }}>

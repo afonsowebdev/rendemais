@@ -1936,6 +1936,14 @@ function dispararNotificacoesNativas(prem, dados, account) {
 
 const quandoTxt = (d) => d < 0 ? `há ${Math.abs(d)} dia${d === -1 ? "" : "s"}` : d === 0 ? "vence hoje" : `vence em ${d} dia${d > 1 ? "s" : ""}`;
 
+// Notificações dispensadas manualmente (guardadas por "chave" — a mesma que identifica
+// cada notificação gerada). Persistido localmente: se a condição que gerou o aviso deixar
+// de se verificar e voltar a surgir mais tarde, a chave muda (ex.: leva o mês) e o aviso
+// volta a aparecer — dispensar só esconde aquele aviso específico, não a categoria toda.
+const NOTIF_DISPENSADAS_KEY = "rende_notifs_dispensadas";
+const lerNotifsDispensadas = () => { try { return JSON.parse(localStorage.getItem(NOTIF_DISPENSADAS_KEY) || "[]"); } catch (e) { return []; } };
+const gravarNotifsDispensadas = (arr) => { try { localStorage.setItem(NOTIF_DISPENSADAS_KEY, JSON.stringify(arr)); } catch (e) {} };
+
 function NotifBell({ go }) {
   const prem = usePremium();
   const fin = useFinance();
@@ -1943,9 +1951,18 @@ function NotifBell({ go }) {
   const [open, setOpen] = React.useState(false);
   const [verTodas, setVerTodas] = React.useState(false);
   const [perm, setPerm] = React.useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
+  const [dispensadas, setDispensadas] = React.useState(() => new Set(lerNotifsDispensadas()));
+  const dispensar = (chave) => {
+    setDispensadas((prev) => {
+      const next = new Set(prev);
+      next.add(chave);
+      gravarNotifsDispensadas([...next]);
+      return next;
+    });
+  };
   const s = prem.get();
   const cfg = s.notif || { ativo: true, aviso: 3 };
-  const notifs = gerarNotificacoes(prem, dados, fin.account);
+  const notifs = gerarNotificacoes(prem, dados, fin.account).filter((a) => !dispensadas.has(a.chave));
   const count = notifs.length;
   const LIMITE = 5;
   const notifsMostradas = verTodas ? notifs : notifs.slice(0, LIMITE);
@@ -2019,6 +2036,9 @@ function NotifBell({ go }) {
                       ) : a.rota && go ? (
                         <button className="btn btn-ghost" style={{ padding: "6px 11px", fontSize: 12, flex: "none" }} onClick={() => irPara(a.rota)}>Ver</button>
                       ) : null}
+                      <button type="button" className="notif-item-dismiss" aria-label="Dispensar notificação" title="Dispensar" onClick={() => dispensar(a.chave)}>
+                        <Icon name="close" size={13} />
+                      </button>
                     </div>
                   );
                 })

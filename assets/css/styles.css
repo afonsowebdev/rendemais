@@ -2211,6 +2211,20 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
+  /* Popover de notificações: em mobile abre centrado no ecrã, por baixo do
+     header, em vez de ancorado à direita do sino (onde ficava meio cortado /
+     desalinhado num ecrã estreito). !important porque a regra base (.notif-pop,
+     mais abaixo no ficheiro) tem a mesma especificidade e venceria por ordem. */
+  .notif-pop {
+    position: fixed !important;
+    top: 96px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 400px !important;
+  }
+
   /* Título/subtítulo nunca aparece dentro do header em mobile — reaparece em
      .page-intro-title, já no conteúdo, logo abaixo do header. */
   .topbar-title {
@@ -7163,6 +7177,24 @@ input.range::-moz-range-thumb {
 
 .notif-item:last-child {
   border-bottom: none;
+}
+
+.notif-item-dismiss {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  display: grid;
+  place-items: center;
+  transition: background .12s ease, color .12s ease;
+}
+
+.notif-item-dismiss:hover {
+  background: var(--border);
+  color: var(--ink);
 }
 
 .notif-ver-todas {
