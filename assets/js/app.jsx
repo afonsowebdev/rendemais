@@ -602,7 +602,7 @@ function Shell() {
       <div className="main">
         <Topbar title={tituloMostrado} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} onOpenMobileMenu={() => setMobileMenuOpen(true)} />
         <PageIntro title={tituloMostrado} sub={subByRoute[route]} monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
-          canNext={!fin.isCurrentMonth} /> : null} />
+          canNext={!fin.isCurrentMonth} month={fin.month} realMonth={fin.realMonth} onSelect={fin.setMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
         {route === "assistente" && (ehPremium ? <AssistenteRendePage go={go} open={open} /> : <Paywall />)}
         {route === "transacoes" && <Transacoes open={open} />}

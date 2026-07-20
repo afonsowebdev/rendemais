@@ -568,6 +568,7 @@ a:focus {
    3 colunas (não flex) para o texto ficar sempre centrado entre as setas, mesmo que
    uma delas fique desativada (disabled não muda a largura). */
 .month-carousel {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -628,6 +629,21 @@ a:focus {
   text-align: center;
 }
 
+.month-carousel-label-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  transition: background .15s ease;
+}
+
+.month-carousel-label-btn:hover {
+  background: var(--surface-2);
+}
+
 .month-carousel-label {
   font-size: 19px;
   font-weight: 700;
@@ -641,24 +657,99 @@ a:focus {
   color: var(--ink-3);
 }
 
-.month-carousel-dots {
+.month-carousel-today {
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 13px;
+  transition: background .15s ease;
+}
+
+.month-carousel-today:hover {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+/* Seletor de mês/ano: popover ancorado ao carrossel (position:relative no pai),
+   sempre centrado por baixo do mês, independente de qual seta está desativada. */
+.month-picker {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: 264px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md, 0 12px 32px rgba(0, 0, 0, .16));
+  padding: 14px;
+}
+
+.month-picker-year {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 3px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
 }
 
-.month-carousel-dot {
-  width: 6px;
-  height: 6px;
+.month-picker-year button {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--border-strong);
-  transition: background .15s ease, transform .15s ease;
+  border: none;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  display: grid;
+  place-items: center;
+  transition: background .15s ease;
 }
 
-.month-carousel-dot.on {
+.month-picker-year button:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.month-picker-year button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.month-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.month-picker-cell {
+  border: none;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  padding: 9px 0;
+  transition: background .15s ease, color .15s ease;
+}
+
+.month-picker-cell:hover:not(:disabled) {
+  background: var(--border);
+  color: var(--ink);
+}
+
+.month-picker-cell.on {
   background: var(--accent);
-  transform: scale(1.3);
+  color: #fff;
+}
+
+.month-picker-cell:disabled {
+  opacity: .3;
+  cursor: default;
 }
 
 /* Ao mudar de mês, o bloco de texto desliza suavemente na direção do gesto/seta —

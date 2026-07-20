@@ -143,19 +143,26 @@ function MobileSidebarDrawer({ open, onClose, route, go, account }) {
   );
 }
 
-/* Navegação de mês em formato "carrossel": nada de input/caixa — só o mês, uma
-   dica de gesto e um indicador de página decorativo, ladeados por duas setas
-   circulares soltas (não fazem parte de nenhum campo). A troca de mês continua a
-   passar sempre por onPrev/onNext (mesma lógica de shiftMonth já existente) — isto
-   é só a apresentação nova; arrastar/swipe já funcionam via pointer events, prontos
-   para gestos em ecrãs táteis e trackpad. */
-function MonthNav({ label, onPrev, onNext, canNext = true }) {
+/* Navegação de mês em formato "carrossel": só o mês e uma dica de gesto, ladeados
+   por duas setas circulares soltas (não fazem parte de nenhum campo). A troca de
+   mês passo a passo continua a usar onPrev/onNext (mesma lógica de shiftMonth já
+   existente) e arrastar/swipe via pointer events. Para saltar diretamente para
+   qualquer mês/ano (sem ter de clicar dezenas de vezes numa seta), clicar no
+   próprio mês abre um seletor com grelha de 12 meses + navegação por ano — e,
+   sempre que não se está no mês atual, aparece um atalho "Hoje" para voltar já. */
+function MonthNav({ label, onPrev, onNext, canNext = true, month, realMonth, onSelect, onToday }) {
   const tr = useT();
   const [dir, setDir] = React.useState(null);
   const dragRef = React.useRef({ x: 0, active: false });
   const SWIPE_THRESHOLD = 40;
+  const [pickerOpen, setPickerOpen, pickerRef] = useDropdownClose();
+  const [pickerYear, setPickerYear] = React.useState(() => Number((month || realMonth || "0-0").slice(0, 4)));
 
-  const step = (delta, fn) => { setDir(delta < 0 ? "prev" : "next"); fn(); };
+  React.useEffect(() => {
+    if (pickerOpen) setPickerYear(Number((month || realMonth || "0-0").slice(0, 4)));
+  }, [pickerOpen]);
+
+  const step = (delta, fn) => { setPickerOpen(false); setDir(delta < 0 ? "prev" : "next"); fn(); };
 
   const onPointerDown = (e) => {
     dragRef.current = { x: e.clientX, active: true };
@@ -169,23 +176,62 @@ function MonthNav({ label, onPrev, onNext, canNext = true }) {
     else if (dx < -SWIPE_THRESHOLD && canNext) step(1, onNext);
   };
 
+  const realYear = Number((realMonth || "0-0").slice(0, 4));
+  const isToday = !!realMonth && month === realMonth;
+  const selectMonth = (mi) => {
+    const key = pickerYear + "-" + String(mi + 1).padStart(2, "0");
+    if (realMonth && key > realMonth) return; // não deixa saltar para o futuro
+    onSelect && onSelect(key);
+    setPickerOpen(false);
+  };
+
   return (
-    <div className="month-carousel">
+    <div className="month-carousel" ref={pickerRef}>
       <button type="button" className="month-carousel-arrow" onClick={() => step(-1, onPrev)} aria-label="Mês anterior">
         <span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={16} /></span>
       </button>
       <div className="month-carousel-track" onPointerDown={onPointerDown} onPointerUp={endDrag} onPointerCancel={endDrag} style={{ touchAction: "pan-y" }}>
         <div key={label} className={"month-carousel-content" + (dir ? " dir-" + dir : "")}>
-          <div className="month-carousel-label">{label}</div>
-          <div className="month-carousel-hint">Deslize para os lados para mudar de mês</div>
-          <div className="month-carousel-dots" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((i) => <span key={i} className={"month-carousel-dot" + (i === 2 ? " on" : "")} />)}
-          </div>
+          <button type="button" className="month-carousel-label-btn" onPointerDown={(e) => e.stopPropagation()} onClick={() => setPickerOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={pickerOpen}>
+            <span className="month-carousel-label">{label}</span>
+            <span style={{ transform: "rotate(90deg)", display: "grid" }}><Icon name="chevR" size={13} color="var(--ink-3)" /></span>
+          </button>
+          {onSelect && !isToday
+            ? <button type="button" className="month-carousel-today" onPointerDown={(e) => e.stopPropagation()} onClick={() => { setPickerOpen(false); onToday && onToday(); }}>Voltar a hoje</button>
+            : <div className="month-carousel-hint">Deslize para os lados para mudar de mês</div>}
         </div>
       </div>
       <button type="button" className="month-carousel-arrow" onClick={canNext ? () => step(1, onNext) : undefined} disabled={!canNext} aria-label="Mês seguinte" title={canNext ? "" : tr("month_at_current")}>
         <Icon name="chevR" size={16} />
       </button>
+
+      {pickerOpen && (
+        <div className="month-picker" role="dialog" aria-label="Escolher mês">
+          <div className="month-picker-year">
+            <button type="button" onClick={() => setPickerYear((y) => y - 1)} aria-label="Ano anterior">
+              <span style={{ transform: "rotate(180deg)", display: "grid" }}><Icon name="chevR" size={14} /></span>
+            </button>
+            <span>{pickerYear}</span>
+            <button type="button" onClick={() => setPickerYear((y) => y + 1)} disabled={pickerYear >= realYear} aria-label="Ano seguinte">
+              <Icon name="chevR" size={14} />
+            </button>
+          </div>
+          <div className="month-picker-grid">
+            {BM.MESES.map((m, i) => {
+              const key = pickerYear + "-" + String(i + 1).padStart(2, "0");
+              const disabled = !!realMonth && key > realMonth;
+              const selected = key === month;
+              return (
+                <button key={m} type="button" disabled={disabled}
+                  className={"month-picker-cell" + (selected ? " on" : "")}
+                  onClick={() => selectMonth(i)}>
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
