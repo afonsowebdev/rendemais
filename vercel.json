@@ -1,6 +1,6 @@
 {
   "outputDirectory": ".",
-  "buildCommand": null,
+  "buildCommand": "",
   "headers": [
     {
       "source": "/",
