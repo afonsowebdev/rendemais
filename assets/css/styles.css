@@ -2158,9 +2158,21 @@ input.range::-moz-range-thumb {
   }
 
   /* display:grid (em vez de flex) para herdar o place-items:center do .icon-btn
-     base — com flex sem align/justify próprios o ícone ficava descentrado. */
+     base — com flex sem align/justify próprios o ícone ficava descentrado. Fundo
+     sólido (em vez de transparente como os outros ícones do grupo) — mesmo
+     tratamento do botão de menu da landing page (.lp-menu-btn). */
   .icon-btn.topbar-hamburger {
     display: grid;
+  }
+
+  .topbar-actions .icon-btn.topbar-hamburger {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .topbar-actions .icon-btn.topbar-hamburger:hover,
+  .topbar-actions .icon-btn.topbar-hamburger:active {
+    background: var(--surface-2);
   }
 
   /* Ícone de mudar tema escondido no header mobile — continua acessível em "Mais". */
@@ -2396,12 +2408,13 @@ input.range::-moz-range-thumb {
     color: var(--accent);
   }
 
-  /* menu hambúrguer — offcanvas: desliza a partir da esquerda, fecha ao clicar num
-     item, no fundo (backdrop) ou com Escape (mecânica em MobileSidebarDrawer).
-     Painel suspenso — mesma filosofia do header/sidebar do desktop: margem à volta
-     (nunca toca em nenhuma margem do ecrã), cantos arredondados nos 4 lados, sombra
-     suave. O transform de fechado soma a margem esquerda (16px) + uma folga extra
-     à percentagem, para o painel sair mesmo por completo do ecrã (sem "resto" visível). */
+  /* menu hambúrguer — offcanvas: desliza a partir da direita (o hambúrguer que o abre
+     também vive no grupo de ações à direita do header), fecha ao clicar num item, no
+     fundo (backdrop) ou com Escape (mecânica em MobileSidebarDrawer).
+     Painel suspenso (dropdown), não uma sidebar de ecrã inteiro: fica por baixo do
+     header (top compensa a margem+altura do header) e encostado à direita, com
+     altura ajustada ao conteúdo (até um máximo, com scroll próprio se preciso) —
+     nunca esticado até ao fundo do ecrã. */
   .mobile-drawer-backdrop {
     display: block;
   }
@@ -2414,15 +2427,18 @@ input.range::-moz-range-thumb {
   .sidebar.mobile-drawer {
     display: flex;
     position: fixed;
-    top: 16px;
-    left: 16px;
-    bottom: 16px;
+    top: 96px;
+    right: 16px;
+    left: auto;
+    bottom: auto;
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
     z-index: 96;
     width: min(300px, 80vw);
     max-width: 320px;
-    border-right: none;
     border-radius: var(--radius);
-    transform: translateX(calc(-100% - 32px));
+    transform-origin: top right;
+    transform: translateX(calc(100% + 32px));
     transition: transform .24s cubic-bezier(.4, 0, .2, 1);
     box-shadow: var(--shadow-md);
     pointer-events: none;
