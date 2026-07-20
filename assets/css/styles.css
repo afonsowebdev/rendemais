@@ -878,6 +878,10 @@ a:focus {
   color: var(--neg) !important;
 }
 
+.kpi-row {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
 /* Menu de "Nova transação" no painel (ações rápidas do Dashboard) */
 .qa-menu {
   position: relative;
@@ -918,6 +922,56 @@ a:focus {
 
 .qa-menu-pop button:hover {
   background: var(--surface-2);
+}
+
+/* Painel (Dashboard) em mobile: os botões de ação secundários (Objetivo/Evento/
+   Grupo) deixam de quebrar linha de forma desequilibrada (2 + 1 sobrando) e passam
+   a dividir a largura toda em partes iguais, com "Nova transação" em destaque por
+   cima. Os cartões de totais deixam de empilhar em grelha 2x2 e passam a um
+   carrossel horizontal com scroll-snap — cada cartão inteiro, um "resto" do
+   seguinte à vista para sugerir que se pode deslizar. */
+@media (max-width: 640px) {
+  .dash-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dash-actions .qa-menu {
+    display: flex;
+    width: 100%;
+  }
+
+  .dash-actions .qa-menu .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dash-actions-secondary {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .dash-actions-secondary .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .kpi-row {
+    display: flex !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .kpi-row .kpi {
+    flex: 0 0 80%;
+    scroll-snap-align: start;
+  }
 }
 
 /* ============================================================

@@ -467,7 +467,7 @@ function Dashboard({ go, open }) {
         </div>
       )}
 
-      <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+      <div className="row dash-actions" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <div className="qa-menu" ref={qaRef}>
           <button type="button" className="btn btn-primary" onClick={() => setQaOpen((v) => !v)} aria-haspopup="menu" aria-expanded={qaOpen}>
             <Icon name="plus" size={16} color="#fff" /> Nova transação <i className="bx bx-chevron-down" aria-hidden="true" style={{ fontSize: 15 }}></i>
@@ -479,14 +479,14 @@ function Dashboard({ go, open }) {
             </div>
           )}
         </div>
-        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        <div className="row dash-actions-secondary" style={{ gap: 8, flexWrap: "wrap" }}>
           <button type="button" className="btn btn-soft" onClick={() => open("meta")}><Icon name="target" size={15} /> Novo objetivo</button>
           <button type="button" className="btn btn-soft" onClick={() => setNovoEvento(true)}><Icon name="cal" size={15} /> Novo evento</button>
           {ehPremium && <button type="button" className="btn btn-soft" onClick={() => go("partilha")}><Icon name="users" size={15} /> Novo grupo</button>}
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))" }}>
+      <div className="grid kpi-row">
         <Kpi label={tr("kpi_received")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
         <Kpi label={tr("kpi_spent")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
         <Kpi label={tr("kpi_available")} value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} sub={fin.poupancaSeparada > 0 ? tt("kpi_after_savings", { x: BM.eur0(fin.poupancaSeparada) }) : tr("kpi_until_eom")} />
