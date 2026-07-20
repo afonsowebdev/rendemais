@@ -1944,6 +1944,13 @@ const NOTIF_DISPENSADAS_KEY = "rende_notifs_dispensadas";
 const lerNotifsDispensadas = () => { try { return JSON.parse(localStorage.getItem(NOTIF_DISPENSADAS_KEY) || "[]"); } catch (e) { return []; } };
 const gravarNotifsDispensadas = (arr) => { try { localStorage.setItem(NOTIF_DISPENSADAS_KEY, JSON.stringify(arr)); } catch (e) {} };
 
+// Notificações já vistas (abertas pelo menos uma vez no sino) — separado das
+// dispensadas: ver uma notificação não a esconde sozinho, só marca-a como "vista"
+// para se poder limpar tudo o que já foi visto de uma vez (botão "Limpar vistas").
+const NOTIF_VISTAS_KEY = "rende_notifs_vistas";
+const lerNotifsVistas = () => { try { return JSON.parse(localStorage.getItem(NOTIF_VISTAS_KEY) || "[]"); } catch (e) { return []; } };
+const gravarNotifsVistas = (arr) => { try { localStorage.setItem(NOTIF_VISTAS_KEY, JSON.stringify(arr)); } catch (e) {} };
+
 function NotifBell({ go }) {
   const prem = usePremium();
   const fin = useFinance();
@@ -1952,6 +1959,7 @@ function NotifBell({ go }) {
   const [verTodas, setVerTodas] = React.useState(false);
   const [perm, setPerm] = React.useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const [dispensadas, setDispensadas] = React.useState(() => new Set(lerNotifsDispensadas()));
+  const [vistas, setVistas] = React.useState(() => new Set(lerNotifsVistas()));
   const dispensar = (chave) => {
     setDispensadas((prev) => {
       const next = new Set(prev);
@@ -1964,9 +1972,34 @@ function NotifBell({ go }) {
   const cfg = s.notif || { ativo: true, aviso: 3 };
   const notifs = gerarNotificacoes(prem, dados, fin.account).filter((a) => !dispensadas.has(a.chave));
   const count = notifs.length;
+  const vistasCount = notifs.filter((a) => vistas.has(a.chave)).length;
   const LIMITE = 5;
   const notifsMostradas = verTodas ? notifs : notifs.slice(0, LIMITE);
   React.useEffect(() => { if (!open) setVerTodas(false); }, [open]);
+  // ao abrir o sino, tudo o que está visível agora passa a "visto" (fica disponível
+  // para "Limpar vistas" a partir da próxima abertura).
+  React.useEffect(() => {
+    if (!open || notifs.length === 0) return;
+    setVistas((prev) => {
+      const next = new Set(prev);
+      let mudou = false;
+      notifs.forEach((a) => { if (!next.has(a.chave)) { next.add(a.chave); mudou = true; } });
+      if (mudou) gravarNotifsVistas([...next]);
+      return mudou ? next : prev;
+    });
+    // eslint: só quando o sino abre — não a cada alteração de `notifs`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  const limparVistas = () => {
+    const chaves = notifs.filter((a) => vistas.has(a.chave)).map((a) => a.chave);
+    if (!chaves.length) return;
+    setDispensadas((prev) => {
+      const next = new Set(prev);
+      chaves.forEach((c) => next.add(c));
+      gravarNotifsDispensadas([...next]);
+      return next;
+    });
+  };
   const irPara = (rota) => { setOpen(false); if (go) go(rota); };
 
   // dispara ao abrir a app e a cada 30 min enquanto está aberta
@@ -2001,6 +2034,11 @@ function NotifBell({ go }) {
                 <div className="notif-head-title">Notificações</div>
                 <div className="notif-head-sub">{count > 0 ? count + (count === 1 ? " por resolver" : " por resolver") : "Estás em dia"}</div>
               </div>
+              {vistasCount > 0 && (
+                <button type="button" className="notif-clear-vistas" onClick={limparVistas} title="Elimina as notificações já vistas">
+                  Limpar vistas
+                </button>
+              )}
             </div>
 
             {perm !== "granted" && perm !== "unsupported" && (

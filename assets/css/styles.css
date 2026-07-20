@@ -7108,6 +7108,24 @@ input.range::-moz-range-thumb {
   border-bottom: 1px solid var(--border);
 }
 
+.notif-clear-vistas {
+  flex: none;
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.notif-clear-vistas:hover {
+  background: var(--surface-2);
+}
+
 .notif-head-ico {
   flex: none;
   width: 32px;
