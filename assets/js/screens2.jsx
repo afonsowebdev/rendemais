@@ -734,7 +734,7 @@ function Perfil({ open, go }) {
     { ico: "flag", v: metas.length, l: metas.length === 1 ? "Meta" : "Metas", bg: "color-mix(in srgb, var(--c-habitacao) 16%, transparent)", c: "var(--c-habitacao)" },
   ];
   return (
-    <div className="content" style={{ maxWidth: 760 }}>
+    <div className="content" style={{ maxWidth: 760, margin: "0 auto" }}>
       <div className="card card-pad">
         <div className="row" style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
           <Avatar account={a} size={64} fontSize={22} />
