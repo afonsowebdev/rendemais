@@ -2188,14 +2188,13 @@ input.range::-moz-range-thumb {
   }
 
   /* Logo compacto (só o símbolo, sem o nome), à esquerda do header — fora de
-     .topbar-actions, por isso com o próprio círculo de 38px (mesma medida dos
-     ícones do grupo à direita, para os dois lados ficarem visualmente coerentes).
-     Especificidade dupla para vencer sempre o .icon-btn.topbar-brand-btn{display:none}
-     de desktop. */
+     .topbar-actions, por isso com o próprio círculo (maior que os ícones do grupo
+     à direita, de propósito, para o símbolo se destacar mais). Especificidade
+     dupla para vencer sempre o .icon-btn.topbar-brand-btn{display:none} de desktop. */
   .icon-btn.topbar-brand-btn {
     display: grid;
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: transparent;
     border: 1px solid transparent;
