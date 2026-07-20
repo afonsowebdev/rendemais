@@ -1,7 +1,7 @@
 /* ===== App shell: routing, tema, tweaks, modais funcionais ===== */
 
 // Versão atual da app. Ao lançar uma versão nova, sobe este número E o version.json.
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.4.2";
 window.APP_VERSION = APP_VERSION;
 
 // Hooks de idioma — fonte única no store global I18N. Qualquer ecrã chama useT().
