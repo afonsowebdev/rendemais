@@ -852,9 +852,6 @@ function Definicoes({ theme, setTheme, open, go, onOpenTweaks, contraste, setCon
       </Section>
 
       <Section title="Finanças" icon="wallet">
-        <Rowi label="Contas" sub="Gere as tuas contas bancárias e carteiras">
-          <button className="btn btn-ghost" onClick={() => go("contas")}><Icon name="wallet" size={14} /> Abrir</button>
-        </Rowi>
         <Rowi label="Categorias personalizadas" sub={(fin.data.customCats || []).length ? `${fin.data.customCats.length} categoria(s) criada(s)` : "Cria categorias próprias ao registar uma despesa"}>
           <button className="btn btn-ghost" onClick={() => open("despesa")}><Icon name="plus" size={14} /> Adicionar</button>
         </Rowi>

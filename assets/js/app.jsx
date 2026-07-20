@@ -35,7 +35,6 @@ const PAGES = {
   objetivos: { title: "Objetivos", add: "meta" },
   agenda: { title: "Agenda Financeira", add: null },
   partilha: { title: "Partilha", add: null },
-  contas: { title: "Contas", add: null },
   relatorios: { title: "Relatórios", add: null },
   perfil: { title: "Perfil", add: null },
   config: { title: "Definições", add: null },
@@ -45,6 +44,7 @@ const PAGES = {
 const ROUTE_ALIASES = {
   despesas: "transacoes", rendimentos: "transacoes", poupanca: "objetivos",
   lembretes: "agenda", recorrentes: "agenda", subscricoes: "agenda", historico: "relatorios",
+  contas: "dashboard",
 };
 const ADD_LABEL = { despesa: "Nova despesa", rendimento: "Novo rendimento", meta: "Nova meta" };
 const META_CORES = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
@@ -139,7 +139,6 @@ function EntryModal({ type, item, onClose }) {
     if (type === "meta") return { nome: item?.nome || "", alvo: item?.alvo ?? "", atual: item?.atual ?? 0, cor: item?.cor || META_CORES[0] };
     if (type === "deposit") return { valor: "", inicial: false };
     if (type === "orcamento") return { valor: fin.data.orcamento ?? "" };
-    if (type === "sync") { const movs = (BM.bancos[item?.banco] || {}).importar || []; return { sel: movs.map(() => true) }; }
     if (type === "reservar") return { modo: fin.data.metas.length ? "existente" : "nova", metaId: fin.data.metas[0]?.id || "", nome: "" };
     if (type === "perfil") { const a = fin.account || {}; return { nome: a.nome || "", nascimento: a.dataNascimento || a.nascimento || "", cidade: a.cidade || "", perfil: a.perfil || "Estudante", estado: a.estado || "Solteiro(a)", habitacao: a.habitacao || "Vive com colegas", foto: a.foto || null }; }
     return {};
@@ -179,11 +178,6 @@ function EntryModal({ type, item, onClose }) {
       fin.deposit(item.id, num(f.valor), !!f.inicial);
     } else if (type === "orcamento") {
       fin.setOrcamento(num(f.valor) > 0 ? num(f.valor) : null);
-    } else if (type === "sync") {
-      const movs = (BM.bancos[item.banco] || {}).importar || [];
-      const chosen = movs.filter((_, i) => f.sel[i]);
-      if (chosen.length === 0) return setErr("Seleciona pelo menos um movimento para importar.");
-      fin.importMovs(item.id, chosen);
     } else if (type === "reservar") {
       const amount = item?.amount || 0;
       if (f.modo === "existente") {
@@ -215,7 +209,6 @@ function EntryModal({ type, item, onClose }) {
     meta: editing ? "Editar meta" : "Nova meta de poupança",
     deposit: "Depositar na meta",
     orcamento: "Orçamento mensal",
-    sync: `Sincronizar ${item?.nome || "conta"}`,
     reservar: "Guardar na poupança",
     perfil: "Editar perfil",
   };
@@ -225,11 +218,10 @@ function EntryModal({ type, item, onClose }) {
     meta: "Define um novo objetivo de poupança.",
     deposit: item?.nome,
     orcamento: "Define um limite mensal de gastos.",
-    sync: "Sincronização verificada",
     reservar: "Guarda uma parte do saldo deste mês.",
     perfil: "Atualiza os teus dados pessoais.",
   };
-  const icons = { despesa: "wallet", rendimento: "arrowsDown", meta: "target", deposit: "coins", orcamento: "chart", sync: "sync", reservar: "target", perfil: "user" };
+  const icons = { despesa: "wallet", rendimento: "arrowsDown", meta: "target", deposit: "coins", orcamento: "chart", reservar: "target", perfil: "user" };
 
   // Painéis de resumo (aside) — só valores já calculados a partir do que está no
   // formulário, nunca inventados. Só para os tipos onde um resumo ao vivo ajuda.
@@ -266,10 +258,10 @@ function EntryModal({ type, item, onClose }) {
   }
 
   return (
-    <Modal title={titles[type]} sub={subs[type]} icon={icons[type]} onClose={onClose} aside={aside} wide={type === "sync" || type === "perfil"}
+    <Modal title={titles[type]} sub={subs[type]} icon={icons[type]} onClose={onClose} aside={aside} wide={type === "perfil"}
       footer={<>
         <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-primary" onClick={save}><Icon name="check" size={15} color="#fff" /> {type === "sync" ? "Importar" : "Guardar"}</button>
+        <button className="btn btn-primary" onClick={save}><Icon name="check" size={15} color="#fff" /> Guardar</button>
       </>}>
 
       {type === "despesa" && <>
@@ -336,44 +328,6 @@ function EntryModal({ type, item, onClose }) {
           <input className="input" autoFocus type="number" step="1" value={f.valor} onChange={set("valor")} placeholder="850" />
         </Field>
       </>}
-
-      {type === "sync" && (() => {
-        const movs = (BM.bancos[item.banco] || {}).importar || [];
-        const toggle = (i) => setF((s) => ({ ...s, sel: s.sel.map((v, idx) => (idx === i ? !v : v)) }));
-        const chosen = movs.filter((_, i) => f.sel[i]);
-        const desp = chosen.filter((m) => m.kind === "despesa").reduce((s, m) => s + m.valor, 0);
-        const rend = chosen.filter((m) => m.kind === "rendimento").reduce((s, m) => s + m.valor, 0);
-        return (
-          <>
-            <div className="alert ok" style={{ marginBottom: 14, padding: "10px 12px", alignItems: "center" }}>
-              <Icon name="check" size={16} color="var(--accent)" />
-              <span style={{ fontSize: 12.5, fontWeight: 700 }}>Detetámos {movs.length} {movs.length === 1 ? "movimento novo" : "movimentos novos"}. Confirma o que queres importar.</span>
-            </div>
-            <div className="list" style={{ marginBottom: 6 }}>
-              {movs.map((m, i) => {
-                const isDesp = m.kind === "despesa";
-                return (
-                  <label key={i} className="li" style={{ cursor: "pointer", gap: 12 }}>
-                    <input type="checkbox" checked={!!f.sel[i]} onChange={() => toggle(i)}
-                      style={{ width: 18, height: 18, accentColor: "var(--accent)", flex: "none" }} />
-                    {isDesp ? <CatBadge catKey={m.cat} size={36} r={10} />
-                      : <div className="li-ico" style={{ width: 36, height: 36, background: "var(--accent-soft)" }}><Icon name="arrowsDown" size={16} color="var(--accent)" sw={2} /></div>}
-                    <div className="li-main">
-                      <div className="li-title">{m.nome}</div>
-                      <div className="li-sub">{isDesp ? `${(BM.cats[m.cat] || BM.cats.outros).nome} · ${m.tipo === "fixa" ? "Fixa" : "Variável"}` : m.cat}</div>
-                    </div>
-                    <div className="li-amt tnum" style={{ color: isDesp ? "var(--neg)" : "var(--accent)" }}>{isDesp ? "−" : "+"}{BM.eur(m.valor)}</div>
-                  </label>
-                );
-              })}
-            </div>
-            <div className="card-pad" style={{ background: "var(--surface-2)", borderRadius: "var(--radius-sm)", display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
-              <span className="muted">A importar: {chosen.length} de {movs.length}</span>
-              <span>{rend > 0 && <span style={{ color: "var(--accent)" }}>+{BM.eur(rend)} </span>}{desp > 0 && <span style={{ color: "var(--neg)" }}>−{BM.eur(desp)}</span>}</span>
-            </div>
-          </>
-        );
-      })()}
 
       {type === "reservar" && <>
         <div className="alert ok" style={{ marginBottom: 16, padding: "12px 14px", alignItems: "center" }}>
@@ -597,7 +551,7 @@ function Shell() {
   const TITULOS = {
     dashboard: "Visão geral financeira", transacoes: "Transações", objetivos: "Objetivos",
     agenda: "Agenda Financeira", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium",
-    contas: tr("lbl_accounts"), relatorios: tr("lbl_reports"), config: tr("lbl_settings"), perfil: tr("lbl_profile"),
+    relatorios: tr("lbl_reports"), config: tr("lbl_settings"), perfil: tr("lbl_profile"),
   };
   // A página do Assistente já mostra o próprio título/subtítulo (coluna esquerda) —
   // não duplicar no header partilhado.
@@ -616,7 +570,6 @@ function Shell() {
     objetivos: tr("sub_poupanca"),
     agenda: "Lembretes, recorrentes e pagamentos futuros.",
     partilha: "Divida despesas e acompanhe os seus grupos.",
-    contas: tr("sub_contas"),
     relatorios: tr("sub_relatorios"),
     config: tr("sub_config"),
     perfil: tr("sub_perfil"),
@@ -656,7 +609,6 @@ function Shell() {
         {route === "objetivos" && <Poupanca open={open} />}
         {route === "agenda" && (ehPremium ? <AgendaFinanceira /> : <Paywall />)}
         {route === "partilha" && (ehPremium ? <Partilha /> : <Paywall />)}
-        {route === "contas" && <Contas open={open} />}
         {route === "relatorios" && <Relatorios open={open} />}
         {route === "perfil" && <Perfil open={open} go={go} />}
         {route === "config" && <Definicoes theme={theme} setTheme={setTheme} open={open} go={go} onOpenTweaks={() => setTweaksOpen(true)} contraste={contraste} setContraste={(v) => setTweak("contraste", v)} />}

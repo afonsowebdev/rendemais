@@ -55,27 +55,6 @@ window.BM = (function () {
   };
   const uid = () => Math.random().toString(36).slice(2, 9);
 
-  // bancos / apps que se podem ligar (representação neutra — sem logótipos de marca)
-  const bancos = {
-    revolut: {
-      nome: "Revolut", mono: "R", cor: "#1c1c1e", moeda: "EUR", saldoInicial: 312.45,
-      desc: "Conta multimoeda e cartão.",
-      importar: [
-        { kind: "despesa", nome: "Lidl", cat: "alimentacao", valor: 23.7, tipo: "variavel" },
-        { kind: "despesa", nome: "Uber", cat: "transporte", valor: 6.2, tipo: "variavel" },
-        { kind: "despesa", nome: "Netflix", cat: "lazer", valor: 8.99, tipo: "fixa" },
-      ],
-    },
-    wise: {
-      nome: "Wise", mono: "W", cor: "#163300", moeda: "EUR", saldoInicial: 148.9,
-      desc: "Transferências internacionais.",
-      importar: [
-        { kind: "rendimento", nome: "Transferência recebida", cat: "Freelance", valor: 120 },
-        { kind: "despesa", nome: "Levantamento ATM", cat: "outros", valor: 40, tipo: "variavel" },
-      ],
-    },
-  };
-
   // ---- Países suportados (8 moedas): cidades + moeda + deteção por região do navegador ----
   const countries = [
     { code: "PT", moeda: "EUR", locales: ["PT"], cities: ["Lisboa", "Porto", "Vila Nova de Gaia", "Amadora", "Braga", "Coimbra", "Funchal", "Almada", "Aveiro", "Faro", "Setúbal", "Guimarães", "Viseu", "Leiria", "Évora", "Ponta Delgada", "Queluz", "Cascais", "Loures", "Matosinhos", "Sintra", "Barreiro", "Viana do Castelo", "Vila Real", "Bragança", "Castelo Branco", "Portimão", "Santarém", "Tomar", "Beja"] },
@@ -119,7 +98,7 @@ window.BM = (function () {
     return "PT";
   };
 
-  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, bancos, countries, countryByCode, countryCities, countryProvinces, currencyForCountry, detectCountry };
+  return { eur, eur0, currencies, setCurrency, curInfo, cats, incomeCats, MESES, todayISO, monthKey, fmtData, uid, countries, countryByCode, countryCities, countryProvinces, currencyForCountry, detectCountry };
 })();
 
 /* ===== i18n integrado no data.js (para não depender de um ficheiro separado) ===== */

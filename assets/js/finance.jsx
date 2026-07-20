@@ -6,7 +6,7 @@ const LS = { acc: "bm_account" }; // só uma cache local da conta (para pré-pre
 const load = (k, fb) => { try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : fb; } catch { return fb; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-const EMPTY_DATA = { despesas: [], rendimentos: [], metas: [], orcamento: null, contas: [], poupancaPct: 20, customCats: [], aforros: [] };
+const EMPTY_DATA = { despesas: [], rendimentos: [], metas: [], orcamento: null, poupancaPct: 20, customCats: [], aforros: [] };
 // paleta de cores das metas (o backend não guarda a cor; mantemo-la de forma estável aqui)
 const PALETA = ["var(--c-educacao)", "var(--c-alimentacao)", "var(--c-habitacao)", "var(--c-transporte)", "var(--c-lazer)", "var(--c-internet)"];
 // estado "concluída" das metas, guardado localmente (fiável mesmo que o backend ainda não suporte o campo)
@@ -39,12 +39,11 @@ function FinanceProvider({ children }) {
 
   // ---- carregar todos os dados do utilizador a partir da API ----
   const carregarTudo = async () => {
-    const [perfil, despesas, rendimentos, metasRaw, contas, categorias] = await Promise.all([
+    const [perfil, despesas, rendimentos, metasRaw, categorias] = await Promise.all([
       API.perfil(),
       API.listar("despesas"),
       API.listar("rendimentos"),
       API.listar("metas"),
-      API.listar("contas"),
       API.listar("categorias"),
     ]);
     const aforros = [];
@@ -58,7 +57,7 @@ function FinanceProvider({ children }) {
     const customCats = (categorias || []).map((c) => ({ key: c.id, nome: c.nome, color: c.cor, icon: c.icon }));
     customCats.forEach((c) => { BM.cats[c.key] = { nome: c.nome, color: c.color, icon: c.icon, custom: true }; });
 
-    setData({ ...EMPTY_DATA, despesas, rendimentos, metas, aforros, contas, customCats,
+    setData({ ...EMPTY_DATA, despesas, rendimentos, metas, aforros, customCats,
       orcamento: perfil.orcamento || null, poupancaPct: perfil.poupancaPct ?? 20 });
     setAccount((a) => ({ ...(a || {}), email: perfil.email, nome: perfil.nome, moeda: perfil.moeda, poupancaPct: perfil.poupancaPct, orcamento: perfil.orcamento, dataNascimento: perfil.dataNascimento || null, nascimentoBloqueado: !!perfil.nascimentoBloqueado }));
     setSession(perfil.email || true);
@@ -144,7 +143,6 @@ function FinanceProvider({ children }) {
         apaga("despesas", data.despesas),
         apaga("rendimentos", data.rendimentos),
         apaga("metas", data.metas),
-        apaga("contas", data.contas),
         apaga("categorias", (data.customCats || []).map((c) => ({ id: c.key }))),
       ]);
       setData({ ...EMPTY_DATA });
@@ -228,7 +226,6 @@ function FinanceProvider({ children }) {
   });
   const despesa = crud("despesas", "despesas");
   const rendimento = crud("rendimentos", "rendimentos");
-  const conta = crud("contas", "contas");
 
   // metas (poupanças): criar com saldo inicial regista um depósito datado
   const meta = {
@@ -324,42 +321,6 @@ function FinanceProvider({ children }) {
     } catch (e) { erroAlerta(e); }
   };
 
-  // ---- contas ligadas (Revolut / Wise) ----
-  const connectBank = async (bancoKey) => {
-    try {
-      const preset = BM.bancos[bancoKey];
-      if (!preset) return;
-      const c = await API.criar("contas", { banco: bancoKey, nome: preset.nome, saldo: preset.saldoInicial, moeda: preset.moeda, ligadoEm: BM.todayISO() });
-      setData((d) => ({ ...d, contas: [...d.contas, c] }));
-    } catch (e) { erroAlerta(e); }
-  };
-  const disconnectBank = async (id) => {
-    try { await API.apagar("contas", id); setData((d) => ({ ...d, contas: d.contas.filter((c) => c.id !== id) })); }
-    catch (e) { erroAlerta(e); }
-  };
-  const importMovs = async (id, movs) => {
-    try {
-      const c = (data.contas || []).find((x) => x.id === id);
-      if (!c) return;
-      const tag = c.banco;
-      const novasDesp = [], novosRend = [];
-      for (const m of movs) {
-        if (m.kind === "despesa") {
-          novasDesp.push(await API.criar("despesas", { nome: m.nome, cat: m.cat, valor: m.valor, data: BM.todayISO(), tipo: m.tipo, origem: tag }));
-        } else if (m.kind === "rendimento") {
-          novosRend.push(await API.criar("rendimentos", { fonte: m.nome, cat: m.cat, valor: m.valor, data: BM.todayISO(), rec: false, origem: tag }));
-        }
-      }
-      const sinc = await API.editar("contas", id, { sincronizadoEm: BM.todayISO() });
-      setData((d) => ({
-        ...d,
-        despesas: [...d.despesas, ...novasDesp],
-        rendimentos: [...d.rendimentos, ...novosRend],
-        contas: d.contas.map((x) => (x.id === id ? { ...x, sincronizadoEm: sinc.sincronizadoEm } : x)),
-      }));
-    } catch (e) { erroAlerta(e); }
-  };
-
   // ---- seletores derivados (recalculam a cada alteração) ----
   const sel = React.useMemo(() => {
     const inMonth = (iso) => BM.monthKey(iso) === month;
@@ -434,15 +395,12 @@ function FinanceProvider({ children }) {
   };
   const goToday = () => setMonth(realMonth);
 
-  const bancosTotal = data.contas.reduce((s, c) => s + (+c.saldo || 0), 0);
-
   const value = {
     account, session, data, month, monthLabel, realMonth, isCurrentMonth,
     signup, iniciarRegisto, verificarEmail, definirPassword, reenviarCodigo, login, logout, eliminarConta, updateAccount, resetData, mudarLocalizacao, arquivos, apagarArquivo,
     esqueciPassword, redefinirPassword,
     cur: BM.curInfo(), curSym: BM.curInfo().sym, setCurrency: (code) => updateAccount({ moeda: code }),
-    despesa, rendimento, meta, conta, deposit, setOrcamento, setPoupancaPct, addCategory, removeCategory,
-    connectBank, disconnectBank, importMovs, bancosTotal,
+    despesa, rendimento, meta, deposit, setOrcamento, setPoupancaPct, addCategory, removeCategory,
     setMonth, shiftMonth, goToday, ...sel,
   };
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

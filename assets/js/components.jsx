@@ -51,7 +51,6 @@ const NAV_GROUPS = [
     label: "Outros",
     items: [
       { id: "partilha", label: "Partilha", icon: "users" },
-      { id: "contas", label: "Contas", icon: "wallet" },
       { id: "relatorios", label: "Relatórios", icon: "report" },
       { id: "config", label: "Definições", icon: "gear" },
     ],
@@ -310,7 +309,7 @@ function MobileNav({ route, go, onAdd, onMore }) {
       <i className="mtab-dot" aria-hidden="true" />
     </button>
   );
-  const moreRoutes = ["agenda", "contas", "relatorios", "perfil", "config", "partilha", "previsao", "premium"];
+  const moreRoutes = ["agenda", "relatorios", "perfil", "config", "partilha", "previsao", "premium"];
   return (
     <nav className="mobilenav">
       <svg className="mobilenav-bg" viewBox="0 0 375 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
@@ -334,7 +333,7 @@ function MobileNav({ route, go, onAdd, onMore }) {
 }
 
 /* "Mais": Definições/Tema/Ajuda/Premium/Terminar sessão em destaque — mantêm-se também
-   os restantes destinos reais já existentes (Relatórios, Contas, e as páginas Premium),
+   os restantes destinos reais já existentes (Relatórios e as páginas Premium),
    para nenhuma rota deixar de ser alcançável a partir do mobile. Só o visual (linhas com
    ícone circular) e a organização mudaram. */
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
@@ -345,7 +344,6 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   ];
   const outros = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
-    { id: "contas", label: tr("lbl_accounts"), icon: "wallet" },
   ];
   const premItems = [
     { id: "assistente", label: "Assistente Rende+", icon: "bot" },
