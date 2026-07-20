@@ -298,12 +298,6 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
   return (
     <div className="topbar">
-      <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-label="Abrir menu de navegação" title="Menu">
-        <Icon name="menu" size={22} />
-      </button>
-      <div className="mobile-brand">
-        <Brand size={30} />
-      </div>
       {title && (
         <div className="topbar-title" style={{ minWidth: 0 }}>
           <h1 className="page-title">{title}</h1>
@@ -312,10 +306,16 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
       )}
       <div className="topbar-actions">
         {notificacoesOn && <NotifBell go={go} />}
+        <button type="button" className="icon-btn topbar-brand-btn" onClick={() => go("dashboard")} aria-label="Ir para o Painel" title="Rende+">
+          <Brand size={20} />
+        </button>
         <button className="icon-btn topbar-theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
         <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
+        <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-label="Abrir menu de navegação" title="Menu">
+          <Icon name="menu" size={22} />
+        </button>
       </div>
     </div>
   );
@@ -386,6 +386,7 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
   const principais = [
+    { id: "perfil", label: tr("lbl_profile"), icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
   ];
   const outros = [

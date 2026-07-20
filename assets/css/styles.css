@@ -493,11 +493,12 @@ a:focus {
   min-width: 0;
 }
 
-/* Hambúrguer (abre o offcanvas) e logo central: só existem em mobile — ver a
-   reorganização em grid dentro do @media(max-width:860px) mais abaixo.
+/* Hambúrguer (abre o offcanvas) e logo compacto (só símbolo): só existem em
+   mobile, dentro de .topbar-actions — ver @media(max-width:860px) mais abaixo.
    Especificidade dupla (.icon-btn.topbar-hamburger) para vencer sempre
    .icon-btn{display:grid}, independente da ordem das regras no ficheiro. */
-.icon-btn.topbar-hamburger {
+.icon-btn.topbar-hamburger,
+.icon-btn.topbar-brand-btn {
   display: none;
   flex: none;
 }
@@ -2057,10 +2058,6 @@ input.range::-moz-range-thumb {
   display: none;
 }
 
-.mobile-brand {
-  display: none;
-}
-
 /* ===== Menu hambúrguer mobile (offcanvas) =====
    Sempre montado no DOM (nunca display:none no elemento ativo) para que tanto abrir
    como fechar animem via transform/opacity — só ganha vida abaixo de 860px. */
@@ -2160,8 +2157,10 @@ input.range::-moz-range-thumb {
     top: 16px;
   }
 
+  /* display:grid (em vez de flex) para herdar o place-items:center do .icon-btn
+     base — com flex sem align/justify próprios o ícone ficava descentrado. */
   .icon-btn.topbar-hamburger {
-    display: flex;
+    display: grid;
   }
 
   /* Ícone de mudar tema escondido no header mobile — continua acessível em "Mais". */
@@ -2169,17 +2168,28 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
-  .mobile-brand {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
+  /* Botão de perfil (avatar + dropdown) escondido só em mobile — a mesma ação
+     (ver perfil/definições/sair) vive agora no menu inferior "Mais". Em desktop
+     mantém-se inalterado. */
+  .topbar-actions .profile-menu {
+    display: none;
   }
 
-  .mobile-brand .brand {
-    justify-content: center;
+  /* Logo compacto (só o símbolo, sem o nome) dentro do grupo de ações à direita,
+     ao lado do hambúrguer — herda o mesmo círculo de 38px dos outros ícones do
+     grupo (ver .topbar-actions .icon-btn). Especificidade dupla para vencer
+     sempre o .icon-btn.topbar-brand-btn{display:none} de desktop. */
+  .icon-btn.topbar-brand-btn {
+    display: grid;
+  }
+
+  .topbar-brand-btn .brand {
     padding: 0;
+  }
+
+  .topbar-brand-btn .brand-name,
+  .topbar-brand-btn .brand-sub {
+    display: none;
   }
 
   /* Título/subtítulo nunca aparece dentro do header em mobile — reaparece em
@@ -2188,8 +2198,11 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
+  /* Sem .topbar-title visível, .topbar-actions passa a ser o único filho flex do
+     header — margin-left:auto garante que o grupo continua encostado à direita
+     (nunca ao "empate" do justify-content:space-between com um só item). */
   .topbar-actions {
-    margin-left: 0;
+    margin-left: auto;
   }
 
   /* Bloco de título/subtítulo + seletor de mês, empilhados, logo a seguir ao header —
@@ -2242,11 +2255,6 @@ input.range::-moz-range-thumb {
 
   .kpi-val small {
     font-size: 14px;
-  }
-
-  .mobile-brand {
-    display: flex;
-    align-items: center;
   }
 
   /* responsive grids via inline-style attribute matching (space-agnostic) */
