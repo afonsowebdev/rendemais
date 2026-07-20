@@ -2200,6 +2200,7 @@ input.range::-moz-range-thumb {
     background: transparent;
     border: 1px solid transparent;
     flex: none;
+    font-size: 20px;
   }
 
   .topbar-brand-btn .brand {
