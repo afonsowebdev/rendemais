@@ -2187,12 +2187,19 @@ input.range::-moz-range-thumb {
     display: none;
   }
 
-  /* Logo compacto (só o símbolo, sem o nome) dentro do grupo de ações à direita,
-     ao lado do hambúrguer — herda o mesmo círculo de 38px dos outros ícones do
-     grupo (ver .topbar-actions .icon-btn). Especificidade dupla para vencer
-     sempre o .icon-btn.topbar-brand-btn{display:none} de desktop. */
+  /* Logo compacto (só o símbolo, sem o nome), à esquerda do header — fora de
+     .topbar-actions, por isso com o próprio círculo de 38px (mesma medida dos
+     ícones do grupo à direita, para os dois lados ficarem visualmente coerentes).
+     Especificidade dupla para vencer sempre o .icon-btn.topbar-brand-btn{display:none}
+     de desktop. */
   .icon-btn.topbar-brand-btn {
     display: grid;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid transparent;
+    flex: none;
   }
 
   .topbar-brand-btn .brand {

@@ -298,6 +298,9 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
   return (
     <div className="topbar">
+      <button type="button" className="icon-btn topbar-brand-btn" onClick={() => go("dashboard")} aria-label="Ir para o Painel" title="Rende+">
+        <Brand size={20} />
+      </button>
       {title && (
         <div className="topbar-title" style={{ minWidth: 0 }}>
           <h1 className="page-title">{title}</h1>
@@ -306,9 +309,6 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
       )}
       <div className="topbar-actions">
         {notificacoesOn && <NotifBell go={go} />}
-        <button type="button" className="icon-btn topbar-brand-btn" onClick={() => go("dashboard")} aria-label="Ir para o Painel" title="Rende+">
-          <Brand size={20} />
-        </button>
         <button className="icon-btn topbar-theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} aria-label={themeLabel}>
           <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
