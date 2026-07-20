@@ -269,6 +269,17 @@ a:focus {
   padding: 4px 8px 22px;
 }
 
+.sidebar-brand {
+  padding: 4px 8px 22px;
+}
+
+/* Painel flutuante do desktop (sidebar expandida, não recolhida): logo centrado
+   na largura do menu. A versão recolhida (ícone-só) mantém-se como está — não
+   entra neste seletor. */
+.app:not(.sb-collapsed) .sidebar-brand {
+  text-align: center;
+}
+
 .brand-mark {
   width: 38px;
   height: 38px;

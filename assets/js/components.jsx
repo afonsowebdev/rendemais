@@ -88,7 +88,7 @@ function Sidebar({ route, go, account, collapsed, onToggle }) {
   const ehPremium = !!(account && account.plano === "premium");
   return (
     <aside className="sidebar">
-      <div style={{ padding: "4px 8px 22px" }}>
+      <div className="sidebar-brand">
         <button onClick={() => go("dashboard")} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }} title={tr("go_dashboard")}>
           <Brand />
         </button>
