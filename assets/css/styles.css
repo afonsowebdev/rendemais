@@ -2189,6 +2189,17 @@ input.range::-moz-range-thumb {
     background: var(--surface-2);
   }
 
+  /* Sino de notificações — mesmo tratamento do tema e do hambúrguer. */
+  .topbar-actions .icon-btn.notif-btn {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .topbar-actions .icon-btn.notif-btn:hover,
+  .topbar-actions .icon-btn.notif-btn:active {
+    background: var(--surface-2);
+  }
+
   /* Botão de perfil (avatar + dropdown) escondido só em mobile — a mesma ação
      (ver perfil/definições/sair) vive agora no menu inferior "Mais". Em desktop
      mantém-se inalterado. */
