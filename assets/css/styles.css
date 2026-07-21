@@ -2133,7 +2133,7 @@ input.range::-moz-range-thumb {
   }
 
   .main {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(55px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Header mobile: uma única linha, altura fixa em todas as páginas — hambúrguer à
