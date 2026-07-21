@@ -2175,9 +2175,18 @@ input.range::-moz-range-thumb {
     background: var(--surface-2);
   }
 
-  /* Ícone de mudar tema escondido no header mobile — continua acessível em "Mais". */
-  .topbar-theme-btn {
-    display: none;
+  /* Ícone de mudar tema, de volta ao header mobile (continua também acessível em
+     "Mais") — mesmo tratamento do hambúrguer: círculo com fundo e borda visíveis
+     em vez de transparente. Especificidade dupla pela mesma razão. */
+  .icon-btn.topbar-theme-btn {
+    display: grid;
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .topbar-actions .icon-btn.topbar-theme-btn:hover,
+  .topbar-actions .icon-btn.topbar-theme-btn:active {
+    background: var(--surface-2);
   }
 
   /* Botão de perfil (avatar + dropdown) escondido só em mobile — a mesma ação
