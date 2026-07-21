@@ -2132,10 +2132,13 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
-  /* Sem folga reservada no fundo — o conteúdo pode rolar até ao fim por trás do
-     menu flutuante (vidro fosco), em vez de parar antes com um espaço vazio. */
+  /* Sem padding (isso é espaço reservado sempre visível, mesmo a meio do scroll).
+     scroll-padding-bottom é diferente: só diz ao motor de scroll onde considerar
+     "o fim" para snap/scrollIntoView — não ocupa espaço na caixa, não aparece
+     como vazio. O conteúdo continua a poder rolar por trás do menu (vidro fosco). */
   .main {
     padding-bottom: 0;
+    scroll-padding-bottom: 106px;
   }
 
   /* Header mobile: uma única linha, altura fixa em todas as páginas — hambúrguer à
