@@ -7128,7 +7128,11 @@ input.range::-moz-range-thumb {
   right: 0;
   width: 368px;
   max-width: calc(100vw - 32px);
-  background: var(--surface);
+  /* vidro fosco — mesma técnica do offcanvas (.sidebar.mobile-drawer): var(--surface)
+     misturada com transparência já se adapta sozinha aos dois temas. */
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   z-index: 61;
