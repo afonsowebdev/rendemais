@@ -7120,6 +7120,11 @@ input.range::-moz-range-thumb {
   position: fixed;
   inset: 0;
   z-index: 60;
+  /* mesmo tratamento do fundo do offcanvas (.mobile-drawer-backdrop): escurece e
+     desfoca o que está por trás, em vez de ficar totalmente transparente. */
+  background: rgba(15, 23, 20, .38);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .notif-pop {
