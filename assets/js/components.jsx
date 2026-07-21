@@ -379,11 +379,65 @@ function MobileNav({ route, go, onAdd, onMore }) {
 function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
   const tr = useT();
   const ehPremium = !!(account && account.plano === "premium");
+
+  // Fecho animado: espera a transição terminar antes de desmontar (onClose real),
+  // para fechar sempre com a mesma suavidade da abertura — quer seja pelo fundo,
+  // por Escape, ou por arrastar para baixo.
+  const [closing, setClosing] = React.useState(false);
+  const close = React.useCallback(() => {
+    setClosing(true);
+    setTimeout(onClose, 220);
+  }, [onClose]);
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [close]);
+
+  // Arrastar para baixo para fechar — só a partir da pega/cabeçalho (não da lista
+  // de opções, para nunca disputar o toque com os cliques nos itens). Segue o
+  // dedo em tempo real (sem transição); ao largar, acima do limite continua a
+  // animação até sair do ecrã, abaixo volta suavemente à posição (transição liga
+  // assim que `dragging` passa a false).
+  const [dragY, setDragY] = React.useState(0);
+  const [dragging, setDragging] = React.useState(false);
+  const dragRef = React.useRef({ startY: 0, active: false });
+  const DRAG_THRESHOLD = 90;
+
+  // setPointerCapture garante que continuamos a receber pointermove/pointerup
+  // mesmo que o dedo/rato saia da pequena zona da pega durante o arrasto — sem
+  // isto, os eventos param assim que se sai do elemento onde começou o gesto.
+  const onDragStart = (e) => {
+    dragRef.current = { startY: e.clientY, active: true, dy: 0 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onDragMove = (e) => {
+    if (!dragRef.current.active) return;
+    const dy = e.clientY - dragRef.current.startY;
+    if (dy > 0) { dragRef.current.dy = dy; setDragY(dy); }
+  };
+  const onDragEnd = () => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    setDragging(false);
+    // usa a ref (sempre síncrona), não o estado `dragY` — o último setDragY do
+    // onDragMove pode ainda não ter sido processado neste exato momento.
+    if (dragRef.current.dy > DRAG_THRESHOLD) {
+      setDragY(700); // acima do limite: continua a deslizar para fora do ecrã
+      setTimeout(onClose, 220);
+    } else {
+      setDragY(0); // abaixo do limite: volta suavemente à posição aberta
+    }
+  };
+
   const principais = [
     { id: "perfil", label: tr("lbl_profile"), icon: "user" },
     { id: "config", label: tr("lbl_settings"), icon: "gear" },
+    { id: "premium", label: "Premium", icon: "spark" },
   ];
-  const outros = [
+  const suporte = [
     { id: "relatorios", label: tr("lbl_reports"), icon: "report" },
   ];
   const premItems = [
@@ -393,31 +447,49 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
     { id: "previsao", label: "Previsão", icon: "chart" },
   ];
   const Item = (it) => (
-    <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); onClose(); }}>
+    <button key={it.id} className={"sheet-item" + (route === it.id ? " on" : "")} onClick={() => { go(it.id); close(); }}>
       <span className="si-ico"><Icon name={it.icon} size={18} /></span>{it.label}
     </button>
   );
+
   return (
-    <div className="sheet-bg" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-grip" />
+    <div className={"sheet-bg" + (closing ? " closing" : "")} onClick={close}>
+      <div
+        className={"sheet" + (closing ? " closing" : "")}
+        style={dragY ? { transform: `translateY(${dragY}px)`, transition: dragging ? "none" : undefined } : undefined}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="sheet-drag-handle"
+          onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd} onPointerCancel={onDragEnd}
+        >
+          <div className="sheet-grip" />
+          <div className="sheet-head">
+            <Avatar account={account} size={40} />
+            <div className="sheet-head-txt">
+              <div className="sheet-head-name">{account?.nome || tr("lbl_my_account")}</div>
+              {account?.email && <div className="sheet-head-email">{account.email}</div>}
+            </div>
+          </div>
+        </div>
+
+        <div className="sheet-section-label">Conta</div>
         {principais.map(Item)}
-        <button className={"sheet-item" + (route === "premium" ? " on" : "")} onClick={() => { go("premium"); onClose(); }}>
-          <span className="si-ico"><Icon name="spark" size={18} /></span>Premium
-        </button>
-        <button className="sheet-item" onClick={() => { setTheme(theme === "dark" ? "light" : "dark"); }}>
+
+        <div className="sheet-section-label">Preferências</div>
+        <button className="sheet-item" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
           <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}
         </button>
+
+        <div className="sheet-section-label">Suporte</div>
+        {suporte.map(Item)}
+        {ehPremium && premItems.map(Item)}
         <a className="sheet-item" href="mailto:contacto@rendemais.pt">
           <span className="si-ico"><Icon name="info" size={18} /></span>Ajuda
         </a>
 
-        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
-        {outros.map(Item)}
-        {ehPremium && premItems.map(Item)}
-
-        <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
-        <button className="sheet-item" style={{ color: "var(--neg)" }} onClick={() => { onClose(); onLogout(); }}>
+        <div style={{ height: 1, background: "var(--border)", margin: "10px 12px" }} />
+        <button className="sheet-item" style={{ color: "var(--neg)" }} onClick={() => { close(); onLogout(); }}>
           <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>{tr("logout_full")}
         </button>
       </div>

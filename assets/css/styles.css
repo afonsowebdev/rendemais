@@ -2132,6 +2132,7 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
+  /* overflow  */
   .main {
     padding-bottom: calc(50px + env(safe-area-inset-bottom, 0px));
   }
@@ -2546,6 +2547,16 @@ input.range::-moz-range-thumb {
    MODAIS / PAINEIS
    ============================================================ */
 /* bottom sheet ("Mais") */
+@keyframes sheetBgIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .sheet-bg {
   position: fixed;
   inset: 0;
@@ -2554,6 +2565,12 @@ input.range::-moz-range-thumb {
   z-index: 90;
   display: flex;
   align-items: flex-end;
+  animation: sheetBgIn .22s ease both;
+  transition: opacity .2s ease;
+}
+
+.sheet-bg.closing {
+  opacity: 0;
 }
 
 .sheet {
@@ -2561,8 +2578,27 @@ input.range::-moz-range-thumb {
   background: var(--surface);
   border-radius: 22px 22px 0 0;
   border-top: 1px solid var(--border);
-  padding: 10px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 0 14px calc(20px + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -10px 40px -12px rgba(0, 0, 0, .4);
+  animation: sheetSlideUp .3s cubic-bezier(.22, .61, .36, 1) both;
+  transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+}
+
+.sheet.closing {
+  transform: translateY(100%);
+}
+
+.sheet-drag-handle {
+  padding-top: 10px;
+  margin: 0 -14px 4px;
+  padding-left: 14px;
+  padding-right: 14px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.sheet-drag-handle:active {
+  cursor: grabbing;
 }
 
 .sheet-grip {
@@ -2570,7 +2606,46 @@ input.range::-moz-range-thumb {
   height: 4px;
   border-radius: 99px;
   background: var(--border-strong);
-  margin: 6px auto 12px;
+  margin: 0 auto 14px;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 8px 16px;
+}
+
+.sheet-head-txt {
+  min-width: 0;
+}
+
+.sheet-head-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-head-email {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+  padding: 14px 12px 6px;
 }
 
 .sheet-item {
