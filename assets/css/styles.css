@@ -2332,29 +2332,19 @@ input.range::-moz-range-thumb {
     grid-template-columns: 1fr !important;
   }
 
-  /* bottom tab bar — fundo em SVG com entalhe central (notch) desenhado para o botão "+".
-     Sólida e nítida: sem backdrop-filter, sem blur, sem transparência no preenchimento —
-     o conteúdo só fica coberto onde a forma da barra realmente existe, nada por cima. */
+  /* bottom tab bar — pílula flutuante (mesma filosofia do topbar/sidebar: margem
+     à volta, nunca colada às margens do ecrã), com o botão "+" a sobrepor a borda
+     de cima em vez de um recorte em SVG. */
   .mobilenav {
     display: block;
     position: fixed;
     z-index: 60;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: calc(78px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .mobilenav-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-  }
-
-  .mobilenav-bg path {
-    fill: var(--surface);
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
   }
 
   .mobilenav-row {
@@ -2362,12 +2352,12 @@ input.range::-moz-range-thumb {
     z-index: 1;
     display: flex;
     align-items: stretch;
-    height: 78px;
-    padding: 6px 6px calc(env(safe-area-inset-bottom, 0px));
+    height: 66px;
+    padding: 6px 6px;
   }
 
   .mtab-fab-slot {
-    flex: 0 0 78px;
+    flex: 0 0 70px;
   }
 
   .mtab {
@@ -2426,7 +2416,9 @@ input.range::-moz-range-thumb {
     transform: scale(1);
   }
 
-  /* Botão "+" central (FAB) — fora do fluxo da barra, encaixado no entalhe do SVG */
+  /* Botão "+" central (FAB) — fora do fluxo da barra, sobreposto à borda de cima.
+     O anel claro à volta (halo) é só um box-shadow sólido da cor da própria barra —
+     sem precisar de recorte nem de markup extra. */
   .mtab-fab {
     position: absolute;
     z-index: 2;
@@ -2443,7 +2435,7 @@ input.range::-moz-range-thumb {
     background: var(--accent);
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 8px rgba(0, 0, 0, .14);
+    box-shadow: 0 0 0 6px var(--surface), 0 10px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 8px rgba(0, 0, 0, .14);
     transition: transform .14s ease, background .15s ease;
   }
 
