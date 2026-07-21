@@ -126,9 +126,6 @@ function MobileSidebarDrawer({ open, onClose, route, go, account }) {
       <aside className={"sidebar mobile-drawer" + (open ? " open" : "")} role="dialog" aria-modal="true" aria-label="Menu de navegação" aria-hidden={!open}>
         <div className="mobile-drawer-head">
           <Brand />
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Fechar menu">
-            <Icon name="close" size={18} />
-          </button>
         </div>
         <SidebarNavList route={route} go={go} onNavigate={onClose} />
         {!ehPremium && (

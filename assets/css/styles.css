@@ -2490,16 +2490,18 @@ input.range::-moz-range-thumb {
     background: color-mix(in srgb, var(--surface) 82%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    /* Mesma entrada do menu da landing (.lp-menu/lpMenuPop): não desliza de lado
+       nenhum — aparece com um leve "pop" (fade + escala + um pouco de cima). */
     transform-origin: top right;
-    transform: translateX(calc(100% + 32px));
+    transform: translateY(-8px) scale(.97);
     opacity: 0;
-    transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
+    transition: transform .18s cubic-bezier(.22, .61, .36, 1), opacity .18s cubic-bezier(.22, .61, .36, 1);
     box-shadow: var(--shadow-md);
     pointer-events: none;
   }
 
   .sidebar.mobile-drawer.open {
-    transform: translateX(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
     pointer-events: auto;
   }
