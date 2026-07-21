@@ -2132,13 +2132,11 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
-  /* Sem padding (isso é espaço reservado sempre visível, mesmo a meio do scroll).
-     scroll-padding-bottom é diferente: só diz ao motor de scroll onde considerar
-     "o fim" para snap/scrollIntoView — não ocupa espaço na caixa, não aparece
-     como vazio. O conteúdo continua a poder rolar por trás do menu (vidro fosco). */
+  /* Espaço reservado do tamanho do menu inferior — mas como padding normal do
+     próprio conteúdo (não do menu), rola junto com a página como o resto; o
+     menu em si mantém-se position:fixed, sempre no mesmo sítio do ecrã. */
   .main {
-    padding-bottom: 0;
-    scroll-padding-bottom: 106px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Header mobile: uma única linha, altura fixa em todas as páginas — hambúrguer à
