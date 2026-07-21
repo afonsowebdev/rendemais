@@ -2343,13 +2343,14 @@ input.range::-moz-range-thumb {
     right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     border-radius: 999px;
-    /* vidro fosco — mesma técnica do offcanvas e das notificações: var(--surface)
-       misturada com transparência já se adapta sozinha aos dois temas. O z-index
-       (60, acima do conteúdo normal) + o desfoque deixam claro que a barra está
-       suspensa por cima do que se vê a rolar por trás, não colada ao fundo. */
-    background: color-mix(in srgb, var(--surface) 78%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* vidro suspenso: pouco desfoque de propósito — o conteúdo que passa por trás
+       fica sempre reconhecível/legível (não uma mancha desfocada), só ligeiramente
+       suavizado. O z-index (60, acima do conteúdo normal) já deixa claro que a
+       barra está por cima; var(--surface) misturada com transparência adapta-se
+       sozinha aos dois temas. */
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     box-shadow: var(--shadow-md);
   }
 
@@ -2441,7 +2442,7 @@ input.range::-moz-range-thumb {
     background: var(--accent);
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--surface) 78%, transparent), 0 10px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 8px rgba(0, 0, 0, .14);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--surface) 55%, transparent), 0 10px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 8px rgba(0, 0, 0, .14);
     transition: transform .14s ease, background .15s ease;
   }
 
