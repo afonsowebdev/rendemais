@@ -2132,8 +2132,12 @@ input.range::-moz-range-thumb {
     display: flex;
   }
 
+  /* Folga para o menu inferior flutuante nunca tapar o fim do conteúdo: a barra
+     fica a 16px do fundo + 66px de altura (82px), e o botão "+" ainda sobe mais
+     24px acima disso (106px) — 128px dá margem extra para nunca ficar preso
+     atrás da barra, com um pouco de respiro a mais. */
   .main {
-    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Header mobile: uma única linha, altura fixa em todas as páginas — hambúrguer à
