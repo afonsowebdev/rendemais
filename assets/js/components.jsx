@@ -292,7 +292,7 @@ function ProfileMenu({ account, go, onLogout }) {
    navegação/conta (hambúrguer, marca centrada, notificações, perfil): nunca título,
    subtítulo, saudação ou informação específica da página (isso vive em PageIntro,
    dentro do conteúdo). Em desktop o título continua aqui, como sempre. */
-function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu }) {
+function Topbar({ title, sub, theme, setTheme, onLogout, go, mobileMenuOpen, onOpenMobileMenu }) {
   const fin = useFinance();
   const notificacoesOn = !fin.account || fin.account.notificacoes !== false;
   const themeLabel = theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
@@ -313,8 +313,8 @@ function Topbar({ title, sub, theme, setTheme, onLogout, go, onOpenMobileMenu })
           <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
         <ProfileMenu account={fin.account} go={go} onLogout={onLogout} />
-        <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-label="Abrir menu de navegação" title="Menu">
-          <Icon name="menu" size={22} />
+        <button type="button" className="icon-btn topbar-hamburger" onClick={onOpenMobileMenu} aria-haspopup="true" aria-expanded={!!mobileMenuOpen} aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu de navegação"} title="Menu">
+          <Icon name={mobileMenuOpen ? "close" : "menu"} size={22} />
         </button>
       </div>
     </div>

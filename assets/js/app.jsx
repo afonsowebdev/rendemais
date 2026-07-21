@@ -600,7 +600,7 @@ function Shell() {
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <MobileSidebarDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} route={route} go={go} account={fin.account} />
       <div className="main">
-        <Topbar title={tituloMostrado} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} onOpenMobileMenu={() => setMobileMenuOpen(true)} />
+        <Topbar title={tituloMostrado} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} mobileMenuOpen={mobileMenuOpen} onOpenMobileMenu={() => setMobileMenuOpen((v) => !v)} />
         <PageIntro title={tituloMostrado} sub={subByRoute[route]} monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
           canNext={!fin.isCurrentMonth} month={fin.month} realMonth={fin.realMonth} onSelect={fin.setMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}

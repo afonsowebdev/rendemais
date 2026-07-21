@@ -2066,6 +2066,8 @@ input.range::-moz-range-thumb {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 20, .38);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   z-index: 95;
   opacity: 0;
   pointer-events: none;
@@ -2155,6 +2157,10 @@ input.range::-moz-range-thumb {
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     top: 16px;
+    /* .topbar cria o próprio contexto de empilhamento (sticky + z-index) — sem
+       subir aqui, o hambúrguer lá dentro nunca conseguia ficar acima do backdrop
+       (95)/painel (96), por mais alto que fosse o seu próprio z-index. */
+    z-index: 97;
   }
 
   /* display:grid (em vez de flex) para herdar o place-items:center do .icon-btn
@@ -2478,15 +2484,23 @@ input.range::-moz-range-thumb {
     width: min(300px, 80vw);
     max-width: 320px;
     border-radius: var(--radius);
+    /* vidro fosco — mesma técnica da landing (.lp-menu): var(--surface) misturada
+       com transparência já se adapta sozinha aos dois temas, sem precisar de regra
+       à parte para o dark. */
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     transform-origin: top right;
     transform: translateX(calc(100% + 32px));
-    transition: transform .24s cubic-bezier(.4, 0, .2, 1);
+    opacity: 0;
+    transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
     box-shadow: var(--shadow-md);
     pointer-events: none;
   }
 
   .sidebar.mobile-drawer.open {
     transform: translateX(0);
+    opacity: 1;
     pointer-events: auto;
   }
 
