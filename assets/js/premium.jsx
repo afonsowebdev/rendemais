@@ -2103,12 +2103,24 @@ function NotifBell({ go }) {
   );
 }
 
-/* ---------------- Assistente Rende+ (página dedicada, Premium) ----------------
-   O backend aplica o system prompt e cruza os dados reais da conta autenticada — o frontend
-   envia apenas o histórico da conversa (API.assistenteChat, em streaming, inalterado) e mostra
-   o texto que vai chegando. Nunca inventa dados: qualquer número mostrado vem sempre da
-   resposta do assistente ou de cálculos reais já existentes (gerarInsights), nunca simulado. */
+/* ---------------- Rita — Assistente IA do Rende+ (página dedicada, Premium) ----------------
+   O backend aplica o system prompt da Rita e cruza os dados reais da conta autenticada — o
+   frontend envia apenas o histórico da conversa (API.assistenteChat, em streaming, inalterado)
+   e mostra o texto que vai chegando. Nunca inventa dados: qualquer número mostrado vem sempre
+   da resposta da Rita ou de cálculos reais já existentes (gerarInsights), nunca simulado. */
 const horaAtual = () => new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+
+// Caminhos dos assets da Rita — colocados por fora do código em assets/img/rita/.
+const RITA_AVATAR = "assets/img/rita/rita_avatar_512.png";
+const RITA_BUSTO = "assets/img/rita/rita_bust_transparente.png";
+
+// Perguntas de arranque, mostradas como chips no estado vazio do chat — distintas
+// das sugestões da coluna esquerda (SUGESTOES), pensadas para o primeiro contacto.
+const RITA_CHIPS_INICIAIS = [
+  "Para onde foi o meu dinheiro este mês?",
+  "Consigo poupar mais 10%?",
+  "Como estão os meus objetivos?",
+];
 
 /* Insights reais, calculados a partir dos dados já existentes (fin/prem) — só entra na lista
    o que for verdadeiro para a conta em causa; sem tendência real, sem insight. */
@@ -2267,7 +2279,7 @@ function AssistenteRendePage({ go, open }) {
         });
       },
       onDone: () => setEnviando(false),
-      onError: (e) => { setErro((e && e.message) || "Não foi possível obter resposta do assistente."); setEnviando(false); },
+      onError: (e) => { setErro((e && e.message) || "Perdi-me a meio da resposta — tenta outra vez?"); setEnviando(false); },
     });
   };
   const enviar = () => enviarTexto(input);
@@ -2297,8 +2309,8 @@ function AssistenteRendePage({ go, open }) {
       <div className="assist-col-left">
         <div className="assist-left-head">
           <div>
-            <h1 className="assist-left-title">Assistente Rende+</h1>
-            <p className="assist-left-sub">O seu assistente inteligente para compreender e organizar melhor as suas finanças.</p>
+            <h1 className="assist-left-title">Rita · Assistente Rende+</h1>
+            <p className="assist-left-sub">A sua assistente de IA para compreender e organizar melhor as suas finanças.</p>
           </div>
           <button type="button" className="btn btn-ghost" disabled title="Histórico de conversas — em breve"><Icon name="history" size={14} /> Histórico</button>
         </div>
@@ -2342,10 +2354,13 @@ function AssistenteRendePage({ go, open }) {
       <div className="assist-col-right">
         <div className="assist-chat-head">
           <div className="row" style={{ gap: 10 }}>
-            <span className="assist-head-ico"><Icon name="bot" size={18} color="var(--accent)" /></span>
+            <img className="rita-avatar rita-avatar-head" src={RITA_AVATAR} alt="" />
             <div>
-              <div style={{ fontWeight: 700, fontSize: 14.5 }}>Assistente Rende+</div>
-              <span className="assist-online"><span className="assist-online-dot" /> Online</span>
+              <div className="row" style={{ gap: 8 }}>
+                <span style={{ fontWeight: 700, fontSize: 14.5 }}>Rita</span>
+                <span className="assist-online"><span className="assist-online-dot" /> Online</span>
+              </div>
+              <div className="tiny muted" style={{ fontWeight: 600, marginTop: 1 }}>Assistente IA · Rende+</div>
             </div>
           </div>
           <button type="button" className="btn btn-ghost" onClick={limpar} disabled={mensagens.length === 0}><Icon name="trash" size={14} /> Limpar conversa</button>
@@ -2354,20 +2369,36 @@ function AssistenteRendePage({ go, open }) {
         <div className="assist-chat-body" ref={scrollRef}>
           {mensagens.length === 0 ? (
             <div className="assist-empty">
-              <Icon name="bot" size={28} color="var(--ink-3)" />
-              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 13.5 }}>Como posso ajudar hoje?</div>
-              <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, lineHeight: 1.5 }}>Escolha uma ação rápida, uma sugestão, ou escreva a sua pergunta.</div>
+              <img className="rita-bust" src={RITA_BUSTO} alt="" />
+              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 14.5 }}>Olá! Sou a Rita.</div>
+              <div className="tiny muted" style={{ marginTop: 4, fontWeight: 600, lineHeight: 1.5 }}>Pergunta-me qualquer coisa sobre as tuas finanças.</div>
+              <div className="rita-empty-chips">
+                {RITA_CHIPS_INICIAIS.map((p) => (
+                  <button type="button" key={p} className="assist-suggest-chip" onClick={() => enviarTexto(p)}>{p}</button>
+                ))}
+              </div>
             </div>
           ) : (
             mensagens.map((m, i) => {
               const isLast = i === mensagens.length - 1;
               const podeEstruturar = m.role === "assistant" && !(isLast && enviando);
               const estruturada = podeEstruturar ? parseRespostaAssistente(m.texto) : null;
-              if (estruturada) return <RespostaCard key={i} secoes={estruturada} hora={m.hora} go={go} open={open} />;
+              const aPensar = m.role === "assistant" && isLast && enviando && !m.texto;
+              const corpo = estruturada
+                ? <RespostaCard secoes={estruturada} hora={m.hora} go={go} open={open} />
+                : (
+                  <div className={"assist-msg " + m.role}>
+                    <div>{m.texto ? m.texto : (aPensar ? <span className="assist-typing"><i /><i /><i /></span> : "")}</div>
+                    {m.hora && <span className="assist-msg-hora">{m.hora}</span>}
+                  </div>
+                );
+              // Avatar da Rita junto às suas próprias mensagens (incluindo enquanto
+              // "pensa"/faz streaming) — nunca junto às mensagens do utilizador.
+              if (m.role !== "assistant") return <React.Fragment key={i}>{corpo}</React.Fragment>;
               return (
-                <div key={i} className={"assist-msg " + m.role}>
-                  <div>{m.texto ? m.texto : (m.role === "assistant" && isLast && enviando ? <span className="assist-typing"><i /><i /><i /></span> : "")}</div>
-                  {m.hora && <span className="assist-msg-hora">{m.hora}</span>}
+                <div key={i} className="assist-msg-row">
+                  <img className={"rita-avatar rita-avatar-msg" + (aPensar ? " rita-avatar-pensar" : "")} src={RITA_AVATAR} alt="" />
+                  {corpo}
                 </div>
               );
             })
@@ -2376,7 +2407,7 @@ function AssistenteRendePage({ go, open }) {
         </div>
 
         <div className="assist-foot">
-          <textarea className="assist-input" rows={1} placeholder="Escreva a sua pergunta…" value={input} disabled={enviando}
+          <textarea className="assist-input" rows={1} placeholder="Pergunta à Rita…" value={input} disabled={enviando}
             onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} />
           <button type="button" className="icon-btn assist-send" onClick={enviar} disabled={enviando || !input.trim()} aria-label="Enviar mensagem">
             <Icon name="send" size={17} color="#fff" />
