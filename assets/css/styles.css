@@ -2582,11 +2582,14 @@ input.range::-moz-range-thumb {
 
 .sheet {
   width: calc(100% - 24px);
-  margin: 0 12px;
+  /* margem também no fundo (mesmos 12px + área segura do dispositivo) — o
+     painel fica mesmo a flutuar, sem tocar em nenhuma borda do ecrã. Cantos
+     arredondados dos 4 lados, já que deixou de encostar em baixo. */
+  margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
   background: var(--surface);
-  border-radius: 22px 22px 0 0;
-  border-top: 1px solid var(--border);
-  padding: 0 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  padding: 0 14px 20px;
   box-shadow: 0 -10px 40px -12px rgba(0, 0, 0, .4);
   animation: sheetSlideUp .3s cubic-bezier(.22, .61, .36, 1) both;
   transition: transform .22s cubic-bezier(.4, 0, .2, 1);
