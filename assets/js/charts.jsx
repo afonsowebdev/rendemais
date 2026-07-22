@@ -184,7 +184,13 @@ function BarPair({ data, height = 220, color = "var(--accent)", color2 = "var(--
    vários sparklines na mesma página. key={data.join(",")} no <svg>: ao mudar de
    mês, os dados mudam e o SVG remonta, entrando com uma transição suave em vez
    de saltar instantaneamente para a forma nova. */
-function Sparkline({ data, w = 92, h = 32, color = "var(--accent)" }) {
+/* `responsive` (usado no gráfico de evolução dos objetivos, dentro do modal de
+   detalhe): em vez de uma largura fixa em píxeis — que transbordava o cartão em
+   ecrãs estreitos, já que o modal em mobile é mais estreito que os 380px pedidos
+   — o SVG passa a ter só um viewBox e width:100%, esticando-se à largura real do
+   contentor pai (o desenho reamostra-se via viewBox, sem distorcer a proporção
+   dos valores). */
+function Sparkline({ data, w = 92, h = 32, color = "var(--accent)", responsive = false }) {
   const gid = "spark-" + React.useId().replace(/[^a-zA-Z0-9]/g, "");
   const max = Math.max(...data), min = Math.min(...data);
   const x = (i) => (i / (data.length - 1)) * w;
@@ -192,7 +198,9 @@ function Sparkline({ data, w = 92, h = 32, color = "var(--accent)" }) {
   const line = data.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const area = `${line} L${w.toFixed(1)},${h} L0,${h} Z`;
   return (
-    <svg key={data.join(",")} width={w} height={h} style={{ flex: "none" }} className="kpi-spark">
+    <svg key={data.join(",")} viewBox={`0 0 ${w} ${h}`} width={responsive ? "100%" : w} height={h}
+      preserveAspectRatio={responsive ? "none" : undefined}
+      style={{ flex: responsive ? "1 1 auto" : "none", minWidth: 0, display: responsive ? "block" : undefined }} className="kpi-spark">
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" style={{ stopColor: color, stopOpacity: .32 }} />

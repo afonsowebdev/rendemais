@@ -274,7 +274,7 @@ function MetaDetalheModal({ meta, serie, onClose, onDeposit, onEdit, onToggleFec
       {serie && serie.points && serie.points.some((v) => v > 0) && (
         <div style={{ marginTop: 20 }}>
           <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 8 }}>Evolução (últimos 6 meses)</div>
-          <Sparkline data={serie.points} w={380} h={54} color={meta.cor} />
+          <Sparkline data={serie.points} w={380} h={54} color={meta.cor} responsive />
         </div>
       )}
       <div style={{ marginTop: 4 }}>
