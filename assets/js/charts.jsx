@@ -177,14 +177,30 @@ function BarPair({ data, height = 220, color = "var(--accent)", color2 = "var(--
   );
 }
 
+/* Mini-gráfico dos cartões de KPI: linha (inalterada, mesma espessura) + área
+   preenchida por baixo, na mesma cor da linha, com gradiente a desvanecer até
+   transparente — só profundidade visual, sem sombras. gid único por instância
+   (React.useId) para o <linearGradient> nunca ser partilhado/trocado entre
+   vários sparklines na mesma página. key={data.join(",")} no <svg>: ao mudar de
+   mês, os dados mudam e o SVG remonta, entrando com uma transição suave em vez
+   de saltar instantaneamente para a forma nova. */
 function Sparkline({ data, w = 92, h = 32, color = "var(--accent)" }) {
+  const gid = "spark-" + React.useId().replace(/[^a-zA-Z0-9]/g, "");
   const max = Math.max(...data), min = Math.min(...data);
   const x = (i) => (i / (data.length - 1)) * w;
   const y = (v) => h - ((v - min) / (max - min || 1)) * (h - 4) - 2;
-  const d = data.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const line = data.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const area = `${line} L${w.toFixed(1)},${h} L0,${h} Z`;
   return (
-    <svg width={w} height={h} style={{ flex: "none" }}>
-      <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg key={data.join(",")} width={w} height={h} style={{ flex: "none" }} className="kpi-spark">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style={{ stopColor: color, stopOpacity: .32 }} />
+          <stop offset="100%" style={{ stopColor: color, stopOpacity: 0 }} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} stroke="none" />
+      <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

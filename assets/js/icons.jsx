@@ -16,6 +16,7 @@ const BX = {
   key: "bx-key", tools: "bx-wrench", bag: "bx-shopping-bag", tag: "bx-purchase-tag", scissors: "bx-cut",
   lock: "bx-lock-alt", transfer: "bx-transfer-alt", calendarCheck: "bx-calendar-check",
   chat: "bx-message-rounded-dots", send: "bx-send", bot: "bx-bot", paperclip: "bx-paperclip", download: "bx-download",
+  minus: "bx-minus",
 };
 
 function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
@@ -99,6 +100,7 @@ function Icon({ name, size = 18, color = "currentColor", sw = 1.7, style }) {
     tag: "M20.6 12.6 12 21l-9-9V5a2 2 0 0 1 2-2h7zM7 7h.01",
     menu: "M4 6h16M4 12h16M4 18h16",
     close: "M6 6l12 12M18 6 6 18",
+    minus: "M5 12h14",
     globe: "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18",
   };
   if (name === "google") {

@@ -531,7 +531,56 @@ function AddSheet({ onClose, itens }) {
   );
 }
 
-function Kpi({ label, value, sub, delta, deltaDir, icon, color, spark }) {
+/* Anima um número entre o valor anterior e o novo (ease-out, ~320ms) — usado
+   pelo valor principal e pela percentagem dos cartões de KPI. Sem libraries:
+   só requestAnimationFrame. Se o alvo não for um número válido, não anima. */
+function useCountUp(target, duration = 320) {
+  const [display, setDisplay] = React.useState(target);
+  const fromRef = React.useRef(target);
+  React.useEffect(() => {
+    const from = fromRef.current;
+    const to = target;
+    if (typeof to !== "number" || isNaN(to) || from === to) { setDisplay(to); fromRef.current = to; return; }
+    let raf;
+    const t0 = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(from + (to - from) * eased);
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else fromRef.current = to;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return display;
+}
+
+/* `rawValue`+`format` são opcionais: só quando presentes o valor principal
+   anima (count-up); caso contrário mostra `value` tal como antes — mantém
+   todos os outros usos do Kpi na app inalterados.
+   `deltaPct` (número, % face ao mês anterior) mostra a seta/cor/texto logo
+   abaixo do valor, sem mexer no resto do layout do cartão. */
+function Kpi({ label, value, sub, icon, color, spark, deltaPct, rawValue, format }) {
+  const animatedRaw = useCountUp(rawValue != null ? rawValue : null, 320);
+  const displayValue = (rawValue != null && format) ? format(animatedRaw) : value;
+  const animatedPct = useCountUp(deltaPct != null ? deltaPct : null, 320);
+
+  let deltaNode = null;
+  if (deltaPct != null) {
+    const flat = Math.abs(deltaPct) < 0.05;
+    const up = deltaPct > 0;
+    const cls = flat ? "flat" : (up ? "up" : "down");
+    const iconName = flat ? "minus" : (up ? "arrowUp" : "arrowDown");
+    const pctTxt = Math.abs(animatedPct).toFixed(1).replace(".", ",");
+    deltaNode = (
+      <div className={"kpi-delta-row " + cls}>
+        <Icon name={iconName} size={12} />
+        <span>{flat ? "Sem alterações face ao mês anterior" : `${up ? "+" : "-"}${pctTxt}% em relação ao mês anterior`}</span>
+      </div>
+    );
+  }
+
   return (
     <div className="card card-pad kpi">
       <div className="kpi-top">
@@ -539,15 +588,11 @@ function Kpi({ label, value, sub, delta, deltaDir, icon, color, spark }) {
           <Icon name={icon} size={19} color={color} sw={1.9} />
         </div>
         {spark && <Sparkline data={spark} color={color} />}
-        {!spark && delta != null && (
-          <span className={"delta " + (deltaDir === "down" ? "down" : "up")}>
-            <Icon name={deltaDir === "down" ? "arrowDown" : "arrowUp"} size={13} /> {delta}
-          </span>
-        )}
       </div>
       <div>
         <div className="kpi-label">{label}</div>
-        <div className="kpi-val tnum valor-sensivel" style={{ marginTop: 6 }}>{value}</div>
+        <div className="kpi-val tnum valor-sensivel" style={{ marginTop: 6 }}>{displayValue}</div>
+        {deltaNode}
         {sub && <div className="tiny muted" style={{ marginTop: 7, fontWeight: 600 }}>{sub}</div>}
       </div>
     </div>

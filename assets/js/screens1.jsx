@@ -398,6 +398,24 @@ function Dashboard({ go, open }) {
   const recSpark = fin.series.map((m) => m.rec);
   const gastoSpark = fin.series.map((m) => m.gasto);
 
+  // Percentagem face ao mês anterior, para os 4 cartões principais do painel.
+  // fin.series já tem uma janela de 6 meses (o atual é sempre o último); sem
+  // baseline (mês anterior a 0) não há percentagem que faça sentido mostrar.
+  const curS = fin.series[fin.series.length - 1];
+  const prevS = fin.series[fin.series.length - 2];
+  const pctChange = (curr, prev) => (!prev ? null : ((curr - prev) / Math.abs(prev)) * 100);
+  const recDeltaPct = pctChange(curS.rec, prevS.rec);
+  const gastoDeltaPct = pctChange(curS.gasto, prevS.gasto);
+  // "Disponível" do mês anterior: mesma fórmula do atual (saldo − poupança
+  // separada), aplicada aos valores desse mês — não há histórico guardado de
+  // poupancaSeparada, por isso reaplica-se a % de poupança atual ao saldo de
+  // então (mesma lógica usada para calcular o plano do mês corrente).
+  const prevSaldo = prevS.rec - prevS.gasto;
+  const prevPlano = prevSaldo > 0 ? Math.round((fin.poupancaPct / 100) * prevSaldo * 100) / 100 : 0;
+  const prevDisponivel = prevSaldo - Math.max(prevS.pou, prevPlano);
+  const dispDeltaPct = pctChange(fin.disponivel, prevDisponivel);
+  const poupadoDeltaPct = pctChange(curS.poupAcum, prevS.poupAcum);
+
   if (!hasData) {
     return (
       <div className="content">
@@ -487,10 +505,10 @@ function Dashboard({ go, open }) {
       </div>
 
       <div className="grid kpi-row">
-        <Kpi label={tr("kpi_received")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} />
-        <Kpi label={tr("kpi_spent")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} />
-        <Kpi label={tr("kpi_available")} value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} sub={fin.poupancaSeparada > 0 ? tt("kpi_after_savings", { x: BM.eur0(fin.poupancaSeparada) }) : tr("kpi_until_eom")} />
-        <Kpi label={tr("kpi_saved")} value={BM.eur0(fin.poupado)} icon="target" color="var(--c-educacao)" sub={tt(fin.data.metas.length === 1 ? "kpi_meta_one" : "kpi_meta_many", { n: fin.data.metas.length })} />
+        <Kpi label={tr("kpi_received")} rawValue={fin.totalRec} format={BM.eur0} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" spark={recSpark} deltaPct={recDeltaPct} />
+        <Kpi label={tr("kpi_spent")} rawValue={fin.totalGasto} format={BM.eur0} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" spark={gastoSpark} deltaPct={gastoDeltaPct} />
+        <Kpi label={tr("kpi_available")} rawValue={fin.disponivel} format={BM.eur0} value={BM.eur0(fin.disponivel)} icon="bolt" color={fin.disponivel < 0 ? "var(--neg)" : "var(--c-habitacao)"} deltaPct={dispDeltaPct} sub={fin.poupancaSeparada > 0 ? tt("kpi_after_savings", { x: BM.eur0(fin.poupancaSeparada) }) : tr("kpi_until_eom")} />
+        <Kpi label={tr("kpi_saved")} rawValue={fin.poupado} format={BM.eur0} value={BM.eur0(fin.poupado)} icon="target" color="var(--c-educacao)" deltaPct={poupadoDeltaPct} sub={tt(fin.data.metas.length === 1 ? "kpi_meta_one" : "kpi_meta_many", { n: fin.data.metas.length })} />
         <Kpi label="Objetivos ativos" value={String(metasAbertas.length)} icon="target" color="var(--c-lazer)" sub={metasAbertas.length === 0 ? "Nenhum em curso" : undefined} />
       </div>
 
