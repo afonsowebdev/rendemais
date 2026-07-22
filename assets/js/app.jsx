@@ -60,6 +60,34 @@ const DESPESA_LABEL_TO_CAT = {
   "Lazer": "lazer", "Subscrições": "lazer", "Seguros": "outros", "Outro": "outros",
 };
 
+/* ---------- Seletor de categoria (ícone+cor em vez de <select> nativo) ---------- */
+function CategorySelect({ value, options, onChange, renderIcon }) {
+  const [open, setOpen, ref] = useDropdownClose();
+  const cur = options.find((o) => o.key === value) || options[0] || {};
+  return (
+    <div className="cat-select" ref={ref}>
+      <button type="button" className="cat-select-btn" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {renderIcon(cur)}
+        <span className="cat-select-name">{cur.label}</span>
+        <Icon name="chevR" size={15} color="var(--ink-3)" style={{ transform: "rotate(90deg)", flex: "none" }} />
+      </button>
+      {open && (
+        <div className="cat-select-list" role="listbox">
+          {options.map((o) => (
+            <button type="button" key={o.key} role="option" aria-selected={o.key === value}
+              className={"cat-select-item" + (o.key === value ? " on" : "")}
+              onClick={() => { onChange(o.key); setOpen(false); }}>
+              {renderIcon(o)}
+              <span>{o.label}</span>
+              {o.key === value && <span className="cat-select-check"><Icon name="check" size={14} color="var(--accent)" /></span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Criador inline de categoria personalizada ---------- */
 function NewCategoryInline({ onCreate, onCancel }) {
   const fin = useFinance();
@@ -270,7 +298,11 @@ function EntryModal({ type, item, onClose }) {
           <Field label={`Valor (${fin.curSym})`} icon="coins"><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
           <Field label="Data de pagamento" hint="Quando a despesa é (ou foi) paga."><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
         </div>
-        <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{catKeys.map((k) => <option key={k} value={k}>{BM.cats[k].nome}</option>)}</select></Field>
+        <Field label="Categoria">
+          <CategorySelect value={f.cat} onChange={(k) => setF((s) => ({ ...s, cat: k }))}
+            options={catKeys.map((k) => ({ key: k, label: BM.cats[k].nome, icon: BM.cats[k].icon, color: BM.cats[k].color }))}
+            renderIcon={(o) => <span className="cat-select-ico" style={{ background: `color-mix(in srgb, ${o.color} 16%, transparent)` }}><Icon name={o.icon} size={14} color={o.color} sw={1.9} /></span>} />
+        </Field>
         {addingCat
           ? <NewCategoryInline onCreate={(key) => { setF((s) => ({ ...s, cat: key })); setAddingCat(false); }} onCancel={() => setAddingCat(false)} />
           : <button className="btn btn-soft" style={{ marginBottom: 14 }} onClick={() => setAddingCat(true)}><Icon name="plus" size={14} /> Adicionar nova categoria</button>}
@@ -288,7 +320,11 @@ function EntryModal({ type, item, onClose }) {
           <Field label={`Valor (${fin.curSym})`} icon="coins"><input className="input" type="number" step="0.01" value={f.valor} onChange={set("valor")} placeholder="0,00" /></Field>
           <Field label="Data"><input className="input" type="date" value={f.data} onChange={set("data")} /></Field>
         </div>
-        <Field label="Categoria"><select className="select" value={f.cat} onChange={set("cat")}>{incKeys.map((k) => <option key={k} value={k}>{k}</option>)}</select></Field>
+        <Field label="Categoria">
+          <CategorySelect value={f.cat} onChange={(k) => setF((s) => ({ ...s, cat: k }))}
+            options={incKeys.map((k) => ({ key: k, label: k, color: BM.incomeCats[k] }))}
+            renderIcon={(o) => <span className="cat-select-dot" style={{ background: o.color }} />} />
+        </Field>
         <Field label="Frequência" hint={f.rec ? "Recebes este valor todos os meses." : "Recebimento pontual."}>
           <div className="seg" style={{ width: "fit-content" }}>
             <button className={f.rec ? "on" : ""} onClick={() => setF((s) => ({ ...s, rec: true }))}>Recorrente</button>
