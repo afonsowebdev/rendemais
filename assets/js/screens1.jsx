@@ -401,9 +401,18 @@ function Dashboard({ go, open }) {
   // Percentagem face ao mês anterior, para os 4 cartões principais do painel.
   // fin.series já tem uma janela de 6 meses (o atual é sempre o último); sem
   // baseline (mês anterior a 0) não há percentagem que faça sentido mostrar.
+  // No início de um mês novo (ainda sem nenhuma despesa/receita registada nele),
+  // o total desse mês está genuinamente a 0 — comparar isso ao mês anterior
+  // dava sempre "-100%", o que parece um colapso nas finanças e não é: é só o
+  // mês a começar. Por isso, quando o valor atual é 0 mas o anterior não era,
+  // não mostramos percentagem nenhuma (em vez de um "-100%" enganador).
   const curS = fin.series[fin.series.length - 1];
   const prevS = fin.series[fin.series.length - 2];
-  const pctChange = (curr, prev) => (!prev ? null : ((curr - prev) / Math.abs(prev)) * 100);
+  const pctChange = (curr, prev) => {
+    if (!prev) return null;
+    if (curr === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  };
   const recDeltaPct = pctChange(curS.rec, prevS.rec);
   const gastoDeltaPct = pctChange(curS.gasto, prevS.gasto);
   // "Disponível" do mês anterior: mesma fórmula do atual (saldo − poupança
