@@ -2629,11 +2629,18 @@ input.range::-moz-range-thumb {
      compacto do que antes (menos respiro vertical) e o seletor de mês passa a ter
      fundo próprio (var(--surface-2), como os chips/pills do resto da app) em vez de
      texto solto sobre o fundo da página — combina melhor com o resto do sistema e
-     aproveita o espaço de forma mais eficiente. */
+     aproveita o espaço de forma mais eficiente. Todo o bloco ganha o mesmo tratamento
+     visual de .card (fundo, borda, sombra) para não ficar solto/vazio sobre o fundo
+     da página — o seletor de mês fica como uma "pílula" dentro dessa caixa. */
   .page-intro {
     flex-direction: column;
     align-items: stretch;
-    padding: 18px 16px 0;
+    margin: 14px 16px 0;
+    padding: 18px 16px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
   }
 
   .page-intro-title {
