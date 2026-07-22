@@ -197,6 +197,12 @@ a:focus {
 .app {
   display: grid;
   grid-template-columns: 260px 1fr;
+  /* minmax(0,1fr): sem isto, a linha única da grid cresce para caber TODO o
+     conteúdo (em vez de respeitar a altura do ecrã), e o overflow-y:auto do
+     .main nunca chega a entrar em ação — nada rola de verdade, o .app{overflow:
+     hidden} só corta o resto por baixo, à socapa. O "0" no minmax é o que
+     permite a linha encolher abaixo do tamanho do conteúdo. */
+  grid-template-rows: minmax(0, 1fr);
   height: 100%;
   overflow: hidden;
 }
@@ -563,6 +569,7 @@ a:focus {
   display: flex;
   justify-content: center;
   padding: 28px 24px 4px;
+  flex-shrink: 0;
 }
 
 .page-intro-month {
@@ -990,6 +997,12 @@ a:focus {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  /* .main é flex-column com overflow-y:auto — sem isto, o .content (e tudo lá
+     dentro) fica sujeito ao flex-shrink por defeito (1) e é espremido para
+     caber no ecrã em vez de dar overflow/scroll; os cartões acabavam a "vazar"
+     silenciosamente para fora da caixa encolhida, sem o scroll alguma vez
+     ser acionado. flex-shrink:0 obriga o .main a rolar em vez de espremer. */
+  flex-shrink: 0;
 }
 
 /* ============================================================
