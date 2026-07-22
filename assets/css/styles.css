@@ -461,6 +461,13 @@ a:focus {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* scroll continua a funcionar normalmente — só a barra visual fica escondida */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.main::-webkit-scrollbar {
+  display: none;
 }
 
 /* ============================================================
@@ -2643,6 +2650,17 @@ input.range::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* altura máxima para nunca chegar ao topo do ecrã, mesmo com muitos itens
+     (ex.: com o Premium ativo) — o que não couber, rola aqui dentro, sem a
+     pega/cabeçalho (fora deste bloco) se mexer. Scroll sem barra visível. */
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sheet-body::-webkit-scrollbar {
+  display: none;
 }
 
 /* Cada secção (Conta/Preferências/Suporte) fica no seu próprio cartão — mesmo
