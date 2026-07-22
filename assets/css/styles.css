@@ -2653,7 +2653,7 @@ input.range::-moz-range-thumb {
   /* altura máxima para nunca chegar ao topo do ecrã, mesmo com muitos itens
      (ex.: com o Premium ativo) — o que não couber, rola aqui dentro, sem a
      pega/cabeçalho (fora deste bloco) se mexer. Scroll sem barra visível. */
-  max-height: calc(100vh - 220px);
+  max-height: calc(100vh - 320px);
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
