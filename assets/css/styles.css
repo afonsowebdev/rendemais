@@ -2581,8 +2581,8 @@ input.range::-moz-range-thumb {
 }
 
 .sheet {
-  width: calc(100% - 32px);
-  margin: 0 16px;
+  width: calc(100% - 24px);
+  margin: 0 12px;
   background: var(--surface);
   border-radius: 22px 22px 0 0;
   border-top: 1px solid var(--border);
