@@ -7,7 +7,7 @@ function initials(name) {
 
 function Avatar({ account, size = 34, fontSize }) {
   const foto = account?.foto;
-  if (foto) return <img src={foto} alt="" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none" }} />;
+  if (foto) return <img src={foto} alt="" draggable={false} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none" }} />;
   return <div className="user-av" style={{ width: size, height: size, fontSize: fontSize || size * 0.4 }}>{initials(account?.nome)}</div>;
 }
 

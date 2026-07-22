@@ -2601,7 +2601,19 @@ input.range::-moz-range-thumb {
   padding-left: 14px;
   padding-right: 14px;
   cursor: grab;
+  /* touch-action:none impede o gesto nativo de scroll/bounce do telemóvel de
+     "roubar" o toque ao nosso arrasto; user-select/-webkit-user-drag impedem
+     que o browser tente selecionar texto ou arrastar a imagem do avatar em vez
+     de deixar o pointermove chegar ao nosso handler. */
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sheet-drag-handle * {
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 .sheet-drag-handle:active {
