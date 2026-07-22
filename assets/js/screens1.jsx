@@ -397,6 +397,13 @@ function Dashboard({ go, open }) {
   const recent = [...fin.despMes].sort((a, b) => (b.data || "").localeCompare(a.data || "")).slice(0, 6);
   const recSpark = fin.series.map((m) => m.rec);
   const gastoSpark = fin.series.map((m) => m.gasto);
+  // Duas formas de ver a mesma evolução: linha (tendência mês a mês) ou círculo
+  // (peso total de recebido vs. gasto na janela de 6 meses) — o utilizador escolhe.
+  const [evoView, setEvoView] = React.useState("line");
+  const evoTotais = {
+    rec: fin.series.reduce((s, m) => s + m.rec, 0),
+    gasto: fin.series.reduce((s, m) => s + m.gasto, 0),
+  };
 
   // Percentagem face ao mês anterior, para os 4 cartões principais do painel.
   // fin.series já tem uma janela de 6 meses (o atual é sempre o último); sem
@@ -522,18 +529,34 @@ function Dashboard({ go, open }) {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <div className="card card-pad">
-          <div className="section-head" style={{ marginBottom: 14 }}>
-            <div><div className="section-title">{tr("dash_evolution")}</div><div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>{tr("dash_evolution_sub")}</div></div>
-            <div className="row" style={{ gap: 14, alignItems: "center" }}>
-              <div className="row tiny" style={{ fontWeight: 700 }}>
-                <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")}</span>
-                <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")}</span>
-              </div>
-              <button type="button" className="btn btn-soft" style={{ padding: "7px 12px" }} onClick={() => go("relatorios")}><Icon name="chart" size={14} /> Ver histórico</button>
+        <div className="card card-pad evo-card">
+          <div className="evo-head">
+            <div className="evo-head-txt">
+              <div className="section-title">{tr("dash_evolution")}</div>
+              <div className="tiny muted evo-sub">{tr("dash_evolution_sub")}</div>
+            </div>
+            <button type="button" className="btn btn-soft evo-history-btn" onClick={() => go("relatorios")}><Icon name="chart" size={14} /> Ver histórico</button>
+          </div>
+          <div className="evo-toolbar">
+            <div className="row tiny evo-legend" style={{ fontWeight: 700 }}>
+              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--accent)" }} /> {tr("legend_received")}</span>
+              <span className="row" style={{ gap: 6 }}><span className="dot" style={{ background: "var(--c-transporte)" }} /> {tr("legend_spent")}</span>
+            </div>
+            <div className="seg evo-view-seg" role="group" aria-label="Formato do gráfico">
+              <button type="button" className={evoView === "line" ? "on" : ""} title="Ver em linha" aria-label="Ver em linha" onClick={() => setEvoView("line")}><Icon name="chart" size={14} /></button>
+              <button type="button" className={evoView === "donut" ? "on" : ""} title="Ver em círculo" aria-label="Ver em círculo" onClick={() => setEvoView("donut")}><Icon name="target" size={14} /></button>
             </div>
           </div>
-          <LineChart data={fin.series} height={216} />
+          {evoView === "line" ? <LineChart data={fin.series} height={216} /> : (
+            <div className="evo-donut-view">
+              <DonutChart data={[{ valor: evoTotais.rec, color: "var(--accent)" }, { valor: evoTotais.gasto, color: "var(--c-transporte)" }]}
+                center={<div><div className="tnum" style={{ fontSize: 15, fontWeight: 800 }}>{BM.eur0(evoTotais.rec + evoTotais.gasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>6 meses</div></div>} />
+              <div className="evo-donut-legend">
+                <div className="evo-donut-leg-item"><span className="dot" style={{ background: "var(--accent)" }} />{tr("legend_received")}<b className="tnum">{BM.eur0(evoTotais.rec)}</b></div>
+                <div className="evo-donut-leg-item"><span className="dot" style={{ background: "var(--c-transporte)" }} />{tr("legend_spent")}<b className="tnum">{BM.eur0(evoTotais.gasto)}</b></div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="card card-pad">
           <div className="section-head" style={{ marginBottom: 16 }}>

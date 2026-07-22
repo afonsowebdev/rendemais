@@ -987,6 +987,17 @@ a:focus {
     flex: 0 0 80%;
     scroll-snap-align: start;
   }
+
+  .evo-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .evo-donut-view {
+    flex-direction: column;
+    gap: 16px;
+  }
 }
 
 /* ============================================================
@@ -1533,6 +1544,84 @@ table.t {
   background: var(--surface);
   color: var(--ink);
   box-shadow: var(--shadow-sm);
+}
+
+/* Cartão "Evolução mensal": título+subtítulo e "Ver histórico" na primeira
+   linha, legenda e o alternador linha/círculo na segunda — nunca se
+   sobrepõem, mesmo quando o espaço é apertado (mobile). */
+.evo-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.evo-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.evo-head-txt {
+  min-width: 0;
+}
+
+.evo-sub {
+  margin-top: 2px;
+}
+
+.evo-history-btn {
+  flex: none;
+  padding: 7px 12px;
+}
+
+.evo-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.evo-legend {
+  flex-wrap: wrap;
+}
+
+.evo-view-seg button {
+  padding: 6px 10px;
+  display: grid;
+  place-items: center;
+}
+
+.evo-donut-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 12px 0 4px;
+  flex-wrap: wrap;
+}
+
+.evo-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evo-donut-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.evo-donut-leg-item b {
+  margin-left: auto;
+  padding-left: 14px;
+  font-size: 14px;
+  color: var(--ink);
 }
 
 /* ============================================================
