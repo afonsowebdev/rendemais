@@ -2286,29 +2286,61 @@ input.range::-moz-range-thumb {
   }
 
   /* Bloco de título/subtítulo + seletor de mês, empilhados, logo a seguir ao header —
-     nunca colado a ele (gap próprio de cada filho via margin-bottom no título). */
+     nunca colado a ele (gap próprio de cada filho via margin-bottom no título). Mais
+     compacto do que antes (menos respiro vertical) e o seletor de mês passa a ter
+     fundo próprio (var(--surface-2), como os chips/pills do resto da app) em vez de
+     texto solto sobre o fundo da página — combina melhor com o resto do sistema e
+     aproveita o espaço de forma mais eficiente. */
   .page-intro {
     flex-direction: column;
     align-items: stretch;
-    padding: 24px 16px 0;
+    padding: 18px 16px 0;
   }
 
   .page-intro-title {
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .page-sub {
     font-size: 13px;
+    margin-top: 2px;
   }
 
   .page-intro-month {
     width: 100%;
     max-width: none;
+  }
+
+  /* Seletor de mês compacto: sem a dica de gesto (o toque no mês já abre o
+     calendário, arrastar continua a funcionar — a dica passou a ser redundante),
+     setas e texto mais pequenos, tudo dentro de uma pílula com fundo próprio. */
+  .month-carousel {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .month-carousel-hint {
+    display: none;
+  }
+
+  .month-carousel-arrow {
+    width: 30px;
+    height: 30px;
+  }
+
+  .month-carousel-label {
+    font-size: 15px;
+  }
+
+  .month-carousel-today {
+    margin-top: 0;
   }
 
   .topbar-actions {
