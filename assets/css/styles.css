@@ -1355,6 +1355,25 @@ table.t {
   display: none;
 }
 
+/* Filtros de Despesas: tipo (segmentado) e categoria (chips), cada um na sua
+   própria linha — bem separados, em vez de tudo misturado na mesma linha com
+   wrap (o que ficava desorganizado consoante o número de categorias). */
+.exp-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.exp-cat-scroll {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+
 @media (max-width: 860px) {
   .tbl-desktop-wrap {
     display: none;
@@ -1362,6 +1381,48 @@ table.t {
 
   .tbl-mobile-list {
     display: flex;
+    padding: 4px 18px;
+  }
+
+  /* Em mobile, tipo e categoria passam a duas linhas bem distintas: o segmentado
+     ocupa a largura toda (parece uma barra de separadores), as categorias ficam
+     numa única linha com scroll horizontal (sem quebrar de forma desalinhada). */
+  .exp-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exp-tipo-seg {
+    display: flex;
+    width: 100%;
+  }
+
+  .exp-tipo-seg button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .exp-cat-scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-left: 0;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    /* sem width+min-width explícitos, este item (flex dentro de .exp-filters, que
+       agora está em coluna) fica com o tamanho do seu próprio conteúdo (todas as
+       chips em linha) em vez de respeitar a largura do cartão — o align-items:
+       stretch do pai não chega, porque este elemento também é ele próprio
+       display:flex. width:100% força-o mesmo à largura certa. */
+    width: 100%;
+    min-width: 0;
+  }
+
+  .exp-cat-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .exp-cat-scroll .chip {
+    flex: none;
   }
 }
 

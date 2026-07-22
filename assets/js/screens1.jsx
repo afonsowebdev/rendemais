@@ -673,13 +673,13 @@ function Despesas({ open }) {
           action={<button className="btn btn-primary" onClick={() => open("despesa")}><Icon name="plus" size={16} color="#fff" /> {tr("add_expense")}</button>} />
       ) : (
         <div className="card">
-          <div className="card-pad" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", borderBottom: "1px solid var(--border)" }}>
-            <div className="seg">
+          <div className="exp-filters card-pad">
+            <div className="seg exp-tipo-seg">
               {["todas", "fixa", "variavel"].map((t) => (
                 <button key={t} className={tipo === t ? "on" : ""} onClick={() => setTipo(t)}>{t === "todas" ? tr("filter_all") : t === "fixa" ? tr("filter_fixed") : tr("filter_variable")}</button>
               ))}
             </div>
-            <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginLeft: 4 }}>
+            <div className="exp-cat-scroll">
               <button className={"chip" + (cat === "todas" ? " sel" : "")} onClick={() => setCat("todas")}>{tr("filter_all")}</button>
               {catKeys.filter((k) => fin.despMes.some((d) => d.cat === k)).map((k) => (
                 <button key={k} className={"chip" + (cat === k ? " sel" : "")} onClick={() => setCat(k)}>
