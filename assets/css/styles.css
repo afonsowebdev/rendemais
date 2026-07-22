@@ -2425,6 +2425,7 @@ input.range::-moz-range-thumb {
   .page-intro-title {
     display: block;
     margin-bottom: 14px;
+    text-align: center;
   }
 
   .page-title {
