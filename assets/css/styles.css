@@ -8287,6 +8287,13 @@ input.range::-moz-range-thumb {
   .assist-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* iOS faz zoom automático (e a página fica desorientada) sempre que um
+     campo de texto focado tem font-size < 16px — sobe-se só aqui, no mobile,
+     para o campo continuar visualmente igual no desktop. */
+  .assist-input {
+    font-size: 16px;
+  }
 }
 
 .notif-item-ico {

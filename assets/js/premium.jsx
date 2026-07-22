@@ -2110,9 +2110,10 @@ function NotifBell({ go }) {
    da resposta da Rita ou de cálculos reais já existentes (gerarInsights), nunca simulado. */
 const horaAtual = () => new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
 
-// Caminhos dos assets da Rita — colocados por fora do código em assets/img/rita/.
-const RITA_AVATAR = "assets/img/rita/rita_avatar_512.png";
-const RITA_BUSTO = "assets/img/rita/rita_bust_transparente.png";
+// Imagem da Rita — por agora só há um ficheiro (avatar redondo), reutilizado
+// no cabeçalho, nas bolhas de resposta e no estado vazio do chat.
+const RITA_AVATAR = "assets/img/rita.png";
+const RITA_BUSTO = "assets/img/rita.png";
 
 // Perguntas de arranque, mostradas como chips no estado vazio do chat — distintas
 // das sugestões da coluna esquerda (SUGESTOES), pensadas para o primeiro contacto.
