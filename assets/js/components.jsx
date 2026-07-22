@@ -451,6 +451,12 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
       <span className="si-ico"><Icon name={it.icon} size={18} /></span>{it.label}
     </button>
   );
+  const Section = ({ title, children }) => (
+    <div className="card sheet-card">
+      <div className="sheet-section-label">{title}</div>
+      {children}
+    </div>
+  );
 
   return (
     <div className={"sheet-bg" + (closing ? " closing" : "")} onClick={close}>
@@ -473,25 +479,27 @@ function MoreSheet({ route, go, onClose, theme, setTheme, onLogout, account }) {
           </div>
         </div>
 
-        <div className="sheet-section-label">Conta</div>
-        {principais.map(Item)}
+        <div className="sheet-body">
+          <Section title="Conta">{principais.map(Item)}</Section>
 
-        <div className="sheet-section-label">Preferências</div>
-        <button className="sheet-item" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}
-        </button>
+          <Section title="Preferências">
+            <button className="sheet-item" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              <span className="si-ico"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} /></span>{theme === "dark" ? tr("theme_light") : tr("theme_dark")}
+            </button>
+          </Section>
 
-        <div className="sheet-section-label">Suporte</div>
-        {suporte.map(Item)}
-        {ehPremium && premItems.map(Item)}
-        <a className="sheet-item" href="mailto:contacto@rendemais.pt">
-          <span className="si-ico"><Icon name="info" size={18} /></span>Ajuda
-        </a>
+          <Section title="Suporte">
+            {suporte.map(Item)}
+            {ehPremium && premItems.map(Item)}
+            <a className="sheet-item" href="mailto:contacto@rendemais.pt">
+              <span className="si-ico"><Icon name="info" size={18} /></span>Ajuda
+            </a>
+          </Section>
 
-        <div style={{ height: 1, background: "var(--border)", margin: "10px 12px" }} />
-        <button className="sheet-item" style={{ color: "var(--neg)" }} onClick={() => { close(); onLogout(); }}>
-          <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>{tr("logout_full")}
-        </button>
+          <button className="card sheet-card sheet-item sheet-logout" onClick={() => { close(); onLogout(); }}>
+            <span className="si-ico"><Icon name="logout" size={18} color="var(--neg)" /></span>{tr("logout_full")}
+          </button>
+        </div>
       </div>
     </div>
   );

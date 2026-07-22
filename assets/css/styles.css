@@ -2639,13 +2639,34 @@ input.range::-moz-range-thumb {
   text-overflow: ellipsis;
 }
 
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Cada secção (Conta/Preferências/Suporte) fica no seu próprio cartão — mesmo
+   .card do resto da app, mas com padding reduzido (6px) em vez do .card-pad
+   normal (22px), porque os próprios .sheet-item já têm o seu padding interno;
+   juntar os dois deixaria tudo com um recuo exagerado. */
+.sheet-card {
+  padding: 6px;
+}
+
+/* Especificidade dupla (.sheet-item.sheet-logout) para vencer sempre
+   .sheet-item{color:var(--ink)}, que vem depois no ficheiro. */
+.sheet-item.sheet-logout {
+  color: var(--neg);
+  justify-content: flex-start;
+}
+
 .sheet-section-label {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
   color: var(--ink-3);
-  padding: 14px 12px 6px;
+  padding: 10px 10px 4px;
 }
 
 .sheet-item {
