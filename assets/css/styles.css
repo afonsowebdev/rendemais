@@ -7824,6 +7824,14 @@ input.range::-moz-range-thumb {
   flex-wrap: wrap;
 }
 
+/* Em desktop, "Rita · Assistente Rende+" já vive no Topbar (sticky, sempre
+   visível) — escondido aqui para não duplicar. Em mobile o Topbar esconde o
+   título (ver .topbar-title), por isso este continua a ser o único sítio
+   onde aparece nesse breakpoint (ver override dentro de @media max-width:860px). */
+.assist-left-title-wrap {
+  display: none;
+}
+
 .assist-left-title {
   font-size: 26px;
   font-weight: 700;
@@ -8286,6 +8294,11 @@ input.range::-moz-range-thumb {
 
   .assist-cards-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Sem título no Topbar em mobile (ver .topbar-title) — reaparece aqui. */
+  .assist-left-title-wrap {
+    display: block;
   }
 
   /* iOS faz zoom automático (e a página fica desorientada) sempre que um

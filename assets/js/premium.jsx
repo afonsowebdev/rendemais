@@ -2309,7 +2309,10 @@ function AssistenteRendePage({ go, open }) {
     <div className="content assist-page">
       <div className="assist-col-left">
         <div className="assist-left-head">
-          <div>
+          {/* Em desktop este título já vive no Topbar (ver app.jsx, topbarTitle) —
+              escondido aqui por CSS para não duplicar; reaparece em mobile, onde
+              o Topbar não mostra título nenhum. */}
+          <div className="assist-left-title-wrap">
             <h1 className="assist-left-title">Rita · Assistente Rende+</h1>
             <p className="assist-left-sub">A sua assistente de IA para compreender e organizar melhor as suas finanças.</p>
           </div>

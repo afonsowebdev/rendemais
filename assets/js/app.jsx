@@ -589,8 +589,10 @@ function Shell() {
     agenda: "Agenda Financeira", partilha: "Partilha", previsao: "Previsão", premium: "Rende+ Premium",
     relatorios: tr("lbl_reports"), config: tr("lbl_settings"), perfil: tr("lbl_profile"),
   };
-  // A página do Assistente já mostra o próprio título/subtítulo (coluna esquerda) —
-  // não duplicar no header partilhado.
+  // A página do Assistente já mostra o próprio título/subtítulo (coluna esquerda,
+  // visível também em mobile) — por isso pageTitle/PageIntro continuam a null
+  // aqui, para não duplicar no mobile. No Topbar (só visível em desktop — ver
+  // CSS, .topbar-title some em mobile) mostra-se a Rita à parte, mais abaixo.
   const pageTitle = route === "assistente" ? null : (TITULOS[route] || "Painel");
   // No Painel, o header mostra a saudação em vez do título genérico — cálculo único,
   // partilhado pelo Topbar (desktop) e pelo PageIntro (mobile, onde o título do
@@ -611,6 +613,11 @@ function Shell() {
     perfil: tr("sub_perfil"),
   };
   const showMonthNav = ["dashboard", "transacoes", "relatorios"].includes(route);
+  // Título/subtítulo do Topbar (desktop) para o Assistente — só aqui, nunca no
+  // PageIntro (mobile), que continua a receber tituloMostrado/subByRoute (null
+  // para esta rota) para não duplicar o cabeçalho já visível na coluna esquerda.
+  const topbarTitle = route === "assistente" ? "Rita · Assistente Rende+" : tituloMostrado;
+  const topbarSub = route === "assistente" ? "A sua assistente de IA para compreender e organizar melhor as suas finanças." : subByRoute[route];
 
   // Ações do botão "+" central (mobile) — reaproveita exatamente as mesmas ações já
   // existentes no resto da app (open/go/lembrete). "Nova transferência" não tem
@@ -636,7 +643,7 @@ function Shell() {
       <Sidebar route={route} go={go} account={fin.account} collapsed={sbCollapsed} onToggle={toggleSidebar} />
       <MobileSidebarDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} route={route} go={go} account={fin.account} />
       <div className="main">
-        <Topbar title={tituloMostrado} sub={subByRoute[route]} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} mobileMenuOpen={mobileMenuOpen} onOpenMobileMenu={() => setMobileMenuOpen((v) => !v)} />
+        <Topbar title={topbarTitle} sub={topbarSub} theme={theme} setTheme={setTheme} onLogout={fin.logout} go={go} mobileMenuOpen={mobileMenuOpen} onOpenMobileMenu={() => setMobileMenuOpen((v) => !v)} />
         <PageIntro title={tituloMostrado} sub={subByRoute[route]} monthNav={showMonthNav ? <MonthNav label={fin.monthLabel} onPrev={() => fin.shiftMonth(-1)} onNext={() => fin.shiftMonth(1)}
           canNext={!fin.isCurrentMonth} month={fin.month} realMonth={fin.realMonth} onSelect={fin.setMonth} onToday={fin.goToday} /> : null} />
         {route === "dashboard" && <Dashboard go={go} open={open} />}
