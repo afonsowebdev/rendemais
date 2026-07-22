@@ -1348,6 +1348,23 @@ table.t {
   background: var(--surface-2);
 }
 
+/* Despesas: tabela larga no desktop (há espaço para todas as colunas), lista de
+   linhas (.li, o mesmo padrão já usado em Rendimentos) no mobile — evita scroll
+   horizontal e fica muito mais fácil de ler numa coluna estreita. */
+.tbl-mobile-list {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .tbl-desktop-wrap {
+    display: none;
+  }
+
+  .tbl-mobile-list {
+    display: flex;
+  }
+}
+
 /* ============================================================
    ALERTAS / AVISOS
    ============================================================ */

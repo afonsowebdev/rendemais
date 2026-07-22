@@ -688,7 +688,7 @@ function Despesas({ open }) {
               ))}
             </div>
           </div>
-          <div style={{ overflowX: "auto" }}>
+          <div className="tbl-desktop-wrap" style={{ overflowX: "auto" }}>
             <table className="t">
               <thead><tr><th>{tr("th_expense")}</th><th>{tr("th_category")}</th><th>{tr("th_type")}</th><th>{tr("th_date")}</th><th style={{ textAlign: "right" }}>{tr("th_value")}</th><th></th></tr></thead>
               <tbody>
@@ -707,6 +707,27 @@ function Despesas({ open }) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Versão mobile: mesma lista de linhas (.li) já usada em Rendimentos, ao
+              lado — sem tabela nem scroll horizontal, tudo legível numa coluna só. */}
+          <div className="list tbl-mobile-list">
+            {rows.map((d) => (
+              <div className="li" key={d.id}>
+                <CatBadge catKey={d.cat} size={40} r={12} />
+                <div className="li-main">
+                  <div className="li-title">{d.nome}</div>
+                  <div className="li-sub">{tcat(d.cat)} · {d.tipo === "fixa" ? tr("fixed") : tr("variable")} · {BM.fmtData(d.data)}</div>
+                </div>
+                <div style={{ textAlign: "right", flex: "none" }}>
+                  <div className="tnum" style={{ fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</div>
+                  <div className="row" style={{ gap: 4, justifyContent: "flex-end", marginTop: 6 }}>
+                    <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => open("despesa", d)}><Icon name="edit" size={13} /></button>
+                    <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={13} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
           <div className="card-pad row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border)" }}>
             <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{tt(rows.length === 1 ? "results_one" : "results_many", { n: rows.length })}</span>
