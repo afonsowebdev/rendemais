@@ -676,7 +676,7 @@ function Transacoes({ open }) {
   const [tab, setTab] = React.useState("despesas");
   return (
     <>
-      <div className="content" style={{ paddingBottom: 0 }}>
+      <div className="content" style={{ marginBottom: 0 }}>
         <div className="row" style={{ justifyContent: "space-between" }}>
           <div className="pg-tabs" style={{ width: "fit-content" }}>
             <button type="button" className={"pg-tab" + (tab === "despesas" ? " on" : "")} onClick={() => setTab("despesas")}><Icon name="wallet" size={15} /> Despesas</button>

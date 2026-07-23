@@ -296,7 +296,7 @@ function Relatorios({ open }) {
   const TABS = [["geral", "Visão geral"], ["receitas", "Receitas"], ["despesas", "Despesas"], ["objetivos", "Objetivos"], ["orcamento", "Orçamento"]];
   return (
     <>
-      <div className="content" style={{ paddingBottom: 0 }}>
+      <div className="content" style={{ marginBottom: 0 }}>
         <div className="pg-tabs" style={{ width: "fit-content" }}>
           {TABS.map(([id, lbl]) => (
             <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>
