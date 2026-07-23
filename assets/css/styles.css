@@ -557,10 +557,17 @@ a:focus {
    vazia a flutuar sobre a página. O tratamento visual (vidro fosco, borda,
    sombra) vive em .page-intro-month, só quando há mesmo um seletor de mês para
    mostrar. */
+/* z-index explícito: o vidro fosco (backdrop-filter) do .page-intro-month lá
+   dentro já cria o seu próprio contexto de empilhamento — sem isto, o popover
+   do calendário (.month-picker, z-index:40) fica preso dentro desse contexto e
+   nunca consegue pintar por cima do .content a seguir (que vem depois no HTML
+   e, sem esta regra, ganha sempre por ordem normal do documento). */
 .page-intro {
   display: flex;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 /* Mesma margem lateral do Topbar/.content, para o alinhamento vertical ficar
@@ -975,13 +982,19 @@ a:focus {
   .dash-actions-secondary {
     width: 100%;
     flex-wrap: nowrap;
+    gap: 6px !important;
   }
 
+  /* Ícone + texto mais próximos e um pouco mais pequenos: em ecrãs estreitos
+     (320-360px), os 3 botões lado a lado tinham pouca folga e ficavam com o
+     ícone quase a tocar no texto do botão seguinte. */
   .dash-actions-secondary .btn {
     flex: 1 1 0;
     min-width: 0;
-    padding-left: 8px;
-    padding-right: 8px;
+    gap: 5px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 12px;
     justify-content: center;
     white-space: nowrap;
   }
