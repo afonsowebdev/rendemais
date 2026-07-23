@@ -195,10 +195,15 @@ function LembreteModal({ item, onClose, onSave }) {
 function Lembretes() {
   return <PremiumGate><LembretesInner /></PremiumGate>;
 }
-function LembretesInner() {
+// hideAdd: esconde o próprio botão "Novo lembrete" (usado pela Agenda Financeira,
+// que já mostra um equivalente junto aos separadores — ver AgendaFinanceiraInner).
+// ref.abrirNovo(): permite a esse botão externo abrir o mesmo modal sem duplicar
+// o estado (o modal continua a viver só aqui).
+const LembretesInner = React.forwardRef(function LembretesInner({ hideAdd }, ref) {
   const prem = usePremium();
   const todos = [...(prem.get().lembretes || [])].sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const [modal, setModal] = React.useState(null);
+  React.useImperativeHandle(ref, () => ({ abrirNovo: () => setModal({}) }));
   const [filtro, setFiltro] = React.useState("pendentes");
   const addMonths = (iso, n) => { const d = new Date(iso + "T00:00:00"); d.setMonth(d.getMonth() + n); return d.toISOString().slice(0, 10); };
 
@@ -223,7 +228,7 @@ function LembretesInner() {
 
   return (
     <div className="content">
-      <PremActions label="Novo lembrete" onAdd={() => setModal({})} />
+      {!hideAdd && <PremActions label="Novo lembrete" onAdd={() => setModal({})} />}
       {todos.length === 0 ? (
         <EmptyState icon="bell" title="Sem lembretes" msg="Cria um lembrete e avisamos-te antes de cada conta vencer."
           action={<button className="btn btn-primary" onClick={() => setModal({})}><Icon name="plus" size={16} color="#fff" /> Criar lembrete</button>} />
@@ -279,14 +284,15 @@ function LembretesInner() {
       {modal && <LembreteModal item={modal.id ? modal : null} onClose={() => setModal(null)} onSave={(it) => { prem.add("lembretes", it); setModal(null); }} />}
     </div>
   );
-}
+});
 
 /* ---------------- Recorrentes (gestor unificado: subscrições + despesas periódicas) ---------------- */
 function Recorrentes() { return <PremiumGate><SubscricoesInner /></PremiumGate>; }
 
 /* ---------------- Agenda Financeira (Lembretes + Recorrentes + Calendário, num só ecrã) ----------------
-   Reaproveita LembretesInner (com "variant" para pré-filtrar sem duplicar a lógica),
-   SubscricoesInner e SubCalendario tal como já existem — não recria nada. */
+   Reaproveita LembretesInner e SubscricoesInner tal como já existem (com hideAdd
+   +ref para o botão "adicionar" viver ao lado dos separadores, não duplicado lá
+   dentro) e SubCalendario — não recria nada. */
 function AgendaFinanceira() { return <PremiumGate><AgendaFinanceiraInner /></PremiumGate>; }
 // De 5 para 3 separadores: "Hoje"/"Próximos"/"Concluídos" eram 3 vistas do mesmo
 // LembretesInner, que já tem os seus próprios chips de filtro (Por pagar/Atrasados/
@@ -297,21 +303,31 @@ function AgendaFinanceiraInner() {
   const [tab, setTab] = React.useState("lembretes");
   const recorrentes = prem.get().recorrentes || [];
   const TABS = [["lembretes", "Lembretes"], ["recorrentes", "Recorrentes"], ["calendario", "Calendário"]];
+  // Botão "adicionar" ao lado dos separadores (em vez de sozinho, bem abaixo,
+  // com o resto da linha vazio) — dispara o modal que continua a viver dentro
+  // de cada ecrã, via ref (ver hideAdd/useImperativeHandle em LembretesInner e
+  // SubscricoesInner).
+  const lembretesRef = React.useRef(null);
+  const subsRef = React.useRef(null);
   return (
     <>
       <div className="content" style={{ marginBottom: 0 }}>
-        <div className="pg-tabs" style={{ width: "fit-content" }}>
-          {TABS.map(([id, lbl]) => (
-            <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>
-          ))}
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <div className="pg-tabs" style={{ width: "fit-content" }}>
+            {TABS.map(([id, lbl]) => (
+              <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>
+            ))}
+          </div>
+          {tab === "lembretes" && <button type="button" className="btn btn-primary" onClick={() => lembretesRef.current?.abrirNovo()}><Icon name="plus" size={16} color="#fff" /> Novo lembrete</button>}
+          {tab === "recorrentes" && <button type="button" className="btn btn-primary" onClick={() => subsRef.current?.abrirNovo()}><Icon name="plus" size={16} color="#fff" /> Adicionar recorrente</button>}
         </div>
       </div>
       {tab === "recorrentes" ? (
-        <SubscricoesInner />
+        <SubscricoesInner ref={subsRef} hideAdd />
       ) : tab === "calendario" ? (
         <div className="content"><SubCalendario subs={recorrentes} /></div>
       ) : (
-        <LembretesInner />
+        <LembretesInner ref={lembretesRef} hideAdd />
       )}
     </>
   );
@@ -1564,7 +1580,9 @@ function SubSkeleton() {
   );
 }
 
-function SubscricoesInner() {
+// hideAdd/ref: mesmo padrão do LembretesInner — a Agenda Financeira mostra o
+// botão "Adicionar recorrente" junto aos separadores em vez de duplicado aqui.
+const SubscricoesInner = React.forwardRef(function SubscricoesInner({ hideAdd }, ref) {
   const fin = useFinance();
   const prem = usePremium();
   const mes = fin.month;
@@ -1630,11 +1648,12 @@ function SubscricoesInner() {
   const abrirEdit = (id) => { setEditId(id); setModal(true); };
   const subEdit = editId ? todas.find((s) => s.id === editId) : null;
   const dataCurta = (d) => d.getDate() + " " + BM.MESES[d.getMonth()].slice(0, 3).toLowerCase();
+  React.useImperativeHandle(ref, () => ({ abrirNovo: abrirNova }));
 
   if (!loading && todas.length === 0) {
     return (
       <div className="content">
-        <PremActions label="Adicionar recorrente" onAdd={abrirNova} />
+        {!hideAdd && <PremActions label="Adicionar recorrente" onAdd={abrirNova} />}
         <EmptyState icon="sync" title="Ainda sem recorrentes" msg="Junta aqui subscrições (Netflix, Spotify…) e despesas periódicas (renda, água, seguros). Marca cada mês como pago — só aí o valor entra nas tuas despesas."
           action={<button className="btn btn-primary" onClick={abrirNova}><Icon name="plus" size={16} color="#fff" /> Adicionar recorrente</button>} />
         {modal && <SubModal mesAtual={mes} sub={null} onClose={() => setModal(false)} onSave={(it) => { prem.add("recorrentes", it); setModal(false); }} />}
@@ -1644,7 +1663,7 @@ function SubscricoesInner() {
 
   return (
     <div className="content">
-      <PremActions label="Adicionar recorrente" onAdd={abrirNova} />
+      {!hideAdd && <PremActions label="Adicionar recorrente" onAdd={abrirNova} />}
 
       {loading ? <SubSkeleton /> : <>
       {/* Mesma barra usada na Partilha, em vez de 5 cartões com ícone cada um —
@@ -1767,7 +1786,7 @@ function SubscricoesInner() {
       {delRecId && <RLConfirmPin title="Eliminar recorrente" desc="Vais eliminar esta recorrente e as suas marcas de pagamento. As despesas já criadas nos meses pagos mantêm-se no histórico. Esta ação não pode ser revertida." onConfirm={() => apagar(delRecId)} onClose={() => setDelRecId(null)} />}
     </div>
   );
-}
+});
 
 /* ---------------- Notificações (avisos de pagamento) ---------------- */
 /* Varre lembretes (por pagar) e subscrições (por pagar no mês atual) e
