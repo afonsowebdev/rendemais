@@ -1006,6 +1006,21 @@ a:focus {
     flex-direction: column;
     gap: 16px;
   }
+
+  /* Donut + legenda lado a lado ("Gastos por categoria", "Origem dos
+     rendimentos"): o donut tem largura fixa em píxeis, por isso lado a lado
+     com a legenda nunca cabia num cartão estreito — a legenda ficava cortada
+     na borda do cartão. Empilhado (donut em cima, legenda em baixo) resolve
+     sem precisar de encolher o donut. */
+  .donut-legend-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .donut-legend-row > div[style*="flex: 1"] {
+    width: 100%;
+  }
 }
 
 /* ============================================================

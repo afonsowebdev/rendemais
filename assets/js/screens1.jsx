@@ -792,7 +792,7 @@ function Despesas({ open }) {
               dados. Reflete sempre o mês inteiro, não a lista filtrada acima. */}
           <div className="card card-pad">
             <div className="section-title" style={{ marginBottom: 14 }}>{tr("dash_by_category")}</div>
-            <div className="row" style={{ gap: 20 }}>
+            <div className="row donut-legend-row" style={{ gap: 20 }}>
               <DonutChart data={fin.catBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 700 }}>{BM.eur0(fin.totalGasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                 {fin.catBreak.map((c) => (
@@ -939,7 +939,7 @@ function Rendimentos({ open }) {
           </div>
           <div className="card card-pad">
             <div className="section-title" style={{ marginBottom: 14 }}>{tr("inc_origin")}</div>
-            <div className="row" style={{ gap: 20 }}>
+            <div className="row donut-legend-row" style={{ gap: 20 }}>
               <DonutChart data={fin.incBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 700 }}>{BM.eur0(fin.totalRec)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                 {fin.incBreak.map((c) => (
