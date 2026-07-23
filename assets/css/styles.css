@@ -551,29 +551,32 @@ a:focus {
   display: none;
 }
 
-/* Navegação de mês, logo abaixo do header, sempre centrada — nunca colada ao
-   cartão principal que vem a seguir. Em desktop ganha o mesmo tratamento visual
-   de .card (vidro fosco, borda, sombra) para não ficar solta/vazia sobre o fundo
-   da página — mesma margem lateral do Topbar/.content, para o alinhamento vertical
-   ficar consistente em toda a página. */
+/* Contentor em si é só layout (sem fundo/borda próprios): em desktop, rotas sem
+   seletor de mês (ex.: Agenda, Partilha) não têm título visível (vive no Topbar)
+   nem monthNav — se este contentor tivesse o "cartão" próprio, ficava uma caixa
+   vazia a flutuar sobre a página. O tratamento visual (vidro fosco, borda,
+   sombra) vive em .page-intro-month, só quando há mesmo um seletor de mês para
+   mostrar. */
 .page-intro {
   display: flex;
   justify-content: center;
-  padding: 20px 24px;
   flex-shrink: 0;
+}
+
+/* Mesma margem lateral do Topbar/.content, para o alinhamento vertical ficar
+   consistente em toda a página. */
+.page-intro-month {
+  flex: none;
+  width: 100%;
+  max-width: 420px;
   margin: 20px 24px 0;
+  padding: 20px 24px;
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-}
-
-.page-intro-month {
-  flex: none;
-  width: 100%;
-  max-width: 420px;
 }
 
 /* Carrossel de mês: sem caixa, sem input, sem borda pesada — só o mês, uma dica de
