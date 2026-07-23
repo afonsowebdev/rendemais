@@ -8690,7 +8690,7 @@ input.range::-moz-range-thumb {
 
 .pg-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
 
@@ -9252,7 +9252,7 @@ input.range::-moz-range-thumb {
    ============================================================ */
 .ph-kpis {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -9467,6 +9467,10 @@ input.range::-moz-range-thumb {
   border: 1px solid var(--border);
   border-radius: 11px;
   padding: 10px 12px;
+}
+
+.ph-gstats-2 {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .ph-gstats>div {

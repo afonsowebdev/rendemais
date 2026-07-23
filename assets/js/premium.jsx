@@ -743,19 +743,20 @@ function PartilhaInner() {
     const convidar = () => { const v = convEmail.trim().toLowerCase(); if (!/^\S+@\S+\.\S+$/.test(v)) return; const nm = nomeDeEmail(v); if (!(aberto.membros || []).includes(nm)) prem.edit("grupos", aberto.id, { membros: [...(aberto.membros || []), nm], convites: [...(aberto.convites || []), { email: v, nome: nm, estado: "pendente" }] }); setConvEmail(""); };
     const setPapel = (nome, papel) => prem.edit("grupos", aberto.id, { papeis: { ...(aberto.papeis || {}), [nome]: papel } });
     const removerMembro = (nome) => { const p = { ...(aberto.papeis || {}) }; delete p[nome]; prem.edit("grupos", aberto.id, { membros: (aberto.membros || []).filter((m) => m !== nome), convites: (aberto.convites || []).filter((c) => c.nome !== nome), papeis: p }); };
+    // Reduzido de 7 para 5 cartões: "Em dívida" e "A receber" ficavam redundantes
+    // com "Saldo pessoal" (que já é a diferença entre os dois) — os valores não
+    // se perdem, passam para a legenda do próprio cartão de saldo.
     const kpis = [
       { lbl: "Total de despesas", val: BM.eur(stats.total), sub: "total do grupo", ic: "wallet", c: "#14a06b" },
       { lbl: "Total pago", val: BM.eur(stats.totalPago), sub: pctPago + "% liquidado", ic: "check", c: "#3b82f6" },
-      { lbl: "Em dívida", val: BM.eur(stats.emDivida), sub: "o que deves", ic: "arrowDown", c: "#e5484d", tone: "neg" },
-      { lbl: "A receber", val: BM.eur(stats.aReceber), sub: "o que te devem", ic: "arrowUp", c: "#14a06b", tone: "pos" },
-      { lbl: "Saldo pessoal", val: (stats.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(stats.saldo)), sub: stats.saldo >= 0 ? "estás a receber" : "tens a pagar", ic: "trend", c: "#0e8659", tone: stats.saldo >= 0 ? "pos" : "neg" },
+      { lbl: "Saldo pessoal", val: (stats.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(stats.saldo)), sub: "A receber " + BM.eur(stats.aReceber) + " · A pagar " + BM.eur(stats.emDivida), ic: "chart", c: "#0e8659", tone: stats.saldo >= 0 ? "pos" : "neg" },
       { lbl: "Membros", val: String(pessoas.length), sub: pend ? pend + " convite(s) pendente(s)" : "todos ativos", ic: "users", c: "#a855f7" },
       { lbl: "Por liquidar", val: String(stats.porLiquidar), sub: "despesas em aberto", ic: "receipt", c: "#d9840a" },
     ];
     const TABS = [
       { id: "dashboard", label: "Dashboard", ic: "grid" },
       { id: "despesas", label: "Despesas", ic: "receipt" },
-      { id: "saldos", label: "Saldos", ic: "trend" },
+      { id: "saldos", label: "Saldos", ic: "chart" },
       { id: "membros", label: "Membros", ic: "users" },
       { id: "conversas", label: "Conversas", ic: "bell", soon: "Fase 5" },
       { id: "calendario", label: "Calendário", ic: "history", soon: "Fase 6" },
@@ -1020,10 +1021,12 @@ function PartilhaInner() {
   const ultAtual = (g) => { const ds = (g.despesas || []).map((e) => e.data).filter(Boolean).sort(); return ds.length ? ds[ds.length - 1] : ""; };
   let sTotal = 0, sReceber = 0, sPagar = 0, sConv = 0, sAtivos = 0;
   grupos.forEach((g) => { const s = grupoStats(g); sTotal += s.total; sReceber += s.aReceber; sPagar += s.emDivida; sConv += (g.convites || []).filter((c) => c.estado === "pendente").length; if (!g.arquivado) sAtivos++; });
+  // "A receber"/"A pagar" juntam-se num único "O teu saldo" (a diferença entre os
+  // dois) — menos cartões para ler, sem perder os valores (ficam na legenda).
+  const sSaldo = sReceber - sPagar;
   const kpisTop = [
     { lbl: "Total em grupos", val: BM.eur(sTotal), sub: grupos.length + " grupo(s)", ic: "wallet", c: "#14a06b" },
-    { lbl: "A receber", val: BM.eur(sReceber), sub: "no total", ic: "arrowUp", c: "#14a06b", tone: "pos" },
-    { lbl: "A pagar", val: BM.eur(sPagar), sub: "no total", ic: "arrowDown", c: "#e5484d", tone: "neg" },
+    { lbl: "O teu saldo", val: (sSaldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(sSaldo)), sub: "A receber " + BM.eur(sReceber) + " · A pagar " + BM.eur(sPagar), ic: "chart", c: "#0e8659", tone: sSaldo >= 0 ? "pos" : "neg" },
     { lbl: "Grupos ativos", val: String(sAtivos), sub: (grupos.length - sAtivos) + " arquivado(s)", ic: "users", c: "#3b82f6" },
     { lbl: "Convites pendentes", val: String(sConv), sub: "por aceitar", ic: "bell", c: "#d9840a" },
   ];
@@ -1103,10 +1106,12 @@ function PartilhaInner() {
                       {pessoas.length > 5 && <span className="prem-avatar more sm">+{pessoas.length - 5}</span>}
                       <span className="ph-gmembers">{pessoas.length} membros</span>
                     </div>
-                    <div className="ph-gstats">
+                    {/* "A receber"/"A pagar" juntam-se num único "Saldo" (a diferença entre
+                        os dois) — o detalhe completo continua no separador Saldos, ao abrir
+                        o grupo; aqui só o essencial para bater o olho e perceber a situação. */}
+                    <div className="ph-gstats ph-gstats-2">
                       <div><span className="ph-gs-l">Movimentado</span><span className="ph-gs-v">{BM.eur(s.total)}</span></div>
-                      <div><span className="ph-gs-l">A receber</span><span className="ph-gs-v pos">{BM.eur(s.aReceber)}</span></div>
-                      <div><span className="ph-gs-l">A pagar</span><span className="ph-gs-v neg">{BM.eur(s.emDivida)}</span></div>
+                      <div><span className="ph-gs-l">Saldo</span><span className={"ph-gs-v " + (s.saldo >= 0 ? "pos" : "neg")}>{(s.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(s.saldo))}</span></div>
                     </div>
                     <div className="ph-gfoot"><span className="tiny muted">{ua ? "Atualizado " + BM.fmtData(ua) : "Sem atividade"}</span></div>
                     <button className="btn btn-primary ph-gopen" onClick={() => { setTab("dashboard"); setOpenId(g.id); }}>Abrir grupo <span style={{ display: "grid" }}><Icon name="chevR" size={15} color="#fff" /></span></button>
