@@ -1006,9 +1006,17 @@ a:focus {
 /* ============================================================
    CARTOES (cards)
    ============================================================ */
-/* ----- Generic ----- */
+/* ----- Generic -----
+   Vidro fosco: mesma técnica usada no .lp-menu/.mobilenav/.sheet (var(--surface)
+   misturada com transparência via color-mix + backdrop-filter) — como praticamente
+   todos os cartões da app combinam com esta classe base (card card-pad, card kpi,
+   card goal-card, card sheet-card, ...), o estilo propaga-se a todos de uma vez,
+   sem precisar de repetir a regra em cada variante. Adapta-se sozinho aos dois
+   temas, porque --surface já muda entre claro e escuro. */
 .card {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
