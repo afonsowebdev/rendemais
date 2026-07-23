@@ -199,7 +199,9 @@ a:focus {
    ============================================================ */
 /* ----- Sidebar ----- */
 .sidebar {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink-2);
   display: flex;
   flex-direction: column;
@@ -585,7 +587,9 @@ a:focus {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   color: var(--ink-2);
   box-shadow: var(--shadow-sm, none);
@@ -684,7 +688,9 @@ a:focus {
   transform: translateX(-50%);
   z-index: 40;
   width: 264px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md, 0 12px 32px rgba(0, 0, 0, .16));
@@ -821,7 +827,9 @@ a:focus {
   font-size: 12px;
   line-height: 0;
   color: var(--ink-3);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-strong);
   border-radius: 50%;
 }
@@ -831,7 +839,9 @@ a:focus {
   top: calc(100% + 8px);
   right: 0;
   min-width: 224px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-md, var(--shadow));
@@ -895,7 +905,9 @@ a:focus {
   top: calc(100% + 8px);
   left: 0;
   min-width: 190px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-md, var(--shadow));
@@ -1119,7 +1131,9 @@ a:focus {
   border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-strong);
   color: var(--ink-2);
   transition: color .14s ease, background .14s ease, transform .12s ease;
@@ -1536,7 +1550,9 @@ table.t {
 }
 
 .seg button.on {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink);
   box-shadow: var(--shadow-sm);
 }
@@ -1723,7 +1739,9 @@ table.t {
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -1865,7 +1883,9 @@ table.t {
 .modal {
   width: 100%;
   max-width: 460px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-md, var(--shadow));
   border: 1px solid var(--border);
@@ -2146,7 +2166,9 @@ table.t {
 .modal .input:focus,
 .modal .select:focus {
   border-color: var(--accent);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
@@ -2224,7 +2246,9 @@ table.t {
 
 .cat-select-btn[aria-expanded="true"] {
   border-color: var(--accent);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
@@ -2264,7 +2288,9 @@ table.t {
   right: 0;
   max-height: 260px;
   overflow-y: auto;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
@@ -2527,7 +2553,9 @@ input.range::-moz-range-thumb {
   }
 
   .topbar-actions .icon-btn.topbar-hamburger {
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: var(--border);
   }
 
@@ -2541,7 +2569,9 @@ input.range::-moz-range-thumb {
      em vez de transparente. Especificidade dupla pela mesma razão. */
   .icon-btn.topbar-theme-btn {
     display: grid;
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: var(--border);
   }
 
@@ -2552,7 +2582,9 @@ input.range::-moz-range-thumb {
 
   /* Sino de notificações — mesmo tratamento do tema e do hambúrguer. */
   .topbar-actions .icon-btn.notif-btn {
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: var(--border);
   }
 
@@ -2632,7 +2664,9 @@ input.range::-moz-range-thumb {
     align-items: stretch;
     margin: 14px 16px 0;
     padding: 18px 16px 16px;
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
@@ -2973,7 +3007,9 @@ input.range::-moz-range-thumb {
      painel fica mesmo a flutuar, sem tocar em nenhuma borda do ecrã. Cantos
      arredondados dos 4 lados, já que deixou de encostar em baixo. */
   margin: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 22px;
   border: 1px solid var(--border);
   padding: 0 14px 20px;
@@ -3338,7 +3374,9 @@ input.range::-moz-range-thumb {
   height: 46px;
   border-radius: 50%;
   border: none;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink-2);
   align-items: center;
   justify-content: center;
@@ -3360,7 +3398,9 @@ input.range::-moz-range-thumb {
   width: 42px;
   height: 42px;
   border-radius: 50% !important;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-strong);
 }
 
@@ -3390,7 +3430,9 @@ input.range::-moz-range-thumb {
   color: var(--ink-2);
   border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   cursor: pointer;
 }
 
@@ -3409,7 +3451,9 @@ input.range::-moz-range-thumb {
   top: calc(100% + 8px);
   right: 0;
   min-width: 130px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-md);
@@ -3466,7 +3510,9 @@ input.range::-moz-range-thumb {
   top: calc(100% + 8px);
   right: 0;
   min-width: 208px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-md);
@@ -3794,7 +3840,9 @@ input.range::-moz-range-thumb {
 }
 
 .lp-card {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow: var(--shadow);
@@ -3803,7 +3851,9 @@ input.range::-moz-range-thumb {
 
 .lp-float {
   position: absolute;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
@@ -3842,7 +3892,9 @@ input.range::-moz-range-thumb {
 }
 
 .lp-feat {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 26px;
@@ -4685,7 +4737,9 @@ input.range::-moz-range-thumb {
 
 .profile-av {
   padding: 4px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 50%;
   display: inline-flex;
   box-shadow: 0 8px 20px -10px rgba(15, 27, 45, .35);
@@ -5047,7 +5101,9 @@ input.range::-moz-range-thumb {
 }
 
 .lp2-demo {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-strong);
   color: var(--ink);
 }
@@ -5256,7 +5312,9 @@ input.range::-moz-range-thumb {
 }
 
 .lp2-feat {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
@@ -6049,7 +6107,9 @@ input.range::-moz-range-thumb {
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -6262,7 +6322,9 @@ input.range::-moz-range-thumb {
 }
 
 .ob-sec {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 22px;
@@ -6353,7 +6415,9 @@ input.range::-moz-range-thumb {
 .ob-pref {
   position: relative;
   text-align: left;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1.5px solid var(--border-strong);
   border-radius: 14px;
   padding: 18px 16px;
@@ -6423,7 +6487,9 @@ input.range::-moz-range-thumb {
 
 /* aside cards */
 .ob-card {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 18px;
@@ -6625,7 +6691,9 @@ input.range::-moz-range-thumb {
 }
 
 .ob-block {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
@@ -6678,7 +6746,9 @@ input.range::-moz-range-thumb {
   align-items: center;
   gap: 8px;
   padding: 16px 8px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1.5px solid var(--border-strong);
   border-radius: 12px;
   cursor: pointer;
@@ -6777,7 +6847,9 @@ input.range::-moz-range-thumb {
   align-items: center;
   gap: 8px;
   padding: 16px 8px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1.5px solid var(--border-strong);
   border-radius: 12px;
   cursor: pointer;
@@ -6851,7 +6923,9 @@ input.range::-moz-range-thumb {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 18px 20px;
@@ -6902,7 +6976,9 @@ input.range::-moz-range-thumb {
 .ob-verify-card {
   width: 100%;
   max-width: 420px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 30px;
@@ -7202,7 +7278,9 @@ input.range::-moz-range-thumb {
   padding: 14px 10px;
   text-align: center;
   cursor: pointer;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   position: relative;
   transition: border-color .15s, background .15s;
 }
@@ -7331,7 +7409,9 @@ input.range::-moz-range-thumb {
   gap: 3px;
   text-align: left;
   padding: 14px 16px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   cursor: pointer;
   font-family: inherit;
@@ -7542,7 +7622,9 @@ input.range::-moz-range-thumb {
   height: 34px;
   border-radius: 50%;
   border: 1.5px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -7574,7 +7656,9 @@ input.range::-moz-range-thumb {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   cursor: pointer;
   text-align: left;
   transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
@@ -7862,7 +7946,9 @@ input.range::-moz-range-thumb {
   gap: 11px;
   text-align: left;
   padding: 14px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -7924,7 +8010,9 @@ input.range::-moz-range-thumb {
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   border-left: 3px solid var(--ink-3);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .assist-insight.atencao {
@@ -7990,7 +8078,9 @@ input.range::-moz-range-thumb {
   padding: 9px 14px;
   border-radius: var(--radius-pill, 999px);
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink-2);
   font-size: 12.5px;
   font-weight: 600;
@@ -8015,7 +8105,9 @@ input.range::-moz-range-thumb {
   flex-direction: column;
   height: calc(100vh - 176px);
   min-height: 480px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-md, var(--shadow));
@@ -8190,7 +8282,9 @@ input.range::-moz-range-thumb {
 /* Cartão de resposta estruturada (Resumo/Indicadores/Observação/Sugestão/Ação) */
 .assist-resp-card {
   max-width: 92%;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 16px;
@@ -8446,7 +8540,9 @@ input.range::-moz-range-thumb {
   height: 34px;
   flex: none;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 10px;
   cursor: pointer;
   color: var(--ink-2);
@@ -8503,7 +8599,9 @@ input.range::-moz-range-thumb {
 .pg-tabs {
   display: flex;
   gap: 3px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 5px;
@@ -8549,7 +8647,9 @@ input.range::-moz-range-thumb {
 }
 
 .pg-tab.on .pg-soon-tag {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .pg-kpis {
@@ -8559,7 +8659,9 @@ input.range::-moz-range-thumb {
 }
 
 .pg-kpi {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
@@ -8848,7 +8950,9 @@ input.range::-moz-range-thumb {
 }
 
 .pg-seg-b.on {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--accent);
   box-shadow: 0 1px 2px rgba(16, 40, 28, .08);
 }
@@ -9152,7 +9256,9 @@ input.range::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0 12px;
@@ -9249,7 +9355,9 @@ input.range::-moz-range-thumb {
   top: 36px;
   z-index: 30;
   width: 186px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 18px 44px -18px rgba(16, 40, 28, .4);
@@ -9369,7 +9477,9 @@ input.range::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1.5px dashed var(--border);
   border-radius: 14px;
   padding: 20px 22px;
@@ -9683,7 +9793,9 @@ input.range::-moz-range-thumb {
   gap: 8px;
   padding: 10px 12px;
   border-top: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .pg-chat-attach {
@@ -9813,7 +9925,9 @@ input.range::-moz-range-thumb {
 .sub-fil {
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 9px 12px;
   font-size: 13px;
   font-weight: 600;
@@ -10174,7 +10288,9 @@ input.range::-moz-range-thumb {
   right: 0;
   width: 46px;
   text-align: right;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: -9px 0 9px -9px rgba(0, 0, 0, .22);
 }
 
@@ -10332,7 +10448,9 @@ input.range::-moz-range-thumb {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
@@ -10381,7 +10499,9 @@ input.range::-moz-range-thumb {
   height: 15px;
   border-radius: 50%;
   border: 1.5px solid var(--border-strong);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
 
@@ -10432,7 +10552,9 @@ input.range::-moz-range-thumb {
   height: 62px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--ink);
   font: inherit;
   font-size: 19px;
