@@ -747,11 +747,11 @@ function PartilhaInner() {
     // com "Saldo pessoal" (que já é a diferença entre os dois) — os valores não
     // se perdem, passam para a legenda do próprio cartão de saldo.
     const kpis = [
-      { lbl: "Total de despesas", val: BM.eur(stats.total), sub: "total do grupo", ic: "wallet", c: "#14a06b" },
-      { lbl: "Total pago", val: BM.eur(stats.totalPago), sub: pctPago + "% liquidado", ic: "check", c: "#3b82f6" },
-      { lbl: "Saldo pessoal", val: (stats.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(stats.saldo)), sub: "A receber " + BM.eur(stats.aReceber) + " · A pagar " + BM.eur(stats.emDivida), ic: "chart", c: "#0e8659", tone: stats.saldo >= 0 ? "pos" : "neg" },
-      { lbl: "Membros", val: String(pessoas.length), sub: pend ? pend + " convite(s) pendente(s)" : "todos ativos", ic: "users", c: "#a855f7" },
-      { lbl: "Por liquidar", val: String(stats.porLiquidar), sub: "despesas em aberto", ic: "receipt", c: "#d9840a" },
+      { lbl: "Total de despesas", val: BM.eur(stats.total), sub: "total do grupo" },
+      { lbl: "Total pago", val: BM.eur(stats.totalPago), sub: pctPago + "% liquidado" },
+      { lbl: "Saldo pessoal", val: (stats.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(stats.saldo)), sub: "A receber " + BM.eur(stats.aReceber) + " · A pagar " + BM.eur(stats.emDivida), tone: stats.saldo >= 0 ? "pos" : "neg" },
+      { lbl: "Membros", val: String(pessoas.length), sub: pend ? pend + " convite(s) pendente(s)" : "todos ativos" },
+      { lbl: "Por liquidar", val: String(stats.porLiquidar), sub: "despesas em aberto" },
     ];
     const TABS = [
       { id: "dashboard", label: "Dashboard", ic: "grid" },
@@ -783,12 +783,12 @@ function PartilhaInner() {
         </div>
 
         {tab === "dashboard" && (<>
-          <div className="pg-kpis">
+          <div className="card ph-statsbar">
             {kpis.map((k, i) => (
-              <div className="card pg-kpi" key={i}>
-                <div className="pg-kpi-top"><span className="pg-kpi-lbl">{k.lbl}</span><span className="pg-kpi-ic" style={{ background: k.c }}><Icon name={k.ic} size={15} color="#fff" /></span></div>
-                <div className={"pg-kpi-val" + (k.tone ? " " + k.tone : "")}>{k.val}</div>
-                <div className="pg-kpi-sub">{k.sub}</div>
+              <div className="ph-stat" key={i}>
+                <div className="ph-stat-lbl">{k.lbl}</div>
+                <div className={"ph-stat-val" + (k.tone ? " " + k.tone : "")}>{k.val}</div>
+                <div className="ph-stat-sub">{k.sub}</div>
               </div>
             ))}
           </div>
@@ -1025,10 +1025,10 @@ function PartilhaInner() {
   // dois) — menos cartões para ler, sem perder os valores (ficam na legenda).
   const sSaldo = sReceber - sPagar;
   const kpisTop = [
-    { lbl: "Total em grupos", val: BM.eur(sTotal), sub: grupos.length + " grupo(s)", ic: "wallet", c: "#14a06b" },
-    { lbl: "O teu saldo", val: (sSaldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(sSaldo)), sub: "A receber " + BM.eur(sReceber) + " · A pagar " + BM.eur(sPagar), ic: "chart", c: "#0e8659", tone: sSaldo >= 0 ? "pos" : "neg" },
-    { lbl: "Grupos ativos", val: String(sAtivos), sub: (grupos.length - sAtivos) + " arquivado(s)", ic: "users", c: "#3b82f6" },
-    { lbl: "Convites pendentes", val: String(sConv), sub: "por aceitar", ic: "bell", c: "#d9840a" },
+    { lbl: "Total em grupos", val: BM.eur(sTotal), sub: grupos.length + " grupo(s)" },
+    { lbl: "O teu saldo", val: (sSaldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(sSaldo)), sub: "A receber " + BM.eur(sReceber) + " · A pagar " + BM.eur(sPagar), tone: sSaldo >= 0 ? "pos" : "neg" },
+    { lbl: "Grupos ativos", val: String(sAtivos), sub: (grupos.length - sAtivos) + " arquivado(s)" },
+    { lbl: "Convites pendentes", val: String(sConv), sub: "por aceitar" },
   ];
   const q2 = q.trim().toLowerCase();
   let lista = grupos.filter((g) => {
@@ -1050,12 +1050,14 @@ function PartilhaInner() {
 
   return (
     <div className="content">
-      <div className="ph-kpis">
+      {/* Uma única barra, não 4 cartões separados — os números pedem só um relance,
+          não atenção individual; menos caixas/sombras/ícones para ler. */}
+      <div className="card ph-statsbar">
         {kpisTop.map((k, i) => (
-          <div className="card pg-kpi" key={i}>
-            <div className="pg-kpi-top"><span className="pg-kpi-lbl">{k.lbl}</span><span className="pg-kpi-ic" style={{ background: k.c }}><Icon name={k.ic} size={15} color="#fff" /></span></div>
-            <div className={"pg-kpi-val" + (k.tone ? " " + k.tone : "")}>{k.val}</div>
-            <div className="pg-kpi-sub">{k.sub}</div>
+          <div className="ph-stat" key={i}>
+            <div className="ph-stat-lbl">{k.lbl}</div>
+            <div className={"ph-stat-val" + (k.tone ? " " + k.tone : "")}>{k.val}</div>
+            <div className="ph-stat-sub">{k.sub}</div>
           </div>
         ))}
       </div>
@@ -1080,15 +1082,21 @@ function PartilhaInner() {
               {lista.map((g) => {
                 const s = grupoStats(g);
                 const pessoas = ["Eu", ...(g.membros || [])];
-                const ua = ultAtual(g);
-                const desc = g.descricao || (pessoas.length > 1 ? "Grupo com " + pessoas.length + " membros" : "Grupo pessoal");
+                const abrir = () => { setTab("dashboard"); setOpenId(g.id); };
                 return (
-                  <div className="card ph-gcard" key={g.id}>
-                    <div className="ph-gcard-top">
-                      <span className="ph-gico"><Icon name="users" size={18} color="#fff" /></span>
-                      <span className={"ph-state " + (g.arquivado ? "arch" : "on")}>{g.arquivado ? "Arquivado" : "Ativo"}</span>
-                      <div className="ph-menu-wrap">
-                        <button className="icon-btn" title="Ações" onClick={() => setMenuId(menuId === g.id ? null : g.id)}><Icon name="dots" size={18} /></button>
+                  // Cartão inteiro clicável (padrão de lista, não um botão isolado a competir
+                  // por atenção) — o menu de ações trava a propagação para não abrir o grupo
+                  // sem querer. Só mostra o estado quando é "Arquivado": ativo é o normal,
+                  // não precisa de o dizer sempre.
+                  <div className="card ph-gcard" key={g.id} onClick={abrir}>
+                    <div className="ph-gcard-head">
+                      <span className="ph-gico"><Icon name="users" size={17} color="#fff" /></span>
+                      <div className="ph-gcard-headtxt">
+                        <b className="ph-gname">{g.nome}</b>
+                        <span className="ph-gmeta">{pessoas.length} membro{pessoas.length !== 1 ? "s" : ""}{g.arquivado ? " · Arquivado" : ""}</span>
+                      </div>
+                      <div className="ph-menu-wrap" onClick={(e) => e.stopPropagation()}>
+                        <button className="icon-btn" title="Ações" onClick={() => setMenuId(menuId === g.id ? null : g.id)}><Icon name="dots" size={17} /></button>
                         {menuId === g.id && (
                           <div className="ph-menu">
                             <button onClick={() => { setMenuId(null); setEditId(g.id); }}><Icon name="edit" size={15} /> Editar</button>
@@ -1099,22 +1107,27 @@ function PartilhaInner() {
                         )}
                       </div>
                     </div>
-                    <b className="ph-gname">{g.nome}</b>
-                    <div className="ph-gdesc">{desc}</div>
-                    <div className="ph-gav">
-                      {pessoas.slice(0, 5).map((p) => <span className="prem-avatar sm" key={p} title={p}>{inicial(p)}</span>)}
-                      {pessoas.length > 5 && <span className="prem-avatar more sm">+{pessoas.length - 5}</span>}
-                      <span className="ph-gmembers">{pessoas.length} membros</span>
+
+                    {g.descricao && <div className="ph-gdesc">{g.descricao}</div>}
+
+                    <div className="ph-gcard-body">
+                      <div className="ph-gcard-figure">
+                        <span className="ph-gs-l">Movimentado</span>
+                        <span className="ph-gs-v">{BM.eur(s.total)}</span>
+                      </div>
+                      <div className={"ph-gcard-figure ph-gcard-saldo " + (s.saldo >= 0 ? "pos" : "neg")}>
+                        <span className="ph-gs-l">Saldo</span>
+                        <span className="ph-gs-v">{(s.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(s.saldo))}</span>
+                      </div>
                     </div>
-                    {/* "A receber"/"A pagar" juntam-se num único "Saldo" (a diferença entre
-                        os dois) — o detalhe completo continua no separador Saldos, ao abrir
-                        o grupo; aqui só o essencial para bater o olho e perceber a situação. */}
-                    <div className="ph-gstats ph-gstats-2">
-                      <div><span className="ph-gs-l">Movimentado</span><span className="ph-gs-v">{BM.eur(s.total)}</span></div>
-                      <div><span className="ph-gs-l">Saldo</span><span className={"ph-gs-v " + (s.saldo >= 0 ? "pos" : "neg")}>{(s.saldo >= 0 ? "+ " : "− ") + BM.eur(Math.abs(s.saldo))}</span></div>
+
+                    <div className="ph-gcard-foot">
+                      <div className="ph-gav">
+                        {pessoas.slice(0, 4).map((p) => <span className="prem-avatar sm" key={p} title={p}>{inicial(p)}</span>)}
+                        {pessoas.length > 4 && <span className="prem-avatar more sm">+{pessoas.length - 4}</span>}
+                      </div>
+                      <button className="ph-gopen" onClick={abrir}>Abrir <Icon name="chevR" size={13} /></button>
                     </div>
-                    <div className="ph-gfoot"><span className="tiny muted">{ua ? "Atualizado " + BM.fmtData(ua) : "Sem atividade"}</span></div>
-                    <button className="btn btn-primary ph-gopen" onClick={() => { setTab("dashboard"); setOpenId(g.id); }}>Abrir grupo <span style={{ display: "grid" }}><Icon name="chevR" size={15} color="#fff" /></span></button>
                   </div>
                 );
               })}

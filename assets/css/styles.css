@@ -9250,10 +9250,54 @@ input.range::-moz-range-thumb {
 /* ============================================================
    RENDE+ · Partilha — Dashboard de entrada (lista de grupos)
    ============================================================ */
-.ph-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+/* Barra de estatísticas: uma única faixa fina, não vários cartões com sombra
+   e ícone cada um — estes números pedem um relance, não atenção individual. */
+.ph-statsbar {
+  display: flex;
+  padding: 20px 24px;
+}
+
+.ph-stat {
+  flex: 1;
+  min-width: 0;
+  padding: 0 22px;
+  border-left: 1px solid var(--border);
+}
+
+.ph-stat:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+
+.ph-stat-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-3);
+  margin-bottom: 7px;
+}
+
+.ph-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.ph-stat-val.pos {
+  color: var(--pos);
+}
+
+.ph-stat-val.neg {
+  color: var(--neg);
+}
+
+.ph-stat-sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-top: 4px;
 }
 
 .ph-layout {
@@ -9336,7 +9380,8 @@ input.range::-moz-range-thumb {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease;
 }
 
@@ -9345,44 +9390,40 @@ input.range::-moz-range-thumb {
   box-shadow: 0 2px 6px rgba(16, 40, 28, .06), 0 22px 44px -24px rgba(16, 40, 28, .32);
 }
 
-.ph-gcard-top {
+.ph-gcard-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .ph-gico {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   flex: none;
-  border-radius: 11px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, var(--accent), #0e8659);
   color: #fff;
 }
 
-.ph-state {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 999px;
+.ph-gcard-headtxt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.ph-state.on {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.ph-state.arch {
-  background: var(--surface-2);
+.ph-gmeta {
+  font-size: 11.5px;
+  font-weight: 600;
   color: var(--ink-3);
-  border: 1px solid var(--border);
 }
 
 .ph-menu-wrap {
   position: relative;
-  margin-left: auto;
+  flex: none;
 }
 
 .ph-menu {
@@ -9431,16 +9472,22 @@ input.range::-moz-range-thumb {
 }
 
 .ph-gname {
-  font-size: 16px;
+  display: block;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: -.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ph-gdesc {
   font-size: 12.5px;
   color: var(--ink-3);
   font-weight: 500;
-  margin-top: -6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ph-gav {
@@ -9452,32 +9499,37 @@ input.range::-moz-range-thumb {
   margin-left: 0;
 }
 
-.ph-gmembers {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-left: 8px;
+.ph-gcard-body {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
-.ph-gstats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.ph-gcard-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 11px;
   padding: 10px 12px;
 }
 
-.ph-gstats-2 {
-  grid-template-columns: repeat(2, 1fr);
+.ph-gcard-saldo.pos {
+  border-color: color-mix(in srgb, var(--pos) 28%, var(--border));
 }
 
-.ph-gstats>div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.ph-gcard-saldo.neg {
+  border-color: color-mix(in srgb, var(--neg) 28%, var(--border));
+}
+
+.ph-gcard-saldo.pos .ph-gs-v {
+  color: var(--pos);
+}
+
+.ph-gcard-saldo.neg .ph-gs-v {
+  color: var(--neg);
 }
 
 .ph-gs-l {
@@ -9488,28 +9540,29 @@ input.range::-moz-range-thumb {
 }
 
 .ph-gs-v {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: -.01em;
 }
 
-.ph-gs-v.pos {
-  color: var(--pos);
-}
-
-.ph-gs-v.neg {
-  color: var(--neg);
-}
-
-.ph-gfoot {
+.ph-gcard-foot {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .ph-gopen {
-  width: 100%;
-  justify-content: center;
-  gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
 }
 
 /* criar novo grupo */
@@ -9625,14 +9678,21 @@ input.range::-moz-range-thumb {
     position: static;
   }
 
-  .ph-kpis {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 @media (max-width: 860px) {
-  .ph-kpis {
+  /* Abaixo de 4 colunas os separadores verticais deixam de fazer sentido —
+     passa a uma grelha 2x2 com espaço próprio em vez de bordas a meio. */
+  .ph-statsbar {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 14px 10px;
+    padding: 16px;
+  }
+
+  .ph-stat {
+    padding: 0;
+    border-left: none;
   }
 
   .ph-toolbar {
