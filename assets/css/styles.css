@@ -2718,18 +2718,27 @@ input.range::-moz-range-thumb {
     margin-top: 2px;
   }
 
+  /* Em mobile o "cartão" já vem do .page-intro (título + mês juntos, ver acima)
+     — sem isto, .page-intro-month somava o SEU PRÓPRIO cartão (fundo/borda/
+     sombra, definido para desktop) por cima, dando uma caixa dentro de caixa. */
   .page-intro-month {
     width: 100%;
     max-width: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
   }
 
   /* Seletor de mês compacto: sem a dica de gesto (o toque no mês já abre o
      calendário, arrastar continua a funcionar — a dica passou a ser redundante),
-     setas e texto mais pequenos, tudo dentro de uma pílula com fundo próprio. */
+     setas e texto mais pequenos. Sem fundo próprio — já está dentro do cartão
+     do .page-intro; ter aqui outro fundo/borda dava um efeito de "caixa dentro
+     de caixa". */
   .month-carousel {
-    background: var(--surface-2);
-    border-radius: var(--radius-sm);
-    padding: 6px 8px;
     gap: 4px;
   }
 
