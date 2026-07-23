@@ -564,7 +564,11 @@ function useCountUp(target, duration = 320) {
 function Kpi({ label, value, sub, icon, color, spark, deltaPct, rawValue, format }) {
   const animatedRaw = useCountUp(rawValue != null ? rawValue : null, 320);
   const displayValue = (rawValue != null && format) ? format(animatedRaw) : value;
-  const animatedPct = useCountUp(deltaPct != null ? deltaPct : null, 320);
+  // A percentagem mostrada nunca passa de 100% (só limita a apresentação — o
+  // sentido/cor sobem e descem continuam a refletir a variação real, por maior
+  // que seja; só o número exibido fica preso a [-100, 100]).
+  const deltaPctClamped = deltaPct != null ? Math.max(-100, Math.min(100, deltaPct)) : null;
+  const animatedPct = useCountUp(deltaPctClamped != null ? deltaPctClamped : null, 320);
 
   let deltaNode = null;
   if (deltaPct != null) {

@@ -709,12 +709,28 @@ function Despesas({ open }) {
   rows = [...rows].sort((a, b) => (b.data || "").localeCompare(a.data || ""));
   const total = rows.reduce((s, d) => s + (+d.valor || 0), 0);
 
+  // Percentagem face ao mês anterior, para os 3 KPIs desta página — mesma lógica
+  // já usada no Painel (pctChange com guarda de "mês a começar em 0", ver Dashboard).
+  const curS = fin.series[fin.series.length - 1];
+  const prevS = fin.series[fin.series.length - 2];
+  const pctChange = (curr, prev) => {
+    if (!prev) return null;
+    if (curr === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  };
+  const prevDespesas = prevS ? fin.data.despesas.filter((d) => BM.monthKey(d.data) === prevS.key) : [];
+  const prevFixas = prevDespesas.filter((d) => d.tipo === "fixa").reduce((s, d) => s + (+d.valor || 0), 0);
+  const prevVariaveis = prevDespesas.reduce((s, d) => s + (+d.valor || 0), 0) - prevFixas;
+  const totalDeltaPct = pctChange(fin.totalGasto, prevS ? prevS.gasto : null);
+  const fixasDeltaPct = pctChange(fin.fixas, prevFixas);
+  const variaveisDeltaPct = pctChange(fin.variaveis, prevVariaveis);
+
   return (
     <div className="content">
       <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-        <Kpi label={tr("exp_total")} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" sub={tt(fin.despMes.length === 1 ? "exp_moves_one" : "exp_moves_many", { n: fin.despMes.length })} />
-        <Kpi label={tr("exp_fixed")} value={BM.eur0(fin.fixas)} icon="home" color="var(--c-habitacao)" sub={tr("exp_fixed_sub")} />
-        <Kpi label={tr("exp_variable")} value={BM.eur0(fin.variaveis)} icon="cart" color="var(--c-alimentacao)" sub={tr("exp_variable_sub")} />
+        <Kpi label={tr("exp_total")} rawValue={fin.totalGasto} format={BM.eur0} value={BM.eur0(fin.totalGasto)} icon="wallet" color="var(--c-transporte)" deltaPct={totalDeltaPct} sub={tt(fin.despMes.length === 1 ? "exp_moves_one" : "exp_moves_many", { n: fin.despMes.length })} />
+        <Kpi label={tr("exp_fixed")} rawValue={fin.fixas} format={BM.eur0} value={BM.eur0(fin.fixas)} icon="home" color="var(--c-habitacao)" deltaPct={fixasDeltaPct} sub={tr("exp_fixed_sub")} />
+        <Kpi label={tr("exp_variable")} rawValue={fin.variaveis} format={BM.eur0} value={BM.eur0(fin.variaveis)} icon="cart" color="var(--c-alimentacao)" deltaPct={variaveisDeltaPct} sub={tr("exp_variable_sub")} />
       </div>
 
       {fin.despMes.length === 0 ? (
@@ -902,12 +918,27 @@ function Rendimentos({ open }) {
   const extra = fin.totalRec - rec;
   const rows = [...fin.rendMes].sort((a, b) => (b.data || "").localeCompare(a.data || ""));
 
+  // Percentagem face ao mês anterior, mesma lógica do Painel/Despesas.
+  const curS = fin.series[fin.series.length - 1];
+  const prevS = fin.series[fin.series.length - 2];
+  const pctChange = (curr, prev) => {
+    if (!prev) return null;
+    if (curr === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  };
+  const prevRendimentos = prevS ? fin.data.rendimentos.filter((r) => BM.monthKey(r.data) === prevS.key) : [];
+  const prevRec = prevRendimentos.filter((r) => r.rec).reduce((s, r) => s + (+r.valor || 0), 0);
+  const prevExtra = prevRendimentos.reduce((s, r) => s + (+r.valor || 0), 0) - prevRec;
+  const totalDeltaPct = pctChange(fin.totalRec, prevS ? prevS.rec : null);
+  const recDeltaPct = pctChange(rec, prevRec);
+  const extraDeltaPct = pctChange(extra, prevExtra);
+
   return (
     <div className="content">
       <div className="grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-        <Kpi label={tr("inc_total")} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" sub={tt(fin.rendMes.length === 1 ? "inc_source_one" : "inc_source_many", { n: fin.rendMes.length })} />
-        <Kpi label={tr("inc_recurring")} value={BM.eur0(rec)} icon="cal" color="var(--c-habitacao)" sub={tr("inc_every_month")} />
-        <Kpi label={tr("inc_extra")} value={BM.eur0(extra)} icon="spark" color="var(--c-educacao)" sub={tr("inc_extra_sub")} />
+        <Kpi label={tr("inc_total")} rawValue={fin.totalRec} format={BM.eur0} value={BM.eur0(fin.totalRec)} icon="arrowsDown" color="var(--accent)" deltaPct={totalDeltaPct} sub={tt(fin.rendMes.length === 1 ? "inc_source_one" : "inc_source_many", { n: fin.rendMes.length })} />
+        <Kpi label={tr("inc_recurring")} rawValue={rec} format={BM.eur0} value={BM.eur0(rec)} icon="cal" color="var(--c-habitacao)" deltaPct={recDeltaPct} sub={tr("inc_every_month")} />
+        <Kpi label={tr("inc_extra")} rawValue={extra} format={BM.eur0} value={BM.eur0(extra)} icon="spark" color="var(--c-educacao)" deltaPct={extraDeltaPct} sub={tr("inc_extra_sub")} />
       </div>
 
       {fin.rendMes.length === 0 ? (
