@@ -722,66 +722,87 @@ function Despesas({ open }) {
           msg={tr("exp_empty_msg")}
           action={<button className="btn btn-primary" onClick={() => open("despesa")}><Icon name="plus" size={16} color="#fff" /> {tr("add_expense")}</button>} />
       ) : (
-        <div className="card">
-          <div className="exp-filters card-pad">
-            <div className="seg exp-tipo-seg">
-              {["todas", "fixa", "variavel"].map((t) => (
-                <button key={t} className={tipo === t ? "on" : ""} onClick={() => setTipo(t)}>{t === "todas" ? tr("filter_all") : t === "fixa" ? tr("filter_fixed") : tr("filter_variable")}</button>
-              ))}
-            </div>
-            <div className="exp-cat-scroll">
-              <button className={"chip" + (cat === "todas" ? " sel" : "")} onClick={() => setCat("todas")}>{tr("filter_all")}</button>
-              {catKeys.filter((k) => fin.despMes.some((d) => d.cat === k)).map((k) => (
-                <button key={k} className={"chip" + (cat === k ? " sel" : "")} onClick={() => setCat(k)}>
-                  <span className="dot" style={{ background: cat === k ? "#fff" : BM.cats[k].color }} />{tcat(k)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="tbl-desktop-wrap" style={{ overflowX: "auto" }}>
-            <table className="t">
-              <thead><tr><th>{tr("th_expense")}</th><th>{tr("th_category")}</th><th>{tr("th_type")}</th><th>{tr("th_date")}</th><th style={{ textAlign: "right" }}>{tr("th_value")}</th><th></th></tr></thead>
-              <tbody>
-                {rows.map((d) => (
-                  <tr key={d.id}>
-                    <td><div className="row" style={{ gap: 12 }}><CatBadge catKey={d.cat} size={36} r={10} /><span style={{ fontWeight: 700 }}>{d.nome}</span></div></td>
-                    <td><span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="dot" style={{ background: (BM.cats[d.cat] || BM.cats.outros).color }} />{tcat(d.cat)}</span></td>
-                    <td><span className="chip" style={{ padding: "3px 9px" }}>{d.tipo === "fixa" ? tr("fixed") : tr("variable")}</span></td>
-                    <td className="muted">{BM.fmtData(d.data)}</td>
-                    <td className="tnum" style={{ textAlign: "right", fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</td>
-                    <td><div className="row" style={{ gap: 4, justifyContent: "flex-end" }}>
-                      <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => open("despesa", d)}><Icon name="edit" size={15} /></button>
-                      <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={15} /></button>
-                    </div></td>
-                  </tr>
+        <div className="grid" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+          <div className="card">
+            <div className="section-title" style={{ padding: "18px 18px 0" }}>{tr("exp_this_month")}</div>
+            <div className="exp-filters card-pad">
+              <div className="seg exp-tipo-seg">
+                {["todas", "fixa", "variavel"].map((t) => (
+                  <button key={t} className={tipo === t ? "on" : ""} onClick={() => setTipo(t)}>{t === "todas" ? tr("filter_all") : t === "fixa" ? tr("filter_fixed") : tr("filter_variable")}</button>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              <div className="exp-cat-scroll">
+                <button className={"chip" + (cat === "todas" ? " sel" : "")} onClick={() => setCat("todas")}>{tr("filter_all")}</button>
+                {catKeys.filter((k) => fin.despMes.some((d) => d.cat === k)).map((k) => (
+                  <button key={k} className={"chip" + (cat === k ? " sel" : "")} onClick={() => setCat(k)}>
+                    <span className="dot" style={{ background: cat === k ? "#fff" : BM.cats[k].color }} />{tcat(k)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="tbl-desktop-wrap" style={{ overflowX: "auto" }}>
+              <table className="t">
+                <thead><tr><th>{tr("th_expense")}</th><th>{tr("th_category")}</th><th>{tr("th_type")}</th><th>{tr("th_date")}</th><th style={{ textAlign: "right" }}>{tr("th_value")}</th><th></th></tr></thead>
+                <tbody>
+                  {rows.map((d) => (
+                    <tr key={d.id}>
+                      <td><div className="row" style={{ gap: 12 }}><CatBadge catKey={d.cat} size={36} r={10} /><span style={{ fontWeight: 700 }}>{d.nome}</span></div></td>
+                      <td><span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="dot" style={{ background: (BM.cats[d.cat] || BM.cats.outros).color }} />{tcat(d.cat)}</span></td>
+                      <td><span className="chip" style={{ padding: "3px 9px" }}>{d.tipo === "fixa" ? tr("fixed") : tr("variable")}</span></td>
+                      <td className="muted">{BM.fmtData(d.data)}</td>
+                      <td className="tnum" style={{ textAlign: "right", fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</td>
+                      <td><div className="row" style={{ gap: 4, justifyContent: "flex-end" }}>
+                        <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => open("despesa", d)}><Icon name="edit" size={15} /></button>
+                        <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={15} /></button>
+                      </div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Versão mobile: mesma lista de linhas (.li) já usada em Rendimentos, ao
-              lado — sem tabela nem scroll horizontal, tudo legível numa coluna só. */}
-          <div className="list tbl-mobile-list">
-            {rows.map((d) => (
-              <div className="li" key={d.id}>
-                <CatBadge catKey={d.cat} size={40} r={12} />
-                <div className="li-main">
-                  <div className="li-title">{d.nome}</div>
-                  <div className="li-sub">{tcat(d.cat)} · {d.tipo === "fixa" ? tr("fixed") : tr("variable")} · {BM.fmtData(d.data)}</div>
-                </div>
-                <div style={{ textAlign: "right", flex: "none" }}>
-                  <div className="tnum" style={{ fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</div>
-                  <div className="row" style={{ gap: 4, justifyContent: "flex-end", marginTop: 6 }}>
-                    <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => open("despesa", d)}><Icon name="edit" size={13} /></button>
-                    <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={13} /></button>
+            {/* Versão mobile: mesma lista de linhas (.li) já usada em Rendimentos, ao
+                lado — sem tabela nem scroll horizontal, tudo legível numa coluna só. */}
+            <div className="list tbl-mobile-list">
+              {rows.map((d) => (
+                <div className="li" key={d.id}>
+                  <CatBadge catKey={d.cat} size={40} r={12} />
+                  <div className="li-main">
+                    <div className="li-title">{d.nome}</div>
+                    <div className="li-sub">{tcat(d.cat)} · {d.tipo === "fixa" ? tr("fixed") : tr("variable")} · {BM.fmtData(d.data)}</div>
+                  </div>
+                  <div style={{ textAlign: "right", flex: "none" }}>
+                    <div className="tnum" style={{ fontWeight: 700, color: "var(--neg)" }}>−{BM.eur(d.valor)}</div>
+                    <div className="row" style={{ gap: 4, justifyContent: "flex-end", marginTop: 6 }}>
+                      <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => open("despesa", d)}><Icon name="edit" size={13} /></button>
+                      <button className="icon-btn" style={{ width: 28, height: 28 }} onClick={() => fin.despesa.remove(d.id)}><Icon name="trash" size={13} /></button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="card-pad row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border)" }}>
+              <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{tt(rows.length === 1 ? "results_one" : "results_many", { n: rows.length })}</span>
+              <span style={{ fontWeight: 700 }}>{tr("total_label")}: <span className="tnum">{BM.eur(total)}</span></span>
+            </div>
           </div>
-          <div className="card-pad row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border)" }}>
-            <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>{tt(rows.length === 1 ? "results_one" : "results_many", { n: rows.length })}</span>
-            <span style={{ fontWeight: 700 }}>{tr("total_label")}: <span className="tnum">{BM.eur(total)}</span></span>
+
+          {/* Por categoria: mesmo padrão já usado em "Origem dos rendimentos" (Rendimentos,
+              ao lado) e no Painel — reaproveita fin.catBreak (já calculado), nunca inventa
+              dados. Reflete sempre o mês inteiro, não a lista filtrada acima. */}
+          <div className="card card-pad">
+            <div className="section-title" style={{ marginBottom: 14 }}>{tr("dash_by_category")}</div>
+            <div className="row" style={{ gap: 20 }}>
+              <DonutChart data={fin.catBreak} center={<div><div className="tnum" style={{ fontSize: 20, fontWeight: 700 }}>{BM.eur0(fin.totalGasto)}</div><div className="tiny muted" style={{ fontWeight: 600 }}>{tr("per_month")}</div></div>} />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                {fin.catBreak.map((c) => (
+                  <div key={c.key} className="row" style={{ justifyContent: "space-between" }}>
+                    <span className="row" style={{ gap: 8, fontSize: 13, fontWeight: 600 }}><span className="dot" style={{ background: c.color }} />{tcat(c.key)}</span>
+                    <span className="tnum" style={{ fontWeight: 700, fontSize: 13 }}>{BM.eur0(c.valor)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

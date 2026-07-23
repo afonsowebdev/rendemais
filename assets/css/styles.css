@@ -1471,10 +1471,14 @@ table.t {
   .exp-tipo-seg {
     display: flex;
     width: 100%;
+    min-width: 0;
   }
 
   .exp-tipo-seg button {
     flex: 1;
+    min-width: 0;
+    padding-left: 4px;
+    padding-right: 4px;
     text-align: center;
   }
 
@@ -4293,6 +4297,14 @@ input.range::-moz-range-thumb {
   /* alertas 3 → 2 */
   .grid[style*="1.5fr"] {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Item de grelha sem min-width:0 não encolhe abaixo do min-content do seu
+     conteúdo (mesma família do bug já visto em flex) — com filtros/segmentados
+     dentro, isso fazia o cartão (e tudo lá dentro, ex.: .exp-tipo-seg) transbordar
+     para fora da coluna única em mobile, mesmo com a grelha já colapsada acima. */
+  .grid[style*="1.5fr"] > * {
+    min-width: 0;
   }
 
   /* gráfico + lista → empilhado */
