@@ -552,13 +552,22 @@ a:focus {
 }
 
 /* Navegação de mês, logo abaixo do header, sempre centrada — nunca colada ao
-   cartão principal que vem a seguir. Padding lateral igual ao do header/.content,
-   para o alinhamento vertical ficar consistente em toda a página. */
+   cartão principal que vem a seguir. Em desktop ganha o mesmo tratamento visual
+   de .card (vidro fosco, borda, sombra) para não ficar solta/vazia sobre o fundo
+   da página — mesma margem lateral do Topbar/.content, para o alinhamento vertical
+   ficar consistente em toda a página. */
 .page-intro {
   display: flex;
   justify-content: center;
-  padding: 28px 24px 4px;
+  padding: 20px 24px;
   flex-shrink: 0;
+  margin: 20px 24px 0;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .page-intro-month {
