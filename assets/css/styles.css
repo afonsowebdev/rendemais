@@ -7725,6 +7725,57 @@ input.range::-moz-range-thumb {
   text-overflow: ellipsis;
 }
 
+/* Seletor visual de dia do mês — grelha 7 colunas, um botão por dia. */
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.day-picker-btn {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-2);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+
+.day-picker-btn:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.day-picker-btn.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Disclosure "Mais opções" do formulário de recorrente — campos com valores
+   sensatos por omissão ficam escondidos até o utilizador pedir para os ver. */
+.sub-adv-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin: 2px 0 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* ===== Notificações (sino + painel) ===== */
 .notif-wrap {
   position: relative;
@@ -8688,96 +8739,6 @@ input.range::-moz-range-thumb {
   -webkit-backdrop-filter: blur(20px);
 }
 
-.pg-kpis {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-}
-
-.pg-kpi {
-  background: color-mix(in srgb, var(--surface) 82%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  padding: 16px 17px;
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-}
-
-.pg-kpi:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-strong);
-}
-
-.pg-kpi-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pg-kpi-lbl {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
-.pg-kpi-ic {
-  width: 36px;
-  height: 36px;
-  flex: none;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
-}
-
-.pg-kpi-v {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -.03em;
-  color: var(--ink);
-  line-height: 1.02;
-}
-
-.pg-kpi-v.pos {
-  color: var(--pos);
-}
-
-.pg-kpi-v.neg {
-  color: var(--neg);
-}
-
-.pg-kpi-l {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
-.pg-kpi-val {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-
-.pg-kpi-val.pos {
-  color: var(--pos);
-}
-
-.pg-kpi-val.neg {
-  color: var(--neg);
-}
-
-.pg-kpi-sub {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-
 .pg-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
@@ -8934,10 +8895,6 @@ input.range::-moz-range-thumb {
    RESPONSIVO — media queries (telemovel/tablet)
    ============================================================ */
 @media (max-width: 860px) {
-  .pg-kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .pg-grid {
     grid-template-columns: 1fr;
   }
@@ -10018,10 +9975,6 @@ input.range::-moz-range-thumb {
 /* ============================================================
    RENDE+ · Subscrições — gestor inteligente
    ============================================================ */
-.sub-kpis {
-  margin-bottom: 10px;
-}
-
 .sub-fil {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -10273,13 +10226,6 @@ input.range::-moz-range-thumb {
 }
 
 /* ============================================================
-   PREMIUM — paywall e funcionalidades
-   ============================================================ */
-.pg-kpi.sk {
-  pointer-events: none;
-}
-
-/* ============================================================
    SKELETONS (carregamento)
    ============================================================ */
 .sk-row {
@@ -10300,15 +10246,6 @@ input.range::-moz-range-thumb {
 /* ============================================================
    RENDE+ · Subscrições — refinamento visual (v2)
    ============================================================ */
-/* KPIs: ícone + valor com melhor hierarquia (já são cartões definidos) */
-.sub-kpis .pg-kpi-v {
-  font-size: 23px;
-}
-
-.sub-kpis .pg-kpi-ic {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 0%, var(--border));
-}
-
 /* toolbar: pesquisa bem mais larga e alinhada com os filtros */
 .sub-tools .ph-search {
   flex: 3;

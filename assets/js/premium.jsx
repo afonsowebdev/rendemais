@@ -195,9 +195,7 @@ function LembreteModal({ item, onClose, onSave }) {
 function Lembretes() {
   return <PremiumGate><LembretesInner /></PremiumGate>;
 }
-/* variant: undefined (ecrã completo, com tiles+filtros) | "hoje" | "proximos" | "concluidos"
-   — usado pela Agenda Financeira para mostrar cada separador sem duplicar a lógica de lembretes. */
-function LembretesInner({ variant }) {
+function LembretesInner() {
   const prem = usePremium();
   const todos = [...(prem.get().lembretes || [])].sort((a, b) => (a.data || "").localeCompare(b.data || ""));
   const [modal, setModal] = React.useState(null);
@@ -211,52 +209,44 @@ function LembretesInner({ variant }) {
   const totalAtrasado = atrasados.reduce((s, l) => s + (+l.valor || 0), 0);
   const totalPago = pagos.reduce((s, l) => s + (+l.valor || 0), 0);
 
-  const variantListas = { hoje: pendentes.filter((l) => daysUntil(l.data) <= 0), proximos: pendentes.filter((l) => daysUntil(l.data) > 0), concluidos: pagos };
-  const variantVazio = { hoje: "Sem lembretes para hoje ou em atraso.", proximos: "Sem lembretes futuros.", concluidos: "Ainda não há lembretes pagos." };
-  const lista = variant ? variantListas[variant] : (filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes);
+  const lista = filtro === "pagos" ? pagos : filtro === "atrasados" ? atrasados : filtro === "todos" ? todos : pendentes;
   const marcarPago = (l) => { if (l.repete) prem.edit("lembretes", l.id, { data: addMonths(l.data, 1) }); else prem.edit("lembretes", l.id, { pago: true }); };
 
-  const tiles = [
-    { id: "pendentes", label: "Por pagar", val: BM.eur(totalPendente), sub: pendentes.length + " lembrete" + (pendentes.length === 1 ? "" : "s"), tone: "" },
-    { id: "atrasados", label: "Atrasados", val: BM.eur(totalAtrasado), sub: atrasados.length + " em atraso", tone: "danger" },
-    { id: "pagos", label: "Pagos", val: BM.eur(totalPago), sub: pagos.length + " concluído" + (pagos.length === 1 ? "" : "s"), tone: "ok" },
+  // Uma faixa só de números (informação) + chips por baixo para filtrar — antes
+  // havia dois controlos diferentes a mexer no mesmo filtro (cartões clicáveis
+  // e chips), o que confundia mais do que ajudava.
+  const stats = [
+    { lbl: "Por pagar", val: BM.eur(totalPendente), sub: pendentes.length + " lembrete" + (pendentes.length === 1 ? "" : "s") },
+    { lbl: "Atrasados", val: BM.eur(totalAtrasado), sub: atrasados.length + " em atraso", tone: atrasados.length > 0 ? "neg" : undefined },
+    { lbl: "Pagos", val: BM.eur(totalPago), sub: pagos.length + " concluído" + (pagos.length === 1 ? "" : "s"), tone: "pos" },
   ];
 
   return (
-    <div className={variant ? "" : "content"}>
-      {!variant && <PremActions label="Novo lembrete" onAdd={() => setModal({})} />}
-      {variant && (
-        <div className="row" style={{ justifyContent: "flex-end", marginBottom: 14 }}>
-          <button className="btn btn-primary" onClick={() => setModal({})}><Icon name="plus" size={16} color="#fff" /> Novo lembrete</button>
-        </div>
-      )}
+    <div className="content">
+      <PremActions label="Novo lembrete" onAdd={() => setModal({})} />
       {todos.length === 0 ? (
         <EmptyState icon="bell" title="Sem lembretes" msg="Cria um lembrete e avisamos-te antes de cada conta vencer."
           action={<button className="btn btn-primary" onClick={() => setModal({})}><Icon name="plus" size={16} color="#fff" /> Criar lembrete</button>} />
       ) : (
         <>
-          {!variant && (
-            <>
-              <div className="prem-stats">
-                {tiles.map((t) => (
-                  <button key={t.id} className={"prem-stat " + (t.tone) + (filtro === t.id ? " on" : "")} onClick={() => setFiltro(t.id)}>
-                    <span className="prem-stat-l">{t.label}</span>
-                    <span className="prem-stat-v tnum">{t.val}</span>
-                    <span className="prem-stat-s">{t.sub}</span>
-                  </button>
-                ))}
+          <div className="card ph-statsbar">
+            {stats.map((s, i) => (
+              <div className="ph-stat" key={i}>
+                <div className="ph-stat-lbl">{s.lbl}</div>
+                <div className={"ph-stat-val" + (s.tone ? " " + s.tone : "")}>{s.val}</div>
+                <div className="ph-stat-sub">{s.sub}</div>
               </div>
+            ))}
+          </div>
 
-              <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                {[["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => (
-                  <button key={id} className={"chip" + (filtro === id ? " sel" : "")} onClick={() => setFiltro(id)} style={{ cursor: "pointer" }}>{lbl}</button>
-                ))}
-              </div>
-            </>
-          )}
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            {[["pendentes", "Por pagar"], ["atrasados", "Atrasados"], ["pagos", "Pagos"], ["todos", "Todos"]].map(([id, lbl]) => (
+              <button key={id} className={"chip" + (filtro === id ? " sel" : "")} onClick={() => setFiltro(id)} style={{ cursor: "pointer" }}>{lbl}</button>
+            ))}
+          </div>
 
           {lista.length === 0 ? (
-            <div className="card card-pad muted" style={{ textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>{variant ? variantVazio[variant] : "Nada nesta lista."}</div>
+            <div className="card card-pad muted" style={{ textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>Nada nesta lista.</div>
           ) : (
             <div className="card card-pad">
               {lista.map((l) => {
@@ -298,11 +288,15 @@ function Recorrentes() { return <PremiumGate><SubscricoesInner /></PremiumGate>;
    Reaproveita LembretesInner (com "variant" para pré-filtrar sem duplicar a lógica),
    SubscricoesInner e SubCalendario tal como já existem — não recria nada. */
 function AgendaFinanceira() { return <PremiumGate><AgendaFinanceiraInner /></PremiumGate>; }
+// De 5 para 3 separadores: "Hoje"/"Próximos"/"Concluídos" eram 3 vistas do mesmo
+// LembretesInner, que já tem os seus próprios chips de filtro (Por pagar/Atrasados/
+// Pagos/Todos) — juntá-los num só "Lembretes" tira um nível de navegação sem perder
+// nenhum filtro (é só um clique num chip em vez de um separador).
 function AgendaFinanceiraInner() {
   const prem = usePremium();
-  const [tab, setTab] = React.useState("hoje");
+  const [tab, setTab] = React.useState("lembretes");
   const recorrentes = prem.get().recorrentes || [];
-  const TABS = [["hoje", "Hoje"], ["proximos", "Próximos"], ["recorrentes", "Recorrentes"], ["calendario", "Calendário"], ["concluidos", "Concluídos"]];
+  const TABS = [["lembretes", "Lembretes"], ["recorrentes", "Recorrentes"], ["calendario", "Calendário"]];
   return (
     <>
       <div className="content" style={{ paddingBottom: 0 }}>
@@ -314,13 +308,10 @@ function AgendaFinanceiraInner() {
       </div>
       {tab === "recorrentes" ? (
         <SubscricoesInner />
+      ) : tab === "calendario" ? (
+        <div className="content"><SubCalendario subs={recorrentes} /></div>
       ) : (
-        <div className="content">
-          {tab === "hoje" && <LembretesInner variant="hoje" />}
-          {tab === "proximos" && <LembretesInner variant="proximos" />}
-          {tab === "calendario" && <SubCalendario subs={recorrentes} />}
-          {tab === "concluidos" && <LembretesInner variant="concluidos" />}
-        </div>
+        <LembretesInner />
       )}
     </>
   );
@@ -1455,6 +1446,21 @@ async function desmarcarRecorrente(prem, fin, id, mesRef) {
   prem.update({ pagosRec: { ...cur, [id]: ms } });
 }
 
+/* Seletor visual de dia do mês — em vez de um <input type="number"> às cegas,
+   mostra os dias como uma grelha clicável (como um mini-calendário). Limitado a
+   28 por omissão, o mesmo limite já usado no resto do módulo (proxRenovDate,
+   SubCalendario) para nunca cair num dia que não existe em fevereiro. */
+function DayPicker({ value, onChange, max = 28 }) {
+  const dias = Array.from({ length: max }, (_, i) => i + 1);
+  return (
+    <div className="day-picker" role="group" aria-label="Dia do mês">
+      {dias.map((d) => (
+        <button type="button" key={d} className={"day-picker-btn" + (value === d ? " on" : "")} onClick={() => onChange(d)}>{d}</button>
+      ))}
+    </div>
+  );
+}
+
 function SubModal({ mesAtual, sub, onClose, onSave }) {
   const editing = !!sub;
   const [base, setBase] = React.useState(editing ? { nome: sub.nome } : null); // null = ainda a escolher do catálogo
@@ -1462,6 +1468,9 @@ function SubModal({ mesAtual, sub, onClose, onSave }) {
     ? { tipo: recTipo(sub), nome: sub.nome || "", valor: String(sub.valor).replace(".", ","), dia: sub.dia || 1, icon: sub.icon || "tv", color: sub.color || "var(--accent)", ciclo: sub.ciclo || "mensal", categoria: recTipo(sub) === "despesa" ? (BM.cats[sub.categoria] ? sub.categoria : "outros") : subCat(sub), metodo: sub.metodo || "", estado: sub.estado || "ativa" }
     : { tipo: "subscricao", nome: "", valor: "", dia: 1, icon: "tv", color: "var(--accent)", ciclo: "mensal", categoria: "outros", metodo: "", estado: "ativa" });
   const [err, setErr] = React.useState("");
+  // Aberto por omissão ao editar (aí já interessam estes campos); fechado ao
+  // criar, para o fluxo rápido de "só o essencial" ficar mesmo rápido.
+  const [avancado, setAvancado] = React.useState(editing);
   const escolher = (c) => { setBase(c); setF({ tipo: "subscricao", nome: c.nome, valor: String(c.valor).replace(".", ","), dia: 1, icon: c.icon, color: c.color, ciclo: "mensal", categoria: ICON_CAT[c.icon] || "outros", metodo: "", estado: "ativa" }); setErr(""); };
   const outra = () => { setBase({ nome: "" }); setF({ tipo: "subscricao", nome: "", valor: "", dia: 1, icon: "spark", color: "var(--accent)", ciclo: "mensal", categoria: "outros", metodo: "", estado: "ativa" }); setErr(""); };
   const novaDespesa = () => { setBase({ nome: "" }); setF({ tipo: "despesa", nome: "", valor: "", dia: 1, icon: "home", color: "var(--c-habitacao)", ciclo: "mensal", categoria: "habitacao", metodo: "", estado: "ativa" }); setErr(""); };
@@ -1508,22 +1517,34 @@ function SubModal({ mesAtual, sub, onClose, onSave }) {
     <Modal title={editing ? (f.tipo === "despesa" ? "Editar despesa recorrente" : "Editar subscrição") : (base.nome || (f.tipo === "despesa" ? "Nova despesa recorrente" : "Nova subscrição"))}
       sub={f.tipo === "despesa" ? "Um pagamento que se repete todos os meses." : "Um serviço cobrado periodicamente."} icon="sync" onClose={onClose} wide
       footer={<><button className="btn btn-ghost" onClick={() => (editing ? onClose() : setBase(null))}>{editing ? "Cancelar" : "Voltar"}</button><button className="btn btn-primary" onClick={guardar}><Icon name="check" size={14} color="#fff" /> {editing ? "Guardar" : "Adicionar"}</button></>}>
-      <div className="modal-row-2">
-        <Field label="Tipo"><select className="select" value={f.tipo} onChange={mudarTipo}><option value="subscricao">Subscrição (serviço)</option><option value="despesa">Despesa periódica</option></select></Field>
-        <Field label="Nome"><input className="input" value={f.nome} onChange={upd("nome")} placeholder={f.tipo === "despesa" ? "Ex: Renda" : "Ex: Netflix"} /></Field>
-      </div>
-      <div className="modal-row-2">
-        <Field label="Valor" hint={f.tipo === "despesa" ? "Podes ajustar em cada mês." : "Ajusta ao teu plano."} icon="coins"><input className="input" inputMode="decimal" value={f.valor} onChange={upd("valor")} placeholder="0,00" /></Field>
-        <Field label="Ciclo de cobrança"><select className="select" value={f.ciclo} onChange={upd("ciclo")}><option value="mensal">Mensal</option><option value="anual">Anual</option><option value="semanal">Semanal</option></select></Field>
-      </div>
-      <div className="modal-row-2">
-        <Field label="Categoria"><select className="select" value={f.categoria} onChange={upd("categoria")}>{catOpts.map((o) => <option key={o.k} value={o.k}>{o.nome}</option>)}</select></Field>
-        <Field label={f.tipo === "despesa" ? "Dia de pagamento" : "Dia de renovação"}><input className="input" type="number" min="1" max="28" value={f.dia} onChange={upd("dia")} /></Field>
-      </div>
-      <div className="modal-row-2">
-        <Field label="Método de pagamento" hint="opcional"><input className="input" value={f.metodo} onChange={upd("metodo")} placeholder="Ex: Visa •• 42" /></Field>
-        <Field label="Estado"><select className="select" value={f.estado} onChange={upd("estado")}><option value="ativa">Ativa</option>{f.tipo !== "despesa" && <option value="trial">Trial (período gratuito)</option>}<option value="pausada">Pausada</option><option value="cancelada">Cancelada</option></select></Field>
-      </div>
+      {/* Só o essencial à vista: nome, valor e o dia (visual, não um número às
+          cegas). Tipo/ciclo/categoria/método/estado já têm valores sensatos por
+          omissão — ficam atrás de "Mais opções", aberto logo ao editar (aí já
+          interessam) e fechado ao criar (o fluxo rápido de "adicionar"). */}
+      <Field label="Nome"><input className="input" autoFocus value={f.nome} onChange={upd("nome")} placeholder={f.tipo === "despesa" ? "Ex: Renda" : "Ex: Netflix"} /></Field>
+      <Field label="Valor" hint={f.tipo === "despesa" ? "Podes ajustar em cada mês." : "Ajusta ao teu plano."} icon="coins"><input className="input" inputMode="decimal" value={f.valor} onChange={upd("valor")} placeholder="0,00" /></Field>
+      <Field label={f.tipo === "despesa" ? "Dia de pagamento" : "Dia de renovação"} hint="Todos os meses, neste dia.">
+        <DayPicker value={+f.dia || 1} onChange={(d) => setF((s) => ({ ...s, dia: d }))} />
+      </Field>
+
+      <button type="button" className="sub-adv-toggle" onClick={() => setAvancado((v) => !v)}>
+        <span style={{ display: "grid", transform: avancado ? "rotate(90deg)" : "none", transition: "transform .14s ease" }}><Icon name="chevR" size={13} /></span>
+        Mais opções
+      </button>
+
+      {avancado && (
+        <div className="sub-adv">
+          <div className="modal-row-2">
+            <Field label="Tipo"><select className="select" value={f.tipo} onChange={mudarTipo}><option value="subscricao">Subscrição (serviço)</option><option value="despesa">Despesa periódica</option></select></Field>
+            <Field label="Ciclo de cobrança"><select className="select" value={f.ciclo} onChange={upd("ciclo")}><option value="mensal">Mensal</option><option value="anual">Anual</option><option value="semanal">Semanal</option></select></Field>
+          </div>
+          <div className="modal-row-2">
+            <Field label="Categoria"><select className="select" value={f.categoria} onChange={upd("categoria")}>{catOpts.map((o) => <option key={o.k} value={o.k}>{o.nome}</option>)}</select></Field>
+            <Field label="Estado"><select className="select" value={f.estado} onChange={upd("estado")}><option value="ativa">Ativa</option>{f.tipo !== "despesa" && <option value="trial">Trial (período gratuito)</option>}<option value="pausada">Pausada</option><option value="cancelada">Cancelada</option></select></Field>
+          </div>
+          <Field label="Método de pagamento" hint="opcional"><input className="input" value={f.metodo} onChange={upd("metodo")} placeholder="Ex: Visa •• 42" /></Field>
+        </div>
+      )}
       {err && <div className="alert bad" style={{ padding: "9px 12px" }}><Icon name="info" size={16} color="var(--neg)" /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{err}</span></div>}
     </Modal>
   );
@@ -1534,7 +1555,7 @@ function Subscricoes() { return <PremiumGate><SubscricoesInner /></PremiumGate>;
 function SubSkeleton() {
   return (
     <>
-      <div className="ph-kpis sub-kpis">{[0, 1, 2, 3, 4].map((i) => <div className="pg-kpi sk" key={i}><div className="sk-box" style={{ width: 34, height: 34, borderRadius: 10 }} /><div className="sk-line" style={{ width: "60%", height: 20, marginTop: 12 }} /><div className="sk-line" style={{ width: "80%", height: 11, marginTop: 8 }} /></div>)}</div>
+      <div className="card ph-statsbar">{[0, 1, 2, 3, 4].map((i) => <div className="ph-stat" key={i}><div className="sk-line" style={{ width: "70%", height: 11 }} /><div className="sk-line" style={{ width: "60%", height: 20, marginTop: 8 }} /></div>)}</div>
       <div className="ph-layout">
         <div className="ph-main"><div className="card" style={{ padding: 16 }}>{[0, 1, 2, 3, 4].map((i) => <div className="sk-row" key={i}><div className="sk-box" style={{ width: 30, height: 30, borderRadius: 9 }} /><div className="sk-line" style={{ flex: 1, height: 13 }} /><div className="sk-line" style={{ width: 60, height: 13 }} /></div>)}</div></div>
         <div className="ph-aside"><div className="card card-pad" style={{ display: "grid", placeItems: "center", minHeight: 200 }}><div className="sk-box" style={{ width: 160, height: 160, borderRadius: "50%" }} /></div></div>
@@ -1626,12 +1647,14 @@ function SubscricoesInner() {
       <PremActions label="Adicionar recorrente" onAdd={abrirNova} />
 
       {loading ? <SubSkeleton /> : <>
-      <div className="ph-kpis sub-kpis">
-        <div className="pg-kpi"><div className="pg-kpi-ic" style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}><Icon name="wallet" size={17} color="var(--accent)" /></div><div className="pg-kpi-v tnum">{BM.eur(totalMes)}</div><div className="pg-kpi-l">Previsto este mês</div></div>
-        <div className="pg-kpi"><div className="pg-kpi-ic" style={{ background: "color-mix(in srgb, var(--pos) 15%, transparent)" }}><Icon name="check" size={17} color="var(--pos)" /></div><div className="pg-kpi-v tnum">{BM.eur(pagoMes)}</div><div className="pg-kpi-l">Pago este mês ({nPagas})</div></div>
-        <div className="pg-kpi"><div className="pg-kpi-ic" style={{ background: "color-mix(in srgb, #f0913a 16%, transparent)" }}><Icon name="history" size={17} color="#f0913a" /></div><div className="pg-kpi-v tnum">{BM.eur(faltaMes)}</div><div className="pg-kpi-l">Falta pagar</div></div>
-        <div className="pg-kpi"><div className="pg-kpi-ic" style={{ background: "color-mix(in srgb, #6366f1 15%, transparent)" }}><Icon name="sync" size={17} color="#6366f1" /></div><div className="pg-kpi-v tnum">{nAtivas}</div><div className="pg-kpi-l">Recorrentes ativas</div></div>
-        <div className="pg-kpi"><div className="pg-kpi-ic" style={{ background: "color-mix(in srgb, #a855f7 15%, transparent)" }}><Icon name="spark" size={17} color="#a855f7" /></div><div className="pg-kpi-v tnum">{prox30.length}</div><div className="pg-kpi-l">Pagamentos (30 dias)</div></div>
+      {/* Mesma barra usada na Partilha, em vez de 5 cartões com ícone cada um —
+          consistência visual e menos "caixas" para ler antes de chegar à lista. */}
+      <div className="card ph-statsbar">
+        <div className="ph-stat"><div className="ph-stat-lbl">Previsto este mês</div><div className="ph-stat-val">{BM.eur(totalMes)}</div></div>
+        <div className="ph-stat"><div className="ph-stat-lbl">Pago este mês</div><div className="ph-stat-val pos">{BM.eur(pagoMes)}</div><div className="ph-stat-sub">{nPagas} liquidado{nPagas === 1 ? "" : "s"}</div></div>
+        <div className="ph-stat"><div className="ph-stat-lbl">Falta pagar</div><div className={"ph-stat-val" + (faltaMes > 0 ? " neg" : "")}>{BM.eur(faltaMes)}</div></div>
+        <div className="ph-stat"><div className="ph-stat-lbl">Ativas</div><div className="ph-stat-val">{nAtivas}</div></div>
+        <div className="ph-stat"><div className="ph-stat-lbl">Próx. 30 dias</div><div className="ph-stat-val">{prox30.length}</div></div>
       </div>
 
       <div className="ph-layout">
