@@ -312,7 +312,7 @@ function AgendaFinanceiraInner() {
   return (
     <>
       <div className="content" style={{ marginBottom: 0 }}>
-        <div className="row" style={{ justifyContent: "space-between" }}>
+        <div className="row pg-tabs-bar" style={{ justifyContent: "space-between" }}>
           <div className="pg-tabs" style={{ width: "fit-content" }}>
             {TABS.map(([id, lbl]) => (
               <button type="button" key={id} className={"pg-tab" + (tab === id ? " on" : "")} onClick={() => setTab(id)}>{lbl}</button>

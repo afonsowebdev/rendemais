@@ -999,6 +999,21 @@ a:focus {
     white-space: nowrap;
   }
 
+  /* Agenda Financeira em mobile: separadores + botão "adicionar" deixam de
+     disputar a mesma linha (o que espremia os separadores a um scroll
+     horizontal apertado) e passam a duas linhas próprias, tal como o Painel
+     ("Nova transação" em destaque, separado dos botões secundários). */
+  .pg-tabs-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .pg-tabs-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .kpi-row {
     display: flex !important;
     overflow-x: auto;
