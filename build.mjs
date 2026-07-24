@@ -6,7 +6,9 @@ import { rmSync, mkdirSync, cpSync, existsSync, readFileSync, writeFileSync } fr
 
 const OUT = "dist";
 // ORDEM importa: é a mesma ordem em que o index.html carrega os scripts.
-const JSX = ["tweaks-panel", "icons", "charts", "finance", "components", "screens1", "screens2", "contas", "landing", "onboarding", "lock", "premium", "app"];
+// nota: removida a entrada "contas" (assets/js/contas.jsx não existe — o build
+// já falhava com ENOENT antes desta alteração, por causa disso).
+const JSX = ["tweaks-panel", "icons", "intro-video", "charts", "finance", "components", "screens1", "screens2", "landing", "onboarding", "lock", "premium", "app"];
 const BUILD = Date.now().toString(36); // id de versão para a cache (?v=)
 
 // limpa e recria dist/
@@ -31,6 +33,7 @@ for (const name of JSX) {
 for (const f of ["data.js", "api.js"]) cpSync(`assets/js/${f}`, `${OUT}/assets/js/${f}`);
 cpSync("assets/css", `${OUT}/assets/css`, { recursive: true });
 if (existsSync("assets/img")) cpSync("assets/img", `${OUT}/assets/img`, { recursive: true });
+if (existsSync("assets/video")) cpSync("assets/video", `${OUT}/assets/video`, { recursive: true });
 
 // 3) copia os estáticos da raiz (ícones, manifest, service worker, og-image…)
 const estaticos = [

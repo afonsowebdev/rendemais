@@ -440,6 +440,12 @@ function Shell() {
   const fin = useFinance();
   const prem = usePremium();
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  // Ecrã de introdução em vídeo: mostra-se uma única vez, no arranque desta
+  // instância da app (Shell só monta uma vez por carregamento de página — mudar
+  // de rota por dentro da app não volta a montar isto), antes de qualquer outro
+  // ecrã, sessão iniciada ou não. Ver o "return" mais abaixo, antes do
+  // "if (!fin.session)".
+  const [introDone, setIntroDone] = useState(false);
   const [route, setRoute] = useState("dashboard");
   const [authView, setAuthView] = useState(() => {
     const h = (window.location.hash || "").replace("#", "");
@@ -569,6 +575,10 @@ function Shell() {
       <TweakToggle label="Ocultar valores" value={ocultar} onChange={(v) => setTweak("ocultar", v)} />
     </TweaksPanel>
   );
+
+  // Vídeo de introdução primeiro que tudo — antes da landing e antes do ecrã
+  // que a app mostraria a seguir caso já houvesse sessão iniciada (ex.: Painel).
+  if (!introDone) return <IntroVideo onDone={() => setIntroDone(true)} />;
 
   if (!fin.session) {
     if (authView === "signup") return (<><Onboarding onBack={() => setAuthView(null)} onLogin={() => setAuthView("login")} />{panel}</>);
