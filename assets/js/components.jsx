@@ -659,6 +659,14 @@ function Modal({ title, sub, icon, iconNeg, onClose, children, footer, wide, asi
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+  // Bloqueia o scroll da página por trás do modal — sem isto, em mobile o
+  // fundo continua a fazer scroll por trás do overlay fixo, dando a
+  // sensação de que o modal "trava" enquanto o conteúdo por trás se mexe.
+  React.useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
   return (
     <div className="modal-bg" onClick={onClose}>
       <div className={"modal" + (wide ? " modal-wide" : "")} role="dialog" aria-modal="true" aria-label={ariaLabel || title} onClick={(e) => e.stopPropagation()}>
